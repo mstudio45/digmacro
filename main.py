@@ -143,7 +143,7 @@ def find_bar(region, sct):
     dirt_part_bbox_relative_to_bar = None
 
     blurred_bar = cv2.GaussianBlur(main_bar_img_gray, (5, 5), 0)
-    _, dirt_mask = cv2.threshold(blurred_bar, 40, 255, cv2.THRESH_BINARY_INV)
+    _, dirt_mask = cv2.threshold(blurred_bar, 20, 255, cv2.THRESH_BINARY_INV)
 
     if player_bar_bbox: # IGNORE PLAYER BAR
         px, py, pw, ph = player_bar_bbox
@@ -208,7 +208,7 @@ def find_bar(region, sct):
             center_x, center_y = player_bar_center
             cv2.circle(screenshot_bgr,  (center_x - regionLeft, center_y - regionTop), 5, (0, 125, 255), -1)
 
-    return is_player_bar_in_clickable_part, screenshot_bgr
+    return is_player_bar_in_clickable_part, dirt_mask
 
 # THREADS FOR ASYNC EXECUTION
 class HandleDebugWindowThread(threading.Thread):
