@@ -1,9 +1,8 @@
 # DIG macro
 <p align="center">
   <img width="60%" src="assets/showcase.gif" alt="Showcase video">
+  Auto minigame macro for [DIG](https://www.roblox.com/games/126244816328678/DIG). 
 </p>
-
-This macro was created for the Roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG). 
 
 > [!NOTE]
 > Do not expect this macro to succeed every time it attempts to dig.
