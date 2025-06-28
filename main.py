@@ -97,7 +97,6 @@ def find_bar(region, sct):
     regionLeft, regionTop, regionWidth, regionHeight = region['left'], region['top'], region['width'], region['height']
 
     screenshot_np = np.array(sct.grab(region), dtype=np.uint8)
-    screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
 
     if np.array_equal(screenshot_np[0][0], black_pixel) == False:
         if is_minigame_active_timeout is not None:
@@ -111,8 +110,8 @@ def find_bar(region, sct):
         if is_minigame_active_timeout is None:
             is_minigame_active_timeout = time.time()
 
-    gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
-    screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
+    gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2GRAY)
+    screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2BGR)
 
     # find the bar UI #
     bar_top_relative = regionHeight // 2 - 25
