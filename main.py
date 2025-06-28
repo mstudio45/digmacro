@@ -51,7 +51,7 @@ class Config:
 ###########################################################################################
 
 # CODE VARIABLES
-current_version = "1.0.0" # DON'T CHANGE THIS
+current_version = "1.0.1" # DON'T CHANGE THIS
 
 is_windows = platform.system() == "Windows"
 bar_region = {'left': 535, 'top': 755, 'width': 850, 'height': 125} # DON'T CHANGE THIS (535, 755, 850, 125)
@@ -66,6 +66,8 @@ click = lambda: _pynput_mouse_controller.click(Button.left, 1)
 
 # MAIN BAR HANDLER
 black_pixel = np.array([0, 0, 0, 255])
+# player_bar_blur_margin = 7
+
 def find_bar(region, sct):
     # cache region variables #
     regionLeft, regionTop, regionWidth, regionHeight = region['left'], region['top'], region['width'], region['height']
@@ -134,28 +136,33 @@ def find_bar(region, sct):
             if area / hull_area > 0.7:
                 x, y, w, h = cv2.boundingRect(hull)
                 center_y = y + h // 2
-                potential_player_bar = (x + w - 2, center_y, 5, 10)
+                potential_player_bar = (x + w - 1, center_y, 5, 10)
             
     if potential_player_bar:
-        player_bar_bbox = (regionLeft + bar_left_offset + potential_player_bar[0], regionTop + bar_top_offset, 5, bar_height)
-
-        cx, cy, cw, ch = player_bar_bbox
+        cx, cy, cw, ch = regionLeft + bar_left_offset + potential_player_bar[0], regionTop + bar_top_offset, 5, bar_height
+        player_bar_bbox = (cx, cy, cw, ch)
         player_bar_center = (cx + cw // 2, cy + ch // 2)
 
     # find the dirt part #
     dirt_part_bbox_relative_to_bar = None
 
-    blurred_bar = cv2.GaussianBlur(main_bar_img_gray, (5, 5), 0)
-    _, dirt_mask = cv2.threshold(blurred_bar, 20, 255, cv2.THRESH_BINARY_INV)
+    dirt_mask = cv2.GaussianBlur(main_bar_img_gray, (7, 5), 0)
+    _, dirt_mask = cv2.threshold(dirt_mask, 22, 255, cv2.THRESH_BINARY_INV)
 
-    if player_bar_bbox: # IGNORE PLAYER BAR
-        px, py, pw, ph = player_bar_bbox
-        exclude_x1 = max(0, px)
-        exclude_y1 = max(0, py)
-        exclude_x2 = min(dirt_mask.shape[1], px + pw)
-        exclude_y2 = min(dirt_mask.shape[0], py + ph)
-        cv2.rectangle(dirt_mask, (exclude_x1, exclude_y1), (exclude_x2, exclude_y2), 0, -1)
-
+    #if player_bar_bbox:  # IGNORE PLAYER BAR
+    #    p_left, p_top, p_width, p_height = player_bar_bbox
+    #
+    #    bar_relative_x = p_left - regionLeft
+    #    bar_relative_y = p_top - regionTop
+    #    bar_relative_x -= bar_left_offset
+    #    bar_relative_y -= bar_top_offset
+    #
+    #    x1 = bar_relative_x - player_bar_blur_margin
+    #    y1 = bar_relative_y - player_bar_blur_margin
+    #    x2 = bar_relative_x + p_width + player_bar_blur_margin
+    #    y2 = bar_relative_y + p_height + player_bar_blur_margin
+    #    cv2.rectangle(dirt_mask, (x1, y1), (x2, y2), 0, -1)
+    
     kernel_dirt = np.ones((7, 7), np.uint8)
     dirt_mask = cv2.morphologyEx(dirt_mask, cv2.MORPH_OPEN, kernel_dirt)
     dirt_mask = cv2.bitwise_not(dirt_mask)
@@ -205,7 +212,7 @@ def find_bar(region, sct):
         # draw the player bar #
         if player_bar_bbox:
             p_left, p_top, p_width, p_height = player_bar_bbox
-            cv2.rectangle(screenshot_bgr, (p_left - regionLeft, p_top - regionTop), (p_left - regionLeft + p_width, p_top - regionTop + p_height), (0, 50, 255), 2)
+            cv2.rectangle(screenshot_bgr, (p_left - regionLeft - 2, p_top - regionTop - 2), (p_left - regionLeft + p_width + 2, p_top - regionTop + p_height + 2), (0, 50, 255), -1)
         
         if player_bar_center:
             center_x, center_y = player_bar_center
