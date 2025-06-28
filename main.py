@@ -19,6 +19,7 @@
 # imports #
 import os, sys, time
 import platform, threading
+import requests, pymsgbox
 
 import numpy as np
 import cv2
@@ -50,6 +51,8 @@ class Config:
 ###########################################################################################
 
 # CODE VARIABLES
+current_version = "1.0.0" # DON'T CHANGE THIS
+
 is_windows = platform.system() == "Windows"
 bar_region = {'left': 535, 'top': 755, 'width': 850, 'height': 125} # DON'T CHANGE THIS (535, 755, 850, 125)
 
@@ -270,6 +273,15 @@ class PlayerBarThread(threading.Thread):
         self._stop_event.set()
 
 if __name__ == "__main__":
+    # UPDATE CHECK #
+    try:
+        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/VERSION")
+        version = req.text.replace("\n", "").replace("\r", "")
+        if version != current_version:
+            pymsgbox.alert(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {version}")
+    except Exception as e:
+        pymsgbox.alert(f"Failed to check for updates: {str(e)}")
+
     last_click_state = False
 
     # BAR DETECTOR
