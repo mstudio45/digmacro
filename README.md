@@ -1,5 +1,8 @@
 # DIG macro
-This macro was created for the Roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG). It will automatically dig for you.
+This macro was created for the Roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG). 
+
+> [!NOTE]
+> Do not expect this macro to succeed every time it attempts to dig.
 
 > [!WARNING]
 > **This macro can missclick and end your streak!** It may also fail frequently in specific situations (such as with snow).
