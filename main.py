@@ -37,7 +37,7 @@ class Config:
     CLICK_COOLDOWN = 0.275
     
     # PATHFINDING (experimental) #
-    PATHFINDING = True
+    PATHFINDING = False
 
     # DEBUG WINDOW #
     WINDOW_NAME = "Auto Dig by mstudio45"
