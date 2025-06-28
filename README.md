@@ -8,7 +8,7 @@
 > Do not expect this macro to succeed every time it attempts to dig.
 
 > [!WARNING]
-> **This macro can missclick and end your streak!** It may also fail frequently in specific situations (such as with snow).
+> **This macro will missclick and could end your streak!** It may also fail frequently in specific situations (such as with snow).
 
 ## Requirements
  * [Python](https://www.python.org/) **[Recommended version: 3.13]**
