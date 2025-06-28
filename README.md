@@ -34,7 +34,7 @@ This macro was created for the Roblox game [DIG](https://www.roblox.com/games/12
 
 3.  **Run the Script:**
     ```bash
-    python main.py
+    py main.py
     ```
 ## How to Stop
   * Simply **close the "debug" window**.
