@@ -4,4 +4,4 @@ pynput
 mss
 requests
 pymsgbox
-win32gui
+pywin32; sys_platform == "win32"
