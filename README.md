@@ -1,6 +1,6 @@
 # DIG macro
 <p align="center">
-  <img width="60%" src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase.gif" alt="Showcase video"> <br />
+  <img width="60%" src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase.gif" alt="Old showcase video"> <br />
   Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>.
 </p>
 
