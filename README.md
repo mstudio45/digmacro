@@ -48,8 +48,7 @@ You can tweak the script's behavior by modifying the settings at the top of the 
 | Variable                            | Description                                                                                                         |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `CLICKABLE_WIDTH`                   | Width of the "STRONG" clicking area.                                                                                
-| `CHECK_FOR_BLACK_SCREEN`            | Set to `False` to disable the background dimming check (**this will cause a lot of random left clicks**).               
+| `CHECK_FOR_BLACK_SCREEN`            | Set to `False` to disable the background dimming check (**this will cause a lot of random left clicks**).
+| `CLICK_COOLDOWN`                    | Cooldown for debounce in the click handler. (minimizes the missclicks, but makes the macro slower)         
 | `WINDOW_NAME`                       | Title of the Debug Window.                                                                                          
 | `SHOW_DEBUG`                        | Set to `False` to disable the debug window for a slight performance gain (it will open an window with no image instead so you can easily stop the macro).
-| `MIN_BAR_HEIGHT` / `MAX_BAR_HEIGHT` | Detection variables of the bar UI. (experimental)
-| `INTENSITY_DIFF_THRESHOLD`          | Sensitivity for detecting the top and bottom of the bar UI. (experimental)
