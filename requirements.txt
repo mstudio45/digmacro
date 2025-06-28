@@ -4,3 +4,4 @@ pynput
 mss
 requests
 pymsgbox
+win32gui
