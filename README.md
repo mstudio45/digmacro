@@ -51,7 +51,7 @@ You can tweak the script's behavior by modifying the settings at the top of the 
 | `CHECK_FOR_BLACK_SCREEN`            | Set to `False` to disable the background dimming check (**this will cause a lot of random left clicks**).
 | `CLICK_COOLDOWN`                    | Cooldown for debounce in the click handler. (minimizes the missclicks, but makes the macro slower)         
 |                                     | 
-| `PATHFINDING`                       | Set to `True` to enable pathfinding. (make sure there is space around you - it will try to stay in a small box **experimental**)         
+| `PATHFINDING`                       | Set to `True` to enable pathfinding. (make sure there is space around you - it will try to stay in a small box - **experimental**)         
 |                                     | 
 | `WINDOW_NAME`                       | Title of the Debug Window.                                                                                          
 | `SHOW_DEBUG`                        | Set to `False` to disable the debug window for a slight performance gain (it will open an window with no image instead so you can easily stop the macro).
