@@ -208,7 +208,7 @@ def find_bar(region, sct):
             center_x, center_y = player_bar_center
             cv2.circle(screenshot_bgr,  (center_x - regionLeft, center_y - regionTop), 5, (0, 125, 255), -1)
 
-    return is_player_bar_in_clickable_part, dirt_mask
+    return is_player_bar_in_clickable_part, screenshot_bgr
 
 # THREADS FOR ASYNC EXECUTION
 class HandleDebugWindowThread(threading.Thread):
