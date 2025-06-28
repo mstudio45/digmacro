@@ -1,4 +1,8 @@
 # DIG macro
+<p align="center">
+  <img width="60%" src="assets/showcase.gif" alt="Showcase video">
+</p>
+
 This macro was created for the Roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG). 
 
 > [!NOTE]
