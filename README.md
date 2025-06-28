@@ -4,6 +4,9 @@
   Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>.
 </p>
 
+> [!WARNING]
+> **I'm working on fixing this for Windows 11!**
+
 > [!NOTE]
 > Do not expect this macro to succeed every time it attempts to dig.
 
