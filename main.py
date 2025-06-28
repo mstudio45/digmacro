@@ -76,7 +76,7 @@ def find_bar(region, sct):
     gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
     screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
 
-    # --- 1) Find the Full Bar Region ---
+    # find the bar UI #
     bar_top_relative = -1
     bar_bottom_relative = -1
 
@@ -110,7 +110,7 @@ def find_bar(region, sct):
     bar_left_offset, bar_top_offset, bar_width = (0, bar_top_relative, regionWidth)
     main_bar_img_gray = gray_screenshot[bar_top_offset : bar_top_offset + bar_height, bar_left_offset : bar_left_offset + bar_width]
    
-    # --- 2) Find the player bar ---
+    # find the player bar #
     player_bar_center = None
     player_bar_bbox = None
 
@@ -139,7 +139,7 @@ def find_bar(region, sct):
         cx, cy, cw, ch = player_bar_bbox
         player_bar_center = (cx + cw // 2, cy + ch // 2)
 
-    # --- 3) Find the "Dirt Region", IGNORING the player bar ---
+    # find the dirt part #
     dirt_part_bbox_relative_to_bar = None
 
     blurred_bar = cv2.GaussianBlur(main_bar_img_gray, (5, 5), 0)
@@ -166,7 +166,7 @@ def find_bar(region, sct):
     else:
         return False, screenshot_bgr
 
-    # --- 4) Define the "Clickable Part" ---
+    # resize the dirt part to define the clickable part #
     clickable_part_bbox = None
     if dirt_part_bbox_relative_to_bar:
         dx, dy, dw, dh = dirt_part_bbox_relative_to_bar
@@ -178,7 +178,7 @@ def find_bar(region, sct):
             dh
         )
 
-    # --- 5) Check for intersection ---
+    # check if the player bar (center) is inside the clickable part #
     is_player_bar_in_clickable_part = False
     if clickable_part_bbox and player_bar_center:
         c_left, _, c_width, _ = clickable_part_bbox
@@ -186,7 +186,7 @@ def find_bar(region, sct):
         if (p_center_x >= c_left and p_center_x <= c_left + c_width):
             is_player_bar_in_clickable_part = True
 
-    # --- 6) Draw on the Image for Display ---
+    # create the debug image for the debug window #
     if Config.SHOW_DEBUG == True:
         cv2.rectangle(screenshot_bgr, (bar_left_offset, bar_top_offset), (bar_left_offset + bar_width, bar_top_offset + bar_height), (0, 255, 0) if is_player_bar_in_clickable_part else (0, 0, 255), 2)
         
