@@ -17,15 +17,18 @@
 # This file may have been modified from its original version.
 
 # imports #
-import os, sys, time
+import os, sys, time, random, subprocess
 import platform, threading
 import requests, pymsgbox
 
 import numpy as np
 import cv2
 import mss
+import pynput
 
-from pynput.mouse import Controller, Button
+current_os = platform.system() # == "Windows"
+if current_os == "Windows":
+    import win32gui
 
 # settings #
 class Config:
@@ -33,6 +36,9 @@ class Config:
     CHECK_FOR_BLACK_SCREEN = True
     CLICK_COOLDOWN = 0.275
     
+    # PATHFINDING (experimental) #
+    PATHFINDING = True
+
     # DEBUG WINDOW #
     WINDOW_NAME = "Auto Dig by mstudio45"
     SHOW_DEBUG = True
@@ -48,32 +54,62 @@ class Config:
 
 # CODE VARIABLES
 current_version = "1.0.2" # DON'T CHANGE THIS
-
-is_windows = platform.system() == "Windows"
 bar_region = {'left': 520, 'top': 840, 'width': 885, 'height': 50} # DON'T CHANGE THIS (535, 755, 850, 125)
 
+running = True
 can_click = False
 debug_img = None
-running = True
+
+is_minigame_active = False
+is_minigame_active_timeout = None
+pathfinding_currently = False
 
 # CLICK FUNCTION
-_pynput_mouse_controller = Controller()
-click = lambda: _pynput_mouse_controller.click(Button.left, 1)
+movement_keys = ["w", "a", "s", "d"]
+opposite_movement_keys = { "w": "s",   "a": "d",    "s": "w",    "d": "a" }
+_pynput_mouse_controller = pynput.mouse.Controller()
+_pynput_keyboard_controller = pynput.keyboard.Controller()
+click = lambda: _pynput_mouse_controller.click(pynput.mouse.Button.left, 1)
+
+def is_roblox_focused():
+    try:
+        if current_os == "Windows":
+            title = win32gui.GetWindowText(win32gui.GetForegroundWindow())
+            return "roblox" in title.lower()
+            
+        elif current_os == "Linux":
+            title = subprocess.Popen(["xprop", "-id", subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE).communicate()[0].strip().split()[-1], "WM_NAME"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].strip().split('"', 1)[-1][:-1]
+            return "sober" in title.lower()
+            
+    except Exception as e:
+        print(f"Error checking focus: {e}")
+
+    return False
 
 # MAIN BAR HANDLER
 black_pixel = np.array([0, 0, 0, 255])
 # player_bar_blur_margin = 7
 
 def find_bar(region, sct):
+    global is_minigame_active, is_minigame_active_timeout
+
     # cache region variables #
     regionLeft, regionTop, regionWidth, regionHeight = region['left'], region['top'], region['width'], region['height']
 
     screenshot_np = np.array(sct.grab(region), dtype=np.uint8)
     screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
 
-    if Config.CHECK_FOR_BLACK_SCREEN:
-        if np.array_equal(screenshot_np[0][0], black_pixel) == False:
+    if np.array_equal(screenshot_np[0][0], black_pixel) == False:
+        if is_minigame_active_timeout is not None:
+            if time.time() - is_minigame_active_timeout > 7.5:
+                is_minigame_active = False
+        
+        if Config.CHECK_FOR_BLACK_SCREEN:
             return False, screenshot_np
+    else:
+        is_minigame_active = True
+        if is_minigame_active_timeout is None:
+            is_minigame_active_timeout = time.time()
 
     gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
     screenshot_bgr = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
@@ -211,10 +247,10 @@ class HandleDebugWindowThread(threading.Thread):
                 break  
         
             if self.enabled:
-                if is_windows == False:
-                    os.system(f'wmctrl -r "{self.window_name}" -b add,above')
-                else:
+                if current_os == "Windows":
                     cv2.setWindowProperty(self.window_name, cv2.WND_PROP_TOPMOST, 1)
+                else:
+                    os.system(f'wmctrl -r "{self.window_name}" -b add,above')
                 
                 if debug_img is not None:
                     cv2.imshow(self.window_name, debug_img)
@@ -236,16 +272,75 @@ class PlayerBarThread(threading.Thread):
     def run(self):
         global can_click, debug_img
         sct = mss.mss()
+        event = threading.Event()
 
         while not self._stop_event.is_set():
             try:
                 can_click, debug_img = find_bar(self.target_region, sct=sct)
             except Exception as e:
                 print(e)
-            time.sleep(0)
+            event.wait(0)
 
     def stop(self):
         self._stop_event.set()
+
+class PathfindingThread(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.key_history = []
+        self.replaying_reverse = False
+
+        self._stop_event = threading.Event()
+        self.daemon = True
+    
+    def run(self):
+        global pathfinding_currently, is_minigame_active
+
+        while not self._stop_event.is_set():
+            if Config.PATHFINDING and not pathfinding_currently and not is_minigame_active:
+                if is_roblox_focused():
+                    pathfinding_currently = True
+
+                    # get random key (or replay events to get back at old pos) and duration #
+                    key = "w"
+                    duration = 0.6
+
+                    if self.replaying_reverse and len(self.key_history) >= 1:
+                        key, duration = self.key_history.pop()
+                        key = opposite_movement_keys[key]
+                    else:
+                        key = random.choice(movement_keys)
+                        duration = random.uniform(0.3, 0.6)
+                        self.replaying_reverse = False
+
+                        # add to key history #
+                        self.key_history.append((key, duration))
+                        if len(self.key_history) >= 5:
+                            self.replaying_reverse = True
+
+                    # press the key #
+                    _pynput_keyboard_controller.press(key)
+                    time.sleep(duration)
+                    _pynput_keyboard_controller.release(key)
+                    time.sleep(0.1)
+
+                    # click after walking away and if minigame is not active (to away missclicks) #
+                    if is_minigame_active == False:
+                        click()
+
+                    time.sleep(0.1)
+                    pathfinding_currently = False
+            time.sleep(2.5)
+
+    def stop(self):
+        self._stop_event.set()
+
+def stopThread(thread_name, thead):
+    if thead and thead.is_alive():
+        thead.stop()
+        thead.join(timeout=3)
+        if thead.is_alive():
+            print(f"Warning: {thread_name} did not stop gracefully.")
 
 if __name__ == "__main__":
     # UPDATE CHECK #
@@ -263,6 +358,10 @@ if __name__ == "__main__":
     player_thread = PlayerBarThread(bar_region)
     player_thread.start()
 
+    # PATHFINDING
+    pathfinding_thread = PathfindingThread()
+    pathfinding_thread.start()
+
     # DEBUG WINDOW (Keep Above)
     debug_window_thread = HandleDebugWindowThread(Config.SHOW_DEBUG, Config.WINDOW_NAME)
     debug_window_thread.start()
@@ -270,12 +369,13 @@ if __name__ == "__main__":
     # CLICK HANDLER
     try:
         while running:
-            if can_click and not last_click_state:
-                last_click_state = True
-                click()
-                time.sleep(Config.CLICK_COOLDOWN)
-            else:
-                last_click_state = False
+            if not pathfinding_currently:
+                if can_click and not last_click_state:
+                    last_click_state = True
+                    click()
+                    time.sleep(Config.CLICK_COOLDOWN)
+                else:
+                    last_click_state = False
             time.sleep(0)
 
     except KeyboardInterrupt:
@@ -286,17 +386,9 @@ if __name__ == "__main__":
 
     finally:
         print("Stopping threads and cleaning up...")
-        if debug_window_thread and debug_window_thread.is_alive():
-            debug_window_thread.stop()
-            debug_window_thread.join(timeout=1)
-            if debug_window_thread.is_alive():
-                print("Warning: debug_window_thread did not stop gracefully.")
-
-        if player_thread and player_thread.is_alive():
-            player_thread.stop()
-            player_thread.join(timeout=1)
-            if player_thread.is_alive():
-                print("Warning: player_thread did not stop gracefully.")
+        stopThread("pathfinding_thread", pathfinding_thread)
+        stopThread("player_thread", player_thread)
+        stopThread("debug_window_thread", debug_window_thread)
 
         cv2.destroyAllWindows()
         print("Exited.")
