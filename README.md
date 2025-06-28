@@ -1,6 +1,6 @@
 # DIG macro
 <p align="center">
-  <img width="60%" src="assets/showcase.gif" alt="Showcase video">
+  <img width="60%" src="assets/showcase.gif" alt="Showcase video"> <br />
   Auto minigame macro for [DIG](https://www.roblox.com/games/126244816328678/DIG). 
 </p>
 
