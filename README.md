@@ -20,13 +20,15 @@
     - On Fedora: `sudo dnf install wmctrl`
 
 ## Installation
-1.  **Clone or Download:**
+1.  **Clone:**
     ```bash
     git clone https://github.com/mstudio45/digmacro
-    cd digmacro
     ```
+    or **Download the ZIP and extract it**: https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip
+
+3. **Go inside the directory (digmacro or digmacro-main).**
     
-2.  **Install Dependencies:**
+4.  **Install Dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
