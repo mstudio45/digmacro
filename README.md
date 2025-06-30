@@ -1,3 +1,6 @@
+> [!WARNING]
+> **THIS IS A PRE-RELEASE VERSION OF THE NEXT UPDATE. IT IS WORK IN PROGRESS AND IT MAY NOT WORK CORRECTLY**
+
 # DIG macro
 <p align="center">
     <img width="60%" src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase-v2.gif" alt="Old showcase video"> <br />
