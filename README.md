@@ -21,9 +21,9 @@
 > [!WARNING]
 > The speed of the macro can depend on your computer's performance. **This macro will missclick and could end your streak!**
 
-1. **Download:** https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip
-2. **Extract the downloaded zip file (digmacro-main.zip).**
-3. **Open the folder (digmacro-main).**
+1. **Download:** https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip
+2. **Extract the downloaded zip file (digmacro-dev.zip).**
+3. **Open the folder (digmacro-dev).**
 
 ## How to Run
 1.  **Change the in-game settings:**
