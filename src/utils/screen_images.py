@@ -10,10 +10,13 @@ __all__ = [
 ]
 
 # get the display resolution to support all window sizes #
+scale_x, scale_y, scale_factor = 1, 1, 0.5
+current_screen_width, current_screen_height = BASE_RESOLUTION
+base_width, base_height = BASE_RESOLUTION
+
 try:
     current_screen_width, current_screen_height = pyautogui.size()
-    base_width, base_height = BASE_RESOLUTION
-
+    
     scale_x = current_screen_width / base_width
     scale_y = current_screen_height / base_height
     scale_factor = (scale_x + scale_y) / 2.0
