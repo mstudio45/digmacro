@@ -15,7 +15,7 @@
 * [Configuration](#configuration)
 
 ## Requirements
- * [Python](https://www.python.org/) **[Recommended version: 3.11, 3.13]**
+ * [Python](https://www.python.org/) **[Recommended version: 3.13]**
 
 ## Installation
 > [!WARNING]
