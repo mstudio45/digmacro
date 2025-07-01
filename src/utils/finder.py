@@ -51,7 +51,7 @@ class BarUI:
 
         # try to find the bar UI sides using images #
         left_location, right_location = None, None
-        while left_location == None and right_location == None and Variables.running == True:
+        while (left_location == None or right_location == None) and Variables.running == True:
             left_location    = find_image(LEFT_SIDE_IMG,  Config.SIDE_CONFIDENCE)
             right_location   = find_image(RIGHT_SIDE_IMG, Config.SIDE_CONFIDENCE)
             time.sleep(0.1)
