@@ -8,6 +8,13 @@ __all__ = ["Config"]
 
 # this shit pmo fr #
 settings_table = {
+    "TARGET_FPS": {
+        "widget": "QSpinBox",
+        "tooltip": "Target Frames Per Second for the macro.",
+        "min": 1,
+        "max": 240
+    },
+
     "USE_SAVED_POSITION": {
         "widget": "QCheckBox",
         "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
@@ -16,23 +23,31 @@ settings_table = {
         "widget": "QCheckBox",
         "tooltip": "Auto clicks to start the minigame so you don't need to use an auto clicker."
     },
-    "CLICK_COOLDOWN": {
+
+    "MIN_CLICK_INTERVAL": {
         "widget": "QSpinBox",
-        "tooltip": "Cooldown for the next click in the minigame (in milliseconds).",
+        "tooltip": "Minimum time between clicks (in milliseconds).",
         "min": 0,
-        "max": 1000
+        "max": 150
     },
+
     "CLICKABLE_WIDTH": {
         "widget": "QSpinBox",
-        "tooltip": "The width of the 'STRONG' clicking area (in pixels or a relative unit).",
+        "tooltip": "The width of the 'STRONG' clicking area.",
         "min": 0,
         "max": 100
     },
-    "TARGET_FPS": {
+    "PLAYER_BAR_WIDTH":{
         "widget": "QSpinBox",
-        "tooltip": "Target Frames Per Second for the macro.",
-        "min": 1,
-        "max": 240
+        "tooltip": "The width of the player bar.",
+        "min": 2,
+        "max": 10
+    },
+    "DIRT_SATURATION_THRESHOLD": {
+        "widget": "QSpinBox",
+        "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
+        "min": 15,
+        "max": 50
     },
     
     "PATHFINDING": {
@@ -131,19 +146,26 @@ class ConfigManager:
         self.config_file = config_file
 
         self.config = {}
-        self.pathfinding_macros = {}
+        self.PathfindingMacros = {}
 
         self._set_default_config()
         # self.load_config()
 
     def _set_default_config(self):
-        self.config = {
-            "MINIGAME SETTINGS": {
+        self.default_config = {
+            "SYSTEM": {
+                "TARGET_FPS": 120
+            },
+
+            "MINIGAME": {
                 "USE_SAVED_POSITION": True,
+
                 "AUTO_START_MINIGAME": False,
-                "CLICK_COOLDOWN": 50,
-                "CLICKABLE_WIDTH": 25,
-                "TARGET_FPS": 120,
+                "MIN_CLICK_INTERVAL": 50,
+
+                "CLICKABLE_WIDTH": 20,
+                "PLAYER_BAR_WIDTH": 2,
+                "DIRT_SATURATION_THRESHOLD": 25,
             },
 
             "PATHFINDING": {
@@ -179,11 +201,11 @@ class ConfigManager:
             },
 
             "DEBUG SCREENSHOTS": {
-                "PREDICTION_SCREENSHOTS": True,
+                "PREDICTION_SCREENSHOTS": False,
             },
         }
 
-        self.pathfinding_macros = {
+        self.default_PathfindingMacros = {
             "square": [["w", 1.0], ["d", 1.0], ["s", 1.0], ["a", 1.0]],
             "big_square": [["w", 1.5], ["d", 1.5], ["s", 1.5], ["a", 1.5]],
             "rectangle": [["w", 1.0], ["d", 0.5], ["s", 1.0], ["a", 0.5]],
@@ -233,9 +255,18 @@ class ConfigManager:
             ],
         }
 
+        # copy the tables #
+        self.config = self.default_config.copy()
+        self.PathfindingMacros = self.default_PathfindingMacros.copy()
+
+        # set the default config #
+        for section in self.config:
+            for key in self.config[section]:
+                setattr(self, key, self.config[section][key])
+
     def _format_pathfinding_macros(self):
         macro_strings = []
-        for name, keys in self.pathfinding_macros.items():
+        for name, keys in self.PathfindingMacros.items():
            keys_string = json.dumps(keys)[1:][:-1]
            macro_strings.append(f'    "{name}": [\n        {keys_string}\n    ]')
 
@@ -262,18 +293,29 @@ class ConfigManager:
             
             for key in self.config[section]:
                 try:
-                    # Attempt to convert to appropriate type
                     if isinstance(self.config[section][key], bool):
+                        value = parser.getboolean(section, key)
+
                         self.config[section][key] = parser.getboolean(section, key)
+                        setattr(self, key,  value)
 
                     elif isinstance(self.config[section][key], int):
+                        value = parser.getint(section, key)
+
                         self.config[section][key] = parser.getint(section, key)
+                        setattr(self, key,  value)
 
                     elif isinstance(self.config[section][key], float):
-                        self.config[section][key] = parser.getfloat(section, key)
+                        value = parser.getfloat(section, key)
+
+                        self.config[section][key] = value
+                        setattr(self, key,  value)
 
                     else:
-                        self.config[section][key] = parser.get(section, key)
+                        value = parser.get(section, key)
+
+                        self.config[section][key] = value
+                        setattr(self, key,  value)
 
                 except ValueError:
                     print(f"[ConfigManager.load_config] Warning: Could not parse config value for '[{section}]{key}'. Using default.")
@@ -284,7 +326,7 @@ class ConfigManager:
         # load PathfindingMacros #
         if os.path.isfile(StaticVariables.pathfinding_macros_filepath):
             try:
-                self.pathfinding_macros = json.loads(read(StaticVariables.pathfinding_macros_filepath))
+                self.PathfindingMacros = json.loads(read(StaticVariables.pathfinding_macros_filepath))
             except json.JSONDecodeError:
                 print("[ConfigManager.load_config] Warning: Could not decode 'PathfindingMacros' from config file. Using defaults.")
 
@@ -311,18 +353,15 @@ class ConfigManager:
     # setter #
     def set(self, section, key, value):
         if section in self.config and key in self.config[section]:
+            setattr(self, key,  value)
             self.config[section][key] = value
             self.save_config() # instant save #
         else:
             raise ValueError(f"[ConfigManager.set] Section '{section}' or key '{key}' not found in configuration.")
 
-    # pathfinding getter #
-    def get_pathfinding_macros(self):
-        return self.pathfinding_macros
-
     # pathfinding setter #
     def set_pathfinding_macros(self, macros):
-        self.pathfinding_macros = macros
+        self.PathfindingMacros = macros
         self.save_config() # instant save #
 
     # reset #
@@ -331,19 +370,9 @@ class ConfigManager:
         self.save_config()
         print("[ConfigManager.reset_to_defaults] Configuration reset to default values.")
 
-    # atrribute system for easier access #
-    def __getattr__(self, name):
-        if name == "PathfindingMacros":
-            return self.pathfinding_macros
-
-        if name in self.pathfinding_macros:
-            return self.pathfinding_macros[name]
-        
-        for section in self.config:
-            if name in self.config[section]:
-                return self.config[section][name]
-        
-        raise AttributeError(f"'ConfigManager' object has no attribute '{name}'")
+    # Config[key] support #
+    def __getitem__(self, key):
+        return getattr(self, key)
 
 # load classes #
 Config = ConfigManager(StaticVariables.config_filepath)
@@ -408,7 +437,7 @@ class ConfigUI(QWidget):
                     
                     # special stuff #
                     if key == "PATHFINDING_MACRO":
-                        items = Config.pathfinding_macros.keys()
+                        items = Config.PathfindingMacros.keys()
 
                     widget.addItems(items)
                 

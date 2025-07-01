@@ -48,7 +48,7 @@ else:
     import mss
 
     sct = mss.mss()
-    def take_screenshot(region, custom_sct = None):
+    def take_screenshot(region, custom_sct=None):
         return np.array((custom_sct or sct).grab(region), dtype=np.uint8)
     
     def cleanup():

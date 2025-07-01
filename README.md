@@ -9,18 +9,25 @@
 
 ## Table of Contents
 * [Requirements](#requirements)
+* [Features](#features)
 * [Installation](#installation)
     * [How to Run](#how-to-run)
     * [How to Stop](#how-to-stop)
 * [Configuration](#configuration)
     * [Pathfinding Macros Configuration](#pathfinding-macros)
 
+## Features
+ * **Configuration GUI**: GUI to easily configure each macro setting with tooltips.
+ * **Pathfinding**: Allows you to move around the starting position with different macros.
+ * **Prediction system**: Predicts the player bar position to make digging faster.
+ * **Auto Sell**: Sells all your items after certain amount of digs. (requires 'Sell Anywhere' gamepass)
+
 ## Requirements
  * [Python](https://www.python.org/) **[Recommended version: 3.13]**
 
 ## Installation
 > [!WARNING]
-> The speed of the macro can depend on your computer's performance. **This macro will missclick and could end your streak!**
+> The speed of the macro can depend on your computer's performance and on current Roblox FPS. **This macro will missclick and could end your streak!**
 
 1. **Download:** https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip
 2. **Extract the downloaded zip file (digmacro-dev.zip).**

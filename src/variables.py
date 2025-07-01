@@ -1,6 +1,18 @@
-import time, random, string
+import os, random, string
 
 __all__ = ["Variables", "StaticVariables"]
+
+if "__compiled__" in globals():
+    base_path = os.path.dirname(__file__)
+    try:
+        from __nuitka_binary_dir import __nuitka_binary_dir # type: ignore
+        base_path = __nuitka_binary_dir
+    except ImportError: pass
+else:
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
+def resource_path(relative_path):
+    return os.path.join(base_path, relative_path)
 
 class Variables:
     running = True
@@ -22,9 +34,9 @@ class Variables:
     last_minigame_interaction = -1
 
 class StaticVariables:
-    bar_left_side_imgpath = "src/img/left.png"
-    bar_right_side_imgpath = "src/img/right.png"
-    sell_anywhere_btn_imgpath = "src/img/sell.png"
+    bar_left_side_imgpath       = resource_path("img/left.png")
+    bar_right_side_imgpath      = resource_path("img/right.png")
+    sell_anywhere_btn_imgpath   = resource_path("img/sell.png")
 
     position_filepath = "storage/pos.json"
     config_filepath = "storage/config.ini"
