@@ -59,7 +59,7 @@ class SellUI:
 
         # sell items #
         Inputs.move_mouse(target_x, target_y)
-        time.sleep(0.1)
+        time.sleep(0.15)
         Inputs.left_click()
         time.sleep(0.1)
 
@@ -301,12 +301,12 @@ class MainHandler:
         self.start_minigame_img = np.zeros((50, 350, 3), dtype=np.uint8)
         self.waiting_for_minigame_img = np.zeros((50, 500, 3), dtype=np.uint8)
         self.focus_roblox_img = np.zeros((50, 350, 3), dtype=np.uint8)
-        # self.selling_img = np.zeros((50, 350, 3), dtype=np.uint8)
+        self.selling_img = np.zeros((50, 350, 3), dtype=np.uint8)
 
         cv2.putText(self.start_minigame_img, "START MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
         cv2.putText(self.waiting_for_minigame_img, "WAITING FOR MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
         cv2.putText(self.focus_roblox_img, "FOCUS ROBLOX", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
-        # cv2.putText(self.selling_img, "SELLING ITEMS...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
+        cv2.putText(self.selling_img, "SELLING ITEMS...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
 
     def setup_bar(self):
         print("[MainHandler.setup_bar] Loading Bar UI position...")
@@ -321,6 +321,10 @@ class MainHandler:
     def update_state(self, custom_sct=None):
         if Variables.roblox_focused == False:
             self.debug_img = self.focus_roblox_img
+            return
+        
+        if Variables.is_selling == True:
+            self.debug_img = self.selling_img
             return
             
         frame_start_time = time.perf_counter()

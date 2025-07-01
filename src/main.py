@@ -144,8 +144,12 @@ retry_minigame_start = False
 
 # functions #
 def sell_all_items(sell_handler):
-    if max(1, Variables.dig_count - sell_handler.total_sold) % max(2, Config.AUTO_SELL_REQUIRED_ITEMS) == 0:
-        print(f"[main.py] Sell Anywhere: {Variables.dig_count - sell_handler.total_sold} % {Config.AUTO_SELL_REQUIRED_ITEMS}")
+    not_sold = max(1, Variables.dig_count - sell_handler.total_sold)
+    required = max(2, Config.AUTO_SELL_REQUIRED_ITEMS)
+    can_sell = not_sold % required == 0
+
+    if can_sell:
+        print(f"[sell_all_items] Selling items... {not_sold} % {required}")
         sell_handler.sell_items(Variables.dig_count)
 
 def start_minigame():

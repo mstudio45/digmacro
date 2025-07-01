@@ -22,8 +22,8 @@ def left_click(click_delay = 0):
 
 def move_mouse(x, y):
     try:
-        pydirectinput.moveTo(x, y)
-        pydirectinput.move(1, 0, duration=0.00000000001)
+        pydirectinput.moveTo(x, y, duration=0.001)
+        pydirectinput.move(1, 0, duration=0.001)
     except: pass
 
 # SETUP KEYBOARD #
