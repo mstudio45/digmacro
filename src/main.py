@@ -317,8 +317,9 @@ if __name__ == "__main__":
             finder.cleanup() # clean win32api screenshot and other stuff #
 
             # clear screenshot folders (if empty) #
-            if FileHandler.is_folder_empty(StaticVariables.prediction_screenshots_path):
-                FileHandler.try_delete_folder(StaticVariables.prediction_screenshots_path)
+            if Config.PREDICTION_SCREENSHOTS:
+                if FileHandler.is_folder_empty(StaticVariables.prediction_screenshots_path):
+                    FileHandler.try_delete_folder(StaticVariables.prediction_screenshots_path)
 
             # stop threads #
             stop_thread("debug_window_thread", debug_window_thread)

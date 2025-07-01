@@ -349,13 +349,13 @@ class MainHandler:
         )
 
         # handle status #
-        if self.DirtBar.clickable_position is not None:
-            Variables.is_minigame_active = True
-        else:
+        if self.DirtBar.clickable_position is None:
             self.debug_img = self.waiting_for_minigame_img
             Variables.is_minigame_active = False
             self.was_in_zone = False
             return
+        else:
+            Variables.is_minigame_active = True
 
         # if clickable_position is not none we can update playerBar #
         self.PlayerBar.find_bar(
@@ -366,8 +366,12 @@ class MainHandler:
         )
 
         if self.PlayerBar.current_position is None:
+            self.debug_img = self.waiting_for_minigame_img
+            Variables.is_minigame_active = False
             self.was_in_zone = False
             return
+        else:
+            Variables.is_minigame_active = True
 
         # zone tracking variables #
         in_zone_now = self.PlayerBar.bar_in_clickable
