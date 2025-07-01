@@ -487,7 +487,7 @@ class MainHandler:
         # stack masks and imgs and set debug_img #
         self.debug_img = stack_images_with_dividers([
             info_img, screenshot_np, 
-            self.DirtBar.img, self.DirtBar.mask,
+            # self.DirtBar.img, self.DirtBar.mask,
             # self.PlayerBar.img, self.PlayerBar.mask
         ])
 
