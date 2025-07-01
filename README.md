@@ -61,7 +61,7 @@ Example:
 
 ### How to Add New Macros
 
-1. Open the macro configuration file (`storage/pathfinding_macros.json`) in a text editor or via the GUI.
+1. Open the macro configuration file (`storage/pathfinding_macros.json`) in a text editor.
 2. Add a new key-value pair to the JSON object with your desired macro name and pattern.
    For example, to add a "vertical_line" shape:
 
