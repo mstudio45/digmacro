@@ -218,7 +218,7 @@ if __name__ == "__main__":
 
             # functions #
             def sell_all_items(last_key=False):
-                if Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True:
+                if Config.PATHFINDING == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True:
                     if last_key:
                         logging.info("Selling items...")
                         sell_handler.sell_items(Variables.dig_count)
