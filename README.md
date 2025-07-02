@@ -3,8 +3,9 @@
 
 # DIG macro
 <p align="center">
-    <img width="80%" src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase-v2.gif" alt="Showcase video"> <br />
-    Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>.
+    <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/digmacro-showcase.gif" alt="Showcase video"> <br />
+    Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>.  <br />
+    <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a></i>
 </p>
 
 ## Table of Contents
@@ -19,7 +20,8 @@
 ## Features
  * **Configuration GUI**: GUI to easily configure each macro setting with information about each setting.
  * **Prediction system**: Predicts the player bar position to make digging faster.
- * **Pathfinding**: Allows you to move around the starting position with different macros.
+ * **Pathfinding**: Macro will move you around the starting position with different pathfinding macros (square, etc.).
+ * **Boss support**: This macro allows you to fight bosses with it.
  * **Auto Sell**: Automatically sells your items after certain amount of digs or after finishing the pathfinding macro. (requires 'Sell Anywhere' gamepass)
  * **Auto Rejoin**: Automatically rejoins DIG if you disconnect or if something went wrong.
 
@@ -34,18 +36,19 @@
 2. **Extract the downloaded zip file (digmacro-dev.zip).**
 3. **Open the folder (digmacro-dev).**
 
-## How to Run
-1.  **Change the in-game settings:**
-    * `Minigame Dimming`: **1**
-2.  **Run the Script:**
-    Run the script by opening `start.bat`.
+### How to Run
+> [!NOTE]
+> If you are using the macro for the first time (or you deleted the `storage/pos.json` file) you need to **Change the in-game setting** `Minigame Dimming` to **`1`**. Afterwards you can set it to what value you want.
 
-## How to Stop
-  * Simply **close the "debug" window**.
+1. **Run the Script:**
+    Simply run the macro by opening `start.bat` or `digmacro.exe`.
+
+### How to Stop
+  * Simply **close the macro window**.
   * Alternatively, you can hold `Ctrl+E` or press `Ctrl+C` in the terminal where the script is running.
 
 ## Configuration
-  * Run `edit.bat` to open the configuration GUI.
+  * Simply run `edit.bat` (or `digmacro.exe --edit-config`) to open the configuration GUI.
 
 ## Pathfinding Macros
 The macro movement patterns are defined in a JSON file that specifies key presses and durations for each shape or pattern.

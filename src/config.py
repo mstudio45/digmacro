@@ -76,12 +76,13 @@ settings_table = {
         "min": 0,
         "max": 100
     },
-    "PLAYER_BAR_WIDTH":{
+    "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
         "tooltip": "The width of the player bar.",
         "min": 2,
         "max": 10
     },
+
     "DIRT_SATURATION_THRESHOLD": {
         "widget": "QSpinBox",
         "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
@@ -217,7 +218,8 @@ class ConfigManager:
                 "MIN_CLICK_INTERVAL": 50,
 
                 "CLICKABLE_WIDTH": 20,
-                "PLAYER_BAR_WIDTH": 2,
+                "PLAYER_BAR_WIDTH": 3,
+                
                 "DIRT_SATURATION_THRESHOLD": 50,
             },
 

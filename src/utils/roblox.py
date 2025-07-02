@@ -1,4 +1,4 @@
-import os, time, subprocess
+import os, psutil, time, subprocess
 import win32gui
 
 from config import Config
@@ -23,6 +23,9 @@ def is_roblox_focused():
         logging.error(f"Error checking focus: {e}")
         return False
 
+def is_roblox_running():
+    return "robloxplayerbeta.exe" in [p.name().lower() for p in psutil.process_iter()]
+
 def kill_roblox():
     subprocess.call("TASKKILL /F /IM RobloxPlayerBeta.exe", shell=True)
 
@@ -30,6 +33,9 @@ def create_rotocol():
     return "roblox://placeID=126244816328678&linkCode=" + str(Config.PRIVATE_SERVER_CODE)
 
 def can_rejoin(total_idle_time):
+    if not is_roblox_running():
+        return True
+
     if total_idle_time >= Config.AUTO_REJOIN_INACTIVITY_TIMEOUT * 60:
         return True
     
@@ -46,11 +52,16 @@ def rejoin_dig():
     Variables.is_rejoining = True
     protocol = create_rotocol()
 
-    kill_roblox()
-    time.sleep(0.1)
-    os.startfile(protocol)
+    def rejoin():
+        kill_roblox()
+        time.sleep(0.1)
+        os.startfile(protocol)
+
+    rejoin()
 
     found_times = 0
+    start_time = time.time()
+
     while Variables.running:
         time.sleep(1.5)
         img = find_image(gamepass_btn, confidence=Config.AUTO_REJOIN_CONFIDENCE)
@@ -58,9 +69,14 @@ def rejoin_dig():
         if img is not None: found_times = found_times + 1
         if found_times >= 3: break # found it 3 times to be 100% sure
 
-    logging.info("Rejoined!")
-    time.sleep(0.5) # wait a bit longer for the game to fully load
-    left_click() # focus roblox #
-    time.sleep(0.25)
+        if time.time() - start_time >= 30: # if it still didnt find the shop btn for over 30 seconds, restart the process
+            rejoin()
+            start_time = time.time()
+
+    if Variables.running:
+        logging.info("Rejoined!")
+        time.sleep(0.5) # wait a bit longer for the game to fully load
+        left_click() # focus roblox #
+        time.sleep(0.25)
 
     Variables.is_rejoining = False

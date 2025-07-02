@@ -31,6 +31,7 @@ else:
         "PyQt5": "PyQt5",
 
         # misc libs #
+        "psutil": "psutil",
         "PyMsgBox": "pymsgbox",
         "logging": "logging",
     }
@@ -144,6 +145,25 @@ retry_minigame_start = False
 total_idle_time = 0
 
 if __name__ == "__main__":
+    ## check version ##
+    current_version = "2.0.0"
+    current_branch = "dev"
+
+    try:
+        import requests, json
+        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json")
+        versions = json.loads(req.text)
+
+        # check versions #
+        if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
+        if versions[current_branch] != current_version:
+            pymsgbox.alert(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}")
+            os.startfile("https://github.com/mstudio45/digmacro")
+        
+        print(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
+    except Exception as e:
+        pymsgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}")
+
     print("Creating storage folder..."); FileHandler.create_folder("storage")
     Config.load_config()
 
