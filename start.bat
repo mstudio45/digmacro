@@ -14,5 +14,5 @@ IF Exist "%cd%\digmacro.exe" (
 echo src/main.py and digmacro.exe don't exist.
 pause
 
-stop:
+:stop
 echo Closing...

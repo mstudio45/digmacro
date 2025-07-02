@@ -448,7 +448,7 @@ class MainHandler:
                 Variables.last_minigame_interaction = self.current_time_ms
 
                 if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and self.prediction_used:
-                    threading.Thread(target=write_image, args=(str(StaticVariables.prediction_screenshots_path) + "/" + str(Variables.click_count) + str("_pred" if self.prediction_used else "") + ".png", self.debug_img, ), daemon=True).start()
+                    threading.Thread(target=write_image, args=(os.path.join(StaticVariables.prediction_screenshots_path, Variables.click_count + ("_pred" if self.prediction_used else "") + ".png"), self.debug_img, ), daemon=True).start()
 
     def create_debug_image(self, 
         screenshot_np,

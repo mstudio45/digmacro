@@ -35,17 +35,17 @@ class Variables:
     last_minigame_interaction = -1
 
 class StaticVariables:
-    bar_left_side_imgpath       = resource_path("img/left.png")
-    bar_right_side_imgpath      = resource_path("img/right.png")
-    sell_anywhere_btn_imgpath   = resource_path("img/sell.png")
-    gamepass_shop_btn_imgpath   = resource_path("img/gamepass_shop.png")
-    reconnect_btn_imgpath       = resource_path("img/reconnect.png")
+    bar_left_side_imgpath       = resource_path(os.path.join("img", "left.png"))
+    bar_right_side_imgpath      = resource_path(os.path.join("img", "right.png"))
+    sell_anywhere_btn_imgpath   = resource_path(os.path.join("img", "sell.png"))
+    gamepass_shop_btn_imgpath   = resource_path(os.path.join("img", "gamepass_shop.png"))
+    reconnect_btn_imgpath       = resource_path(os.path.join("img", "reconnect.png"))
 
-    position_filepath = "storage/pos.json"
-    config_filepath = "storage/config.ini"
-    pathfinding_macros_filepath = "storage/pathfinding_macros.json"
+    position_filepath = os.path.join("storage", "pos.json")
+    config_filepath = os.path.join("storage", "config.ini")
+    pathfinding_macros_filepath = os.path.join("storage", "pathfinding_macros.json")
     
-    logs_path = "storage/logs"
+    logs_path = os.path.join("storage", "logs")
 
-    screenshots_path = "storage/screenshots"
+    screenshots_path = os.path.join("storage", "screenshots")
     prediction_screenshots_path = ""

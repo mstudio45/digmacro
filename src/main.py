@@ -211,10 +211,10 @@ if __name__ == "__main__":
                 logging.info("Creating screenshot folders...")
 
                 FileHandler.create_folder(StaticVariables.screenshots_path)
-                FileHandler.create_folder(StaticVariables.screenshots_path + "/prediction")
-                FileHandler.create_folder(StaticVariables.screenshots_path + f"/prediction/{Variables.session_id}")
+                FileHandler.create_folder(os.path.join(StaticVariables.screenshots_path, "/prediction"))
+                FileHandler.create_folder(os.path.join(StaticVariables.screenshots_path, "prediction", Variables.session_id))
 
-                StaticVariables.prediction_screenshots_path = StaticVariables.screenshots_path + f"/prediction/{Variables.session_id}"
+                StaticVariables.prediction_screenshots_path = os.path.join(StaticVariables.screenshots_path, "prediction", Variables.session_id)
 
             # functions #
             def sell_all_items(last_key=False):

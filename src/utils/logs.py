@@ -1,4 +1,4 @@
-import logging
+import os, logging
 from variables import Variables, StaticVariables
 
 def setup_logger():
@@ -6,7 +6,7 @@ def setup_logger():
     datefmt = "%Y-%m-%d %H:%M:%S"
 
     logging.basicConfig(
-        filename=f"{StaticVariables.logs_path}/{Variables.session_id}.log",
+        filename=os.path.join(StaticVariables.logs_path, Variables.session_id + ".log"),
         encoding="utf-8",
         filemode="a",
         level=logging.NOTSET,
