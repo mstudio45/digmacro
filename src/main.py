@@ -41,8 +41,7 @@ else:
             try:
                 subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", pip_name])
             except Exception as e:
-                err = traceback.format_exc()
-                print(f"[check_packages] Failed to uninstall '{pip_name}' requirement to replace it with '{replace_pip_name}' requirement: \n{err}")
+                print(f"[check_packages] Failed to uninstall '{pip_name}' requirement to replace it with '{replace_pip_name}' requirement: \n{traceback.format_exc()}")
                 sys.exit(1)
 
         reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
@@ -66,8 +65,7 @@ else:
             try:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
             except Exception as e:
-                err = traceback.format_exc()
-                print(f"[check_packages] Failed to install '{pip_name}' requirement: \n{err}")
+                print(f"[check_packages] Failed to install '{pip_name}' requirement: \n{traceback.format_exc()}")
                 sys.exit(1)
 
     check_packages()
@@ -350,8 +348,9 @@ if __name__ == "__main__":
             logging.debug("Starting to stop...")
 
         except Exception as e:
-            err = traceback.format_exc()
-            logging.critical(f"Main loop error: \n{err}")
+            err_msg = f"Main loop error: \n{traceback.format_exc()}"
+            logging.critical(err_msg)
+            pymsgbox.alert(f"[CRITICAL ERROR] {err_msg}")
         
         finally:
             logging.info("------------ STOP ---------------")
