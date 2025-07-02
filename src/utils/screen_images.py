@@ -2,6 +2,8 @@ import sys, traceback
 import numpy as np
 import cv2, pymsgbox, pyautogui
 
+import logging
+
 BASE_RESOLUTION = (1920, 1080)
 __all__ = [
     "resize_image", "stack_images_with_dividers", "find_image", "write_image",
@@ -33,7 +35,7 @@ def resize_image(img_path):
         # read the image without changes #
         img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
         if img is None:
-            raise IOError(f"[OpenCV_Resizer.resize_img] Image not found at {str(img_path)}")
+            raise IOError(f"Image not found at {str(img_path)}")
 
         # calculate new resize dimensions #
         h, w, _ = img.shape
@@ -42,7 +44,7 @@ def resize_image(img_path):
         # resize the image using INTER_AREA #
         return cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
     except Exception as e:
-        pymsgbox.alert(f"[OpenCV_Resizer.resize_img] Failed to resize the image '{str(img_path)}': \n{traceback.format_exc()}")
+        pymsgbox.alert(f"Failed to resize the image '{str(img_path)}': \n{traceback.format_exc()}")
         sys.exit(1)
 
 def stack_images_with_dividers(images, margin_thickness=2):
@@ -98,7 +100,7 @@ def stack_images_with_dividers(images, margin_thickness=2):
 
         return stacked
     except Exception as e:
-        print(f"[stack_images_with_dividers] Failed to stack images: \n{traceback.format_exc()}")
+        logging.error(f"Failed to stack images: \n{traceback.format_exc()}")
         return None
     
 def find_image(image, confidence, custom_sct=None, log=False, region={"left": 0, "top": 0, "width": base_width, "height": base_height}):
@@ -107,7 +109,7 @@ def find_image(image, confidence, custom_sct=None, log=False, region={"left": 0,
 
         template = cv2.imread(image, cv2.IMREAD_COLOR) if isinstance(image, str) else image
         if template is None:
-            pymsgbox.alert(f"[find_image] Image is None.")
+            logging.error("Image is None.")
             return None
 
         # get shapes #
@@ -116,26 +118,24 @@ def find_image(image, confidence, custom_sct=None, log=False, region={"left": 0,
 
         # template (img we want to find) is bigger than screenshot #
         if h_template > h_screen or w_template > w_screen:
-            pymsgbox.alert(f"[find_image] Image is bigger than screenshot.")
+            logging.error("Image is bigger than screenshot.")
             return None
         
         result = cv2.matchTemplate(screenshot_bgr, template, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-        if log == True:
-            print(f"Max: {max_val} >= {confidence}")
-        
+        if log == True: logging.debug(f"Max: {max_val} >= {confidence}")
         if max_val >= confidence:
             top_left = max_loc
             return { "left": top_left[0], "top": top_left[1], "width": w_template, "height": h_template }
         
         return None
     except Exception as e:
-        pymsgbox.alert(f"[find_image] Error: \n{traceback.format_exc()}")
+        logging.error(f"Error: \n{traceback.format_exc()}")
     
     return None
 
 def write_image(filepath, image):
     try: cv2.imwrite(filename=filepath, img=image)
     except Exception as e:
-        print(f"[write_image] '{str(filepath)}' write error: \n{traceback.format_exc()} ")
+        logging.error(f"'{str(filepath)}' write error: \n{traceback.format_exc()}")

@@ -4,7 +4,7 @@ import subprocess, importlib
 
 # install requirements #
 if "__compiled__" in globals():
-    print("[main.py] File is compiled, skipping requirement installation.")
+    print("File is compiled, skipping requirement installation.")
 else:
     uninstall = {}
     required_packages = {
@@ -24,14 +24,15 @@ else:
         # updater libs #
         "requests": "requests",
 
-        # misc libs #
-        "PyMsgBox": "pymsgbox",
-
         # win32 api #
         "pywin32": "win32gui",
 
         # ui libs #
-        "PyQt5": "PyQt5"
+        "PyQt5": "PyQt5",
+
+        # misc libs #
+        "PyMsgBox": "pymsgbox",
+        "logging": "logging",
     }
 
     def check_packages():
@@ -40,7 +41,8 @@ else:
             try:
                 subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", pip_name])
             except Exception as e:
-                print(f"[check_packages] Failed to uninstall '{pip_name}' requirement to replace it with '{replace_pip_name}' requirement: \n{traceback.format_exc()}")
+                err = traceback.format_exc()
+                print(f"[check_packages] Failed to uninstall '{pip_name}' requirement to replace it with '{replace_pip_name}' requirement: \n{err}")
                 sys.exit(1)
 
         reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
@@ -64,7 +66,8 @@ else:
             try:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
             except Exception as e:
-                print(f"[check_packages] Failed to install '{pip_name}' requirement: \n{traceback.format_exc()}")
+                err = traceback.format_exc()
+                print(f"[check_packages] Failed to install '{pip_name}' requirement: \n{err}")
                 sys.exit(1)
 
     check_packages()
@@ -85,7 +88,6 @@ from variables import Variables, StaticVariables
   
 import utils.general.filehandler as FileHandler
 import utils.window as window_util
-from utils.window import is_roblox_focused
 
 # unslow packages #
 pydirectinput.PAUSE = None
@@ -141,40 +143,22 @@ class DebugWindowThread(threading.Thread):
 
 # variables for main loop #
 retry_minigame_start = False
-
-# functions #
-def sell_all_items(sell_handler):
-    not_sold = max(1, Variables.dig_count - sell_handler.total_sold)
-    required = max(2, Config.AUTO_SELL_REQUIRED_ITEMS)
-    can_sell = not_sold % required == 0
-
-    if can_sell:
-        print(f"[sell_all_items] Selling items... {not_sold} % {required}")
-        sell_handler.sell_items(Variables.dig_count)
-
-def start_minigame():
-    if Variables.is_minigame_active: return
-    print("[main.py] Starting minigame...")
-
-    # start minigame #
-    time.sleep(0.05)
-    left_click()
-    
-    # waiting of max 1.5 sec #
-    start = time.time()
-    while Variables.running:
-        if Variables.is_minigame_active == True or (time.time() - start) > 1.5: break
-
-    print(f"[start_minigame] Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active}")
+total_idle_time = 0
 
 if __name__ == "__main__":
-    print("[main.py] Creating storage folder..."); FileHandler.create_folder("storage")
+    print("Creating storage folder..."); FileHandler.create_folder("storage")
     Config.load_config()
+
+    # create logs folder #
+    if Config.LOGGING_ENABLED:
+        FileHandler.create_folder(StaticVariables.logs_path)
 
     # import after config loaded #
     from utils.finder import MainHandler, SellUI
     from utils.pathfinding import PathfingingHandler
     from utils.general.input import left_click, press_key
+    from utils.roblox import can_rejoin, rejoin_dig, is_roblox_focused
+    from utils.logs import setup_logger; import logging
 
     # create util classes #
     finder = MainHandler()
@@ -192,6 +176,7 @@ if __name__ == "__main__":
         
         try:
             Config.WINDOW_NAME = Config.WINDOW_NAME + " | " + Variables.session_id 
+            setup_logger()
 
             if not os.path.isfile(StaticVariables.config_filepath):
                 pymsgbox.alert("Seems like you are using this macro for the first time. If you need to change the config, run the 'edit.bat' file to open the GUI config editor.")
@@ -205,7 +190,7 @@ if __name__ == "__main__":
 
             # create screenshot folders #
             if Config.PREDICTION_SCREENSHOTS:
-                print("[main.py] Creating screenshot folders...")
+                logging.info("Creating screenshot folders...")
 
                 FileHandler.create_folder(StaticVariables.screenshots_path)
                 FileHandler.create_folder(StaticVariables.screenshots_path + "/prediction")
@@ -213,9 +198,45 @@ if __name__ == "__main__":
 
                 StaticVariables.prediction_screenshots_path = StaticVariables.screenshots_path + f"/prediction/{Variables.session_id}"
 
+            # functions #
+            def sell_all_items(last_key=False):
+                if Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True:
+                    if last_key:
+                        logging.info("Selling items...")
+                        sell_handler.sell_items(Variables.dig_count)
+                    return
+
+                not_sold = max(1, Variables.dig_count - sell_handler.total_sold)
+                required = max(2, Config.AUTO_SELL_REQUIRED_ITEMS)
+                can_sell = not_sold % required == 0
+
+                if can_sell:
+                    logging.info(f"Selling items... {not_sold} % {required}")
+                    sell_handler.sell_items(Variables.dig_count)
+
+            def start_minigame():
+                if Variables.is_minigame_active: return
+                logging.info("Starting minigame...")
+
+                # start minigame #
+                left_click()
+                
+                # waiting of max 1.5 sec #
+                start = time.time()
+                timed_out = False
+                while Variables.running:
+                    timed_out = (time.time() - start) > 1.5
+                    if Variables.is_minigame_active == True or timed_out: break
+
+                logging.debug(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active}")
+                if timed_out and Variables.is_minigame_active == False:
+                    logging.info("Equipping shovel...")
+                    press_key("+") # equip the shovel #
+                    time.sleep(0.15)
+
             # Player Bar Thread #
             def finder_thread_func():
-                print("[finder_thread_func] Loop started.")
+                logging.info("Loop started.")
 
                 custom_sct = None 
                 if Config.SCREENSHOT_PACKAGE == "mss":
@@ -241,21 +262,21 @@ if __name__ == "__main__":
                     # if current_time - last_log_time >= performance_log_interval:
                     #     avg_frame_time = sum(finder.frame_times) / len(finder.frame_times) if finder.frame_times else 0
                     #     fps = 1000 / avg_frame_time if avg_frame_time > 0 else 0
-                    #     print(f"Performance: {fps:.1f} FPS | {avg_frame_time:.1f}ms/frame")
+                    #     logging.debug(f"Performance: {fps:.1f} FPS | {avg_frame_time:.1f}ms/frame")
                     #     last_log_time = current_time
                     
                     if sleep_time > 0: time.sleep(sleep_time)
 
-                print("[finder_thread_func] Stopped successfully.")
+                logging.info("Stopped successfully.")
 
             def is_roblox_focused_thread_func():
-                print("[is_roblox_focused_thread] Loop started.")
+                logging.info("Loop started.")
 
                 while Variables.running:
                     Variables.roblox_focused = is_roblox_focused()
                     time.sleep(0.1)
 
-                print("[is_roblox_focused_thread] Stopped successfully.")
+                logging.info("Stopped successfully.")
 
             # threads #
             finder_thread = threading.Thread(target=finder_thread_func, daemon=True)
@@ -264,60 +285,76 @@ if __name__ == "__main__":
             is_roblox_focused_thread = threading.Thread(target=is_roblox_focused_thread_func, daemon=True)
             is_roblox_focused_thread.start()
 
-            print("------------ STARTED ---------------")
+            logging.info("------------ STARTED ---------------")
             while Variables.running:
+                start = time.time()
+                time.sleep(0.25)
+
                 # keybinds #
                 if keyboard.is_pressed("ctrl+e"): break
-                
+
                 # main handler #
-                if not Variables.is_idle():
-                    time.sleep(0.25)
-
-                else: # idle #
-                    if not Variables.roblox_focused:
-                        time.sleep(0.25)
+                if Config.AUTO_REJOIN:
+                    if can_rejoin(total_idle_time):
+                        total_idle_time = 0
+                        rejoin_dig()
                         continue
-    
-                    # digging ended #
-                    digging_finished = False
-                    if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
-                        last_interact = int(Variables.last_minigame_interaction) / 1000
 
-                        if last_interact > 0 and (time.time() - last_interact) >= 1.5:
-                            Variables.dig_count = Variables.dig_count + 1
-                            Variables.last_minigame_interaction = None
+                    if Variables.is_rejoining: continue
 
-                            print(f"[main.py] Added 1 to dig_count, waiting...\n"); 
-                            digging_finished = True
-                            time.sleep(1.5)
-                    else:
+                # skip main loop if roblox is not focused #
+                if not Variables.roblox_focused: continue
+
+                # handle idle_time, and skip if not in idle #
+                if not Variables.is_idle():
+                    total_idle_time = 0
+                    continue
+                total_idle_time = total_idle_time + 0.25
+                
+                # handling dig_count and if digging finished #
+                digging_finished = False
+                if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
+                    last_interact = int(Variables.last_minigame_interaction) / 1000
+
+                    if last_interact > 0 and (time.time() - last_interact) >= 1.5:
+                        Variables.dig_count = Variables.dig_count + 1
+                        Variables.last_minigame_interaction = None
+
+                        logging.debug("Added 1 to dig_count, waiting..."); 
                         digging_finished = True
+                        time.sleep(0.75)
+                else: digging_finished = True
 
-                    if digging_finished:
-                        # auto sell #
-                        if Config.AUTO_SELL == True:
-                            sell_all_items(sell_handler=sell_handler)
+                # skip if digging didnt finish #
+                if not digging_finished: continue
 
-                        # pathfinding handler #
-                        if Config.PATHFINDING == True:
-                            pathfinding.start_walking()
+                # pathfinding handler #
+                was_last_key = False
+                if Config.PATHFINDING == True:
+                    was_last_key = pathfinding.start_walking()
+                
+                # auto sell #
+                if Config.AUTO_SELL == True:
+                    sell_all_items(last_key=was_last_key)
 
-                        if Config.PATHFINDING == True or Config.AUTO_START_MINIGAME == True:
-                            start_minigame()
-
-                    time.sleep(0.1)
+                # minigame handler #
+                if Config.AUTO_START_MINIGAME == True:
+                    start_minigame()
+                
+            #################################################################################################
 
             Variables.running = False
-            print("_____________________________________")
+            logging.info("_____________________________________")
         
         except KeyboardInterrupt:
-            print("Starting to stop...")
+            logging.debug("Starting to stop...")
 
         except Exception as e:
-            pymsgbox.alert(f"[main.py] Loading error: \n{traceback.format_exc()}")
+            err = traceback.format_exc()
+            logging.critical(f"Main loop error: \n{err}")
         
         finally:
-            print("------------ STOP ---------------")
+            logging.info("------------ STOP ---------------")
             finder.cleanup() # clean win32api screenshot and other stuff #
 
             # clear screenshot folders (if empty) #
@@ -329,4 +366,4 @@ if __name__ == "__main__":
             stop_thread("debug_window_thread", debug_window_thread)
 
             cv2.destroyAllWindows()
-            print("Stopped")
+            logging.info("Stopped")

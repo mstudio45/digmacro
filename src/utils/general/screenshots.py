@@ -1,4 +1,5 @@
 from config import Config
+import logging
 
 __all__ = ["take_screenshot", "cleanup"]
 
@@ -38,7 +39,7 @@ if Config.SCREENSHOT_PACKAGE == "win32api":
         return img_np
 
     def cleanup():
-        print("[screenshots.cleanup] Cleaning...")
+        logging.info("Cleaning...")
 
         dcObj.DeleteDC()
         cDC.DeleteDC()
@@ -52,4 +53,4 @@ else:
         return np.array((custom_sct or sct).grab(region), dtype=np.uint8)
     
     def cleanup():
-        print("[screenshots.cleanup] Cleaning...")
+        logging.info("Cleaning...")

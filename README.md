@@ -17,10 +17,11 @@
     * [Pathfinding Macros Configuration](#pathfinding-macros)
 
 ## Features
- * **Configuration GUI**: GUI to easily configure each macro setting with tooltips.
- * **Pathfinding**: Allows you to move around the starting position with different macros.
+ * **Configuration GUI**: GUI to easily configure each macro setting with information about each setting.
  * **Prediction system**: Predicts the player bar position to make digging faster.
- * **Auto Sell**: Sells all your items after certain amount of digs. (requires 'Sell Anywhere' gamepass)
+ * **Pathfinding**: Allows you to move around the starting position with different macros.
+ * **Auto Sell**: Automatically sells your items after certain amount of digs or after finishing the pathfinding macro. (requires 'Sell Anywhere' gamepass)
+ * **Auto Rejoin**: Automatically rejoins DIG if you disconnect or if something went wrong.
 
 ## Requirements
  * [Python](https://www.python.org/) **[Recommended version: 3.13]**

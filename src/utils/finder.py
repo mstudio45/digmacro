@@ -15,6 +15,7 @@ from utils.general.screenshots import take_screenshot, cleanup as screenshot_cle
 import utils.general.input as Inputs
 from utils.general.movement_tracker import MovementTracker
 from utils.screen_images import *
+import logging
 
 ### IMAGES ###
 LEFT_SIDE_IMG  = resize_image(StaticVariables.bar_left_side_imgpath)
@@ -35,8 +36,8 @@ class SellUI:
         time.sleep(1)
 
     def sell_items(self, total_sold_add):
-        if not Variables.is_idle(): print("[SellUI.sell_items] Not idle, skipping..."); return
-        if not Variables.roblox_focused: print(f"[SellUI.sell_items] Roblox is not focused."); return
+        if not Variables.is_idle():         logging.debug("Not idle, skipping..."); return
+        if not Variables.roblox_focused:    logging.debug("Roblox is not focused."); return
         Variables.is_selling = True
 
         # try to get the button #
@@ -50,7 +51,7 @@ class SellUI:
             if button_pos is not None: break
 
         if not button_pos or not Variables.running or tryidx >= 4:
-            print(f"[SellUI.sell_items] Button not found.");
+            logging.debug("Button not found.");
             Variables.is_selling = False
             return
 
@@ -61,12 +62,10 @@ class SellUI:
         Inputs.move_mouse(target_x, target_y)
         time.sleep(0.15)
         Inputs.left_click()
-        time.sleep(0.1)
-
+        time.sleep(0.15)
         self.toggle_shop()
-        self.total_sold = total_sold_add
 
-        time.sleep(0.5)
+        self.total_sold = total_sold_add
         Variables.is_selling = False
 
 ### FINDER CLASSES ###
@@ -84,10 +83,14 @@ class BarUI:
                     if pos is not None:
                         Variables.minigame_region = json.loads(pos)
                 except Exception as e:
-                    pymsgbox.alert(f"[BarUI.set_region] Failed to load saved position: \n{traceback.format_exc()}")
+                    err_msg = f"Failed to load saved position: \n{traceback.format_exc()}"
+                    logging.error(err_msg)
+                    if Config.MSGBOX_ENABLED: pymsgbox.alert(err_msg)
                 
                 if (Variables.minigame_region["left"] == 0 and Variables.minigame_region["top"] == 0 and Variables.minigame_region["width"] == 0 and Variables.minigame_region["height"] == 0) == False:
                     return True
+
+        pymsgbox.alert("Please make sure that Roblox is not in 'fullscreen' mode and that you have 'Minigame Dimming' inside DIG set to '1'.")
 
         # try to find the bar UI sides using images #
         left_location, right_location = None, None
@@ -300,16 +303,22 @@ class MainHandler:
 
         self.start_minigame_img = np.zeros((50, 350, 3), dtype=np.uint8)
         self.waiting_for_minigame_img = np.zeros((50, 500, 3), dtype=np.uint8)
+
         self.focus_roblox_img = np.zeros((50, 350, 3), dtype=np.uint8)
+        self.rejoining_img = np.zeros((50, 350, 3), dtype=np.uint8)
+
         self.selling_img = np.zeros((50, 350, 3), dtype=np.uint8)
 
         cv2.putText(self.start_minigame_img, "START MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
         cv2.putText(self.waiting_for_minigame_img, "WAITING FOR MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
+        
         cv2.putText(self.focus_roblox_img, "FOCUS ROBLOX", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
+        cv2.putText(self.rejoining_img, "REJOINING...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
+
         cv2.putText(self.selling_img, "SELLING ITEMS...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
 
     def setup_bar(self):
-        print("[MainHandler.setup_bar] Loading Bar UI position...")
+        logging.info("Loading Bar UI position...")
         self.debug_img = self.start_minigame_img
 
         if self.BarUI.set_region() != True:
@@ -319,6 +328,10 @@ class MainHandler:
         self.debug_img = self.waiting_for_minigame_img
 
     def update_state(self, custom_sct=None):
+        if Variables.is_rejoining == True:
+            self.debug_img = self.rejoining_img
+            return
+
         if Variables.roblox_focused == False:
             self.debug_img = self.focus_roblox_img
             return
@@ -458,7 +471,7 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = self.current_time_ms
 
-                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS:
+                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and self.prediction_used:
                     threading.Thread(target=write_image, args=(str(StaticVariables.prediction_screenshots_path) + "/" + str(Variables.click_count) + str("_pred" if self.prediction_used else "") + ".png", self.debug_img, ), daemon=True).start()
 
 
@@ -500,5 +513,5 @@ class MainHandler:
         ])
 
     def cleanup(self):
-        print("[MainHandler.cleanup] Cleaning...")
+        logging.info("Cleaning...")
         screenshot_cleanup()

@@ -1,19 +1,9 @@
 import time, threading
-import win32gui, pyautogui, cv2
+import pyautogui, cv2
+import logging
 
 # setup variables #
-__all__ = ["is_roblox_focused", "focus_window", "WindowFocuser"]
-
-def is_roblox_focused():
-    try:
-        wnd = win32gui.GetForegroundWindow()
-        if not wnd: return False
-    
-        title = win32gui.GetWindowText(wnd)
-        return "roblox" == title.lower()
-    except Exception as e:
-        print(f"[is_roblox_focused] Error checking focus: {e}")
-        return False
+__all__ = ["focus_window", "WindowFocuser"]
 
 def focus_window(window_name):
     wnd = pyautogui.getWindowsWithTitle(window_name)[0]
@@ -35,7 +25,7 @@ class WindowFocuser(threading.Thread):
             except: pass
             time.sleep(0)
         
-        print("[WindowFocuser] Stopped successfully.")
+        logging.info("Stopped successfully.")
 
     def stop(self):
         self._stop_event.set()

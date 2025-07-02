@@ -14,7 +14,46 @@ settings_table = {
         "min": 1,
         "max": 240
     },
+    "LOGGING_ENABLED": {
+        "widget": "QCheckBox",
+        "tooltip": "Enable or disable log files."
+    },
+    "MSGBOX_ENABLED": {
+        "widget": "QCheckBox",
+        "tooltip": "Enable or disable the error message boxes."
+    },
 
+    "AUTO_REJOIN": {
+        "widget": "QCheckBox",
+        "tooltip": "Enable or disable the rejoining system."
+    },
+    "PRIVATE_SERVER_CODE": {
+        "widget": "QLineEdit",
+        "tooltip": "Your private server code. (the code from this link: https://www.roblox.com/games/126244816328678/DIG?privateServerLinkCode=XXXXXXXXXXXXXXXXXXXX)"
+    },
+    "AUTO_REJOIN_INACTIVITY_TIMEOUT": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes).",
+        "min": 0.5,
+        "max": 10.0,
+        "step": 0.1
+    },
+    "AUTO_REJOIN_CONFIDENCE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Used in Auto Rejoin to find the Gamepass Shop button to see if the rejoin was successful.",
+        "min": 0.35,
+        "max": 1.0,
+        "step": 0.01
+    },
+    "AUTO_REJOIN_RECONNECT_CONFIDENCE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Used in Auto Rejoin to check if the reconnect button (in the 'Disconnected' menu) is on the screen.",
+        "min": 0.35,
+        "max": 1.0,
+        "step": 0.01
+    },
+
+    
     "USE_SAVED_POSITION": {
         "widget": "QCheckBox",
         "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
@@ -72,12 +111,16 @@ settings_table = {
     },
     "AUTO_SELL_BUTTON_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
-        "tooltip": "Confidence level for detecting the sell button (0.0 to 1.0).",
-        "min": 0.0,
+        "tooltip": "Confidence level for detecting the sell button.",
+        "min": 0.35,
         "max": 1.0,
         "step": 0.01
     },
-    
+    "AUTO_SELL_AFTER_PATHFINDING_MACRO": {
+        "widget": "QCheckBox",
+        "tooltip": "This setting will ignore 'AUTO_SELL_REQUIRED_ITEMS' and will sell after the pathfinding macro has finished."
+    },
+
     "USE_PREDICTION": {
         "widget": "QCheckBox",
         "tooltip": "Calculate prediction using acceleration and velocity history."
@@ -154,7 +197,17 @@ class ConfigManager:
     def _set_default_config(self):
         self.default_config = {
             "SYSTEM": {
-                "TARGET_FPS": 120
+                "TARGET_FPS": 120,
+                "LOGGING_ENABLED": True,
+                "MSGBOX_ENABLED": False
+            },
+
+            "ROBLOX": {
+                "AUTO_REJOIN": False,
+                "PRIVATE_SERVER_CODE": "",
+                "AUTO_REJOIN_INACTIVITY_TIMEOUT": 1.5,
+                "AUTO_REJOIN_CONFIDENCE": 0.85,
+                "AUTO_REJOIN_RECONNECT_CONFIDENCE": 0.85
             },
 
             "MINIGAME": {
@@ -165,7 +218,7 @@ class ConfigManager:
 
                 "CLICKABLE_WIDTH": 20,
                 "PLAYER_BAR_WIDTH": 2,
-                "DIRT_SATURATION_THRESHOLD": 25,
+                "DIRT_SATURATION_THRESHOLD": 50,
             },
 
             "PATHFINDING": {
@@ -177,6 +230,7 @@ class ConfigManager:
                 "AUTO_SELL": False,
                 "AUTO_SELL_REQUIRED_ITEMS": 15,
                 "AUTO_SELL_BUTTON_CONFIDENCE": 0.75,
+                "AUTO_SELL_AFTER_PATHFINDING_MACRO": False
             },
 
             "PREDICTION": {
@@ -381,7 +435,8 @@ Config = ConfigManager(StaticVariables.config_filepath)
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QCheckBox, QSpinBox, QDoubleSpinBox, QLineEdit,
-    QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox
+    QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox,
+    QScrollArea
 )
 
 class ConfigUI(QWidget):
@@ -402,6 +457,21 @@ class ConfigUI(QWidget):
     def create_ui(self):
         global Config, config_tooltips
 
+                # info label #
+        info_label = QLabel("Hover over the options to see more information.")
+        self.layout.addWidget(info_label)
+
+        # scroll area #
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        self.layout.addWidget(scroll_area)
+
+        # scroll widget #
+        self.scroll_widget = QWidget()
+        self.scroll_layout = QVBoxLayout(self.scroll_widget)
+        scroll_area.setWidget(self.scroll_widget)
+
+        # dynamic variable creation #
         for section, options in Config.config.items():
             group_box = QGroupBox(section)
             group_layout = QVBoxLayout()
@@ -455,9 +525,9 @@ class ConfigUI(QWidget):
                 self.widgets[f"{section}_{key}"] = widget
                 group_layout.addLayout(row_layout)
 
-            self.layout.addWidget(group_box)
+            self.scroll_layout.addWidget(group_box)
 
-        # Action buttons
+        # btns #
         button_layout = QHBoxLayout()
 
         save_button = QPushButton("Save Settings")
@@ -495,6 +565,10 @@ class ConfigUI(QWidget):
                             widget.setCurrentIndex(index)
 
     def save_settings(self):
+        reply = QMessageBox.question(self, "Confirm Save", "Are you sure you want to save the current settings?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply != QMessageBox.Yes:
+            return
+        
         for section, options in Config.config.items():
             for key, value in options.items():
                 widget_key = f"{section}_{key}"
@@ -513,10 +587,9 @@ class ConfigUI(QWidget):
                         new_value = widget.value()
 
                     elif isinstance(widget, QLineEdit):
-                        # Try to convert to original type if possible
                         text_value = widget.text()
                         if isinstance(value, bool):
-                            new_value = text_value.lower() == 'true'
+                            new_value = text_value.lower() == "true"
 
                         elif isinstance(value, int):
                             try: new_value = int(text_value)
