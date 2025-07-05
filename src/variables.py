@@ -1,7 +1,8 @@
-import os, random, string
+import os, random, string, shutil, time
 
 __all__ = ["Variables", "StaticVariables"]
 
+# get onefile compiled path #
 if "__compiled__" in globals():
     base_path = os.path.dirname(__file__)
     try:
@@ -14,15 +15,21 @@ else:
 def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
+# variables #
 class Variables:
-    running = True
+    is_compiled = "__compiled__" in globals()
+    is_running = True
 
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    roblox_focused = False
+    is_roblox_focused = True
+    is_selecting_region = True
 
     # minigame information #
-    click_count = 0
     dig_count = 0
+    click_count = 0
+    
+    minigame_region = { "left": 0, "top": 0, "height": 100, "width": 100 }
+    last_minigame_interaction = None
 
     # macro states #
     is_minigame_active = False
@@ -31,21 +38,33 @@ class Variables:
     is_rejoining = False
     is_idle = lambda: (Variables.is_rejoining == False and Variables.is_walking == False and Variables.is_selling == False and Variables.is_minigame_active == False) == True
 
-    minigame_region = { "left": 0, "top": 0, "width": 0, "height": 0 }
-    last_minigame_interaction = -1
+    # cmds #
+    unix_macos_open_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
+
+    # functions #
+    def sleep(duration):
+        start = time.time()
+        
+        while Variables.is_running:
+            time.sleep(0)
+            if time.time() - start >= duration: break
+
+        return Variables.is_running == False
 
 class StaticVariables:
-    bar_left_side_imgpath       = resource_path(os.path.join("img", "left.png"))
-    bar_right_side_imgpath      = resource_path(os.path.join("img", "right.png"))
-    sell_anywhere_btn_imgpath   = resource_path(os.path.join("img", "sell.png"))
-    gamepass_shop_btn_imgpath   = resource_path(os.path.join("img", "gamepass_shop.png"))
-    reconnect_btn_imgpath       = resource_path(os.path.join("img", "reconnect.png"))
+    ui_filepath                 = resource_path(os.path.join("assets", "ui", "ui.html"))
+    guide_ui_filepath           = resource_path(os.path.join("assets", "ui", "guide.html"))
 
-    position_filepath = os.path.join("storage", "pos.json")
+    sell_anywhere_btn_imgpath   = resource_path(os.path.join("assets", "sell.png"))
+    topbar_btns_imgpath         = resource_path(os.path.join("assets", "topbar_btns.png"))
+    reconnect_btn_imgpath       = resource_path(os.path.join("assets", "reconnect.png"))
+    region_example_imgpath      = resource_path(os.path.join("assets", "select_example.png"))
+
+    region_filepath = os.path.join("storage", "region.json")
     config_filepath = os.path.join("storage", "config.ini")
     pathfinding_macros_filepath = os.path.join("storage", "pathfinding_macros.json")
     
     logs_path = os.path.join("storage", "logs")
 
     screenshots_path = os.path.join("storage", "screenshots")
-    prediction_screenshots_path = ""
+    prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)

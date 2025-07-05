@@ -1,8 +1,10 @@
 import os, json
-import pymsgbox, configparser
+import configparser
 
 from variables import StaticVariables
 from utils.general.filehandler import read, write
+
+import platform; current_os = platform.system()
 
 __all__ = ["Config"]
 
@@ -12,7 +14,14 @@ settings_table = {
         "widget": "QSpinBox",
         "tooltip": "Target Frames Per Second for the macro.",
         "min": 1,
-        "max": 240
+        "max": 480
+    },
+    "MACOS_DISPLAY_SCALE_OVERRIDE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
+        "min": 0.0,
+        "max": 3.0,
+        "step": 0.1
     },
     "LOGGING_ENABLED": {
         "widget": "QCheckBox",
@@ -71,10 +80,12 @@ settings_table = {
     },
 
     "CLICKABLE_WIDTH": {
-        "widget": "QSpinBox",
-        "tooltip": "The width of the 'STRONG' clicking area.",
-        "min": 0,
-        "max": 100
+        "widget": "QDoubleSpinBox",
+        "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "default": 0.1
     },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
@@ -83,6 +94,29 @@ settings_table = {
         "max": 10
     },
 
+    "MIN_CENTER_CONFIDENCE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Minimum confidence required to click when player bar is reasonably centered.",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "default": 0.9
+    },
+    "MIN_SLOW_CONFIDENCE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Minimum confidence required to click when player bar is moving slowly.",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "default": 0.85
+    },
+
+    "PLAYER_BAR_THRESHOLD": {
+        "widget": "QSpinBox",
+        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar.",
+        "min": 100,
+        "max": 255
+    },
     "DIRT_SATURATION_THRESHOLD": {
         "widget": "QSpinBox",
         "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
@@ -154,16 +188,16 @@ settings_table = {
         "max": 1.0,
         "step": 0.01
     },
-    
-    "KEYBOARD_INPUT_PACKAGE": {
+
+    "MOUSE_INPUT_PACKAGE": {
         "widget": "QComboBox",
-        "tooltip": "Select the keyboard input package to use.",
-        "items": ["pynput", "keyboard"]
+        "tooltip": "Select the mouse input package to use. Windows = win32api, macOS = Quartz (Linux Native Calls are not made yet, defaults to pynput)",
+        "items": ["Native Calls", "pynput"]
     },
     "SCREENSHOT_PACKAGE": {
         "widget": "QComboBox",
         "tooltip": "Select the screenshot package to use.",
-        "items": ["mss", "win32api"]
+        "items": ["mss", "bettercam (Windows)"]
     },
     
     "WINDOW_NAME": {
@@ -174,6 +208,14 @@ settings_table = {
         "widget": "QCheckBox",
         "tooltip": "Displays a debug image on what the macro knows."
     },
+    "DEBUG_FPS": {
+        "widget": "QSpinBox",
+        "tooltip": "The FPS of the debug window.",
+        "min": 1,
+        "max": 480,
+        "step": 1
+    },
+
     "PREDICTION_SCREENSHOTS": {
         "widget": "QCheckBox",
         "tooltip": "Enables saving prediction screenshots (requires 'Show Debug' to be enabled)."
@@ -192,6 +234,9 @@ class ConfigManager:
         self.config = {}
         self.PathfindingMacros = {}
 
+        self.WINDOW_NAME = "DIG Macro by mstudio45"
+        self.MSGBOX_ENABLED = True
+
         self._set_default_config()
         # self.load_config()
 
@@ -199,6 +244,7 @@ class ConfigManager:
         self.default_config = {
             "SYSTEM": {
                 "TARGET_FPS": 120,
+                "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
                 "LOGGING_ENABLED": True,
                 "MSGBOX_ENABLED": False
             },
@@ -217,10 +263,14 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
-                "CLICKABLE_WIDTH": 20,
-                "PLAYER_BAR_WIDTH": 3,
-                
-                "DIRT_SATURATION_THRESHOLD": 50,
+                "MIN_CENTER_CONFIDENCE": 0.875,
+                "MIN_SLOW_CONFIDENCE": 0.7,
+
+                "CLICKABLE_WIDTH": 0.125,
+                "PLAYER_BAR_WIDTH": 5,
+
+                "PLAYER_BAR_THRESHOLD": 165 if current_os == "Darwin" else 200,
+                "DIRT_SATURATION_THRESHOLD": 22 if current_os == "Darwin" else 50,
             },
 
             "PATHFINDING": {
@@ -247,13 +297,14 @@ class ConfigManager:
             },
 
             "PACKAGES": {
-                "KEYBOARD_INPUT_PACKAGE": "pynput",
-                "SCREENSHOT_PACKAGE": "mss",
+                "MOUSE_INPUT_PACKAGE": "Native Calls",
+                "SCREENSHOT_PACKAGE": "bettercam (Windows)" if current_os == "Windows" else "mss",
             },
 
             "DEBUG WINDOW": {
-                "WINDOW_NAME": "Auto Dig by mstudio45",
+                "WINDOW_NAME": "DIG Macro by mstudio45",
                 "SHOW_DEBUG": True,
+                "DEBUG_FPS": 240
             },
 
             "DEBUG SCREENSHOTS": {
@@ -337,7 +388,7 @@ class ConfigManager:
 
             self._set_default_config()
             self.save_config()
-            return
+            return True
         
         parser = configparser.ConfigParser()
         parser.read(self.config_file)
@@ -386,6 +437,8 @@ class ConfigManager:
             except json.JSONDecodeError:
                 print("[ConfigManager.load_config] Warning: Could not decode 'PathfindingMacros' from config file. Using defaults.")
 
+        return False
+
     def save_config(self):
         parser = configparser.ConfigParser()
         for section, options in self.config.items():
@@ -399,13 +452,6 @@ class ConfigManager:
             parser.write(f)
             f.close()
 
-    # getters #
-    def get(self, section, key):
-        return self.config.get(section, {}).get(key)
-
-    def get_section(self, section):
-        return self.config.get(section, {})
-
     # setter #
     def set(self, section, key, value):
         if section in self.config and key in self.config[section]:
@@ -414,11 +460,6 @@ class ConfigManager:
             self.save_config() # instant save #
         else:
             raise ValueError(f"[ConfigManager.set] Section '{section}' or key '{key}' not found in configuration.")
-
-    # pathfinding setter #
-    def set_pathfinding_macros(self, macros):
-        self.PathfindingMacros = macros
-        self.save_config() # instant save #
 
     # reset #
     def reset_to_defaults(self):
@@ -434,7 +475,7 @@ class ConfigManager:
 Config = ConfigManager(StaticVariables.config_filepath)
 
 ## ui editor ##
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QCheckBox, QSpinBox, QDoubleSpinBox, QLineEdit,
     QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox,
@@ -445,7 +486,7 @@ class ConfigUI(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Auto Dig Configuration | https://github.com/mstudio45/digmacro")
+        self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
         self.setGeometry(100, 100, 800, 700)
 
         self.layout = QVBoxLayout()

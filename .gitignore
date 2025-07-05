@@ -1,3 +1,4 @@
-__pycache__
-storage
-dist
+**/__pycache__/
+**/storage/
+**/dist/
+digmacro_venv/

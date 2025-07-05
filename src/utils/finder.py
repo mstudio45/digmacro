@@ -1,29 +1,19 @@
-import os, sys
-
-# imports #
-import time, json, traceback
-import cv2
+import os, time, threading, logging
+import cv2, mss 
 import numpy as np
-import pymsgbox, threading
 
 # file imports #
 from variables import Variables, StaticVariables
 from config import Config
 
-import utils.general.filehandler as FileHandler
-from utils.general.screenshots import take_screenshot, cleanup as screenshot_cleanup
+from utils.images.screenshots import take_screenshot
 import utils.general.input as Inputs
 from utils.general.movement_tracker import MovementTracker
-from utils.screen_images import *
-import logging
+from utils.images.screen_images import *
 
-### IMAGES ###
-LEFT_SIDE_IMG  = resize_image(StaticVariables.bar_left_side_imgpath)
-RIGHT_SIDE_IMG = resize_image(StaticVariables.bar_right_side_imgpath)
-# HEART_IMG = resize_image("img/heart.png")
+import platform; current_os = platform.system()
 
-def is_pos_in_bbox(pos_x, left, width):
-    return (pos_x > left and pos_x < left + width)
+def is_pos_in_bbox(pos_x, left, width): return left <= pos_x <= (left + width)
 
 ## SELL ANYWHERE UI ##
 class SellUI:
@@ -35,22 +25,22 @@ class SellUI:
         Inputs.press_key("g")
         time.sleep(1)
 
-    def sell_items(self, total_sold_add):
+    def sell_items(self, total_sold_add, sct):
         if not Variables.is_idle():         logging.debug("Not idle, skipping..."); return
-        if not Variables.roblox_focused:    logging.debug("Roblox is not focused."); return
+        if not Variables.is_roblox_focused:    logging.debug("Roblox is not focused."); return
         Variables.is_selling = True
 
         # try to get the button #
         tryidx = 0
         button_pos = None
 
-        while Variables.running == True and tryidx < 5:
+        while Variables.is_running == True and tryidx < 5:
             self.toggle_shop()
 
-            button_pos = find_image(self.sell_img, confidence=Config.AUTO_SELL_BUTTON_CONFIDENCE)
+            button_pos = find_image(self.sell_img, sct, confidence=Config.AUTO_SELL_BUTTON_CONFIDENCE)
             if button_pos is not None: break
 
-        if not button_pos or not Variables.running or tryidx >= 4:
+        if not button_pos or not Variables.is_running or tryidx >= 4:
             logging.debug("Button not found.");
             Variables.is_selling = False
             return
@@ -69,66 +59,15 @@ class SellUI:
         Variables.is_selling = False
 
 ### FINDER CLASSES ###
-class BarUI:
-    def __init__(self):
-        self.valid_height = int(15 * scale_y)
-
-    def set_region(self):
-        global scale_x, scale_y
-
-        if Config.USE_SAVED_POSITION:
-            if os.path.isfile(StaticVariables.position_filepath):
-                try:
-                    pos = FileHandler.read(StaticVariables.position_filepath)
-                    if pos is not None:
-                        Variables.minigame_region = json.loads(pos)
-                except Exception as e:
-                    err_msg = f"Failed to load saved position: \n{traceback.format_exc()}"
-                    logging.error(err_msg)
-                    if Config.MSGBOX_ENABLED: pymsgbox.alert(err_msg)
-                
-                # if height is valid and everything is not 0, then continue #
-                if Variables.minigame_region["height"] == self.valid_height:
-                    if (Variables.minigame_region["left"] == 0 and Variables.minigame_region["top"] == 0 and Variables.minigame_region["width"] == 0 and Variables.minigame_region["height"] == 0) == False:
-                        return True
-
-        pymsgbox.alert("Please make sure that Roblox is not in 'fullscreen' mode and that you have 'Minigame Dimming' inside DIG set to '1' (you can set it to anything else afterwards).")
-
-        # try to find the bar UI sides using images #
-        left_location, right_location = None, None
-        while (left_location == None or right_location == None) and Variables.running == True:
-            left_location    = find_image(LEFT_SIDE_IMG,  Config.SIDE_CONFIDENCE)
-            right_location   = find_image(RIGHT_SIDE_IMG, Config.SIDE_CONFIDENCE)
-            time.sleep(0.1)
-
-        if Variables.running == False:
-            sys.exit(1)
-
-        # set the positions in the minigame_region #
-        Variables.minigame_region["left"]   = int(right_location["left"]) + int(5 * scale_x)
-        Variables.minigame_region["top"]    = int(right_location["top"]) + int(30 * scale_y)
-
-        Variables.minigame_region["width"]  = int(left_location["left"] - right_location["left"]) + int(10 * scale_x)
-        Variables.minigame_region["height"] = self.valid_height
-
-        # save the pos if the config is enabled #
-        if Config.USE_SAVED_POSITION:
-            FileHandler.write(StaticVariables.position_filepath, json.dumps(Variables.minigame_region))
-        
-        return True
-
-DIRT_BOTTOM_OFFSET = int(21 * scale_y)
-DIRT_BAR_OFFSET = int(40 * scale_y)
-PLAYER_BAR_BOTTOM_OFFSET = int(10 * scale_y)
+# DIRT_BOTTOM_OFFSET = int(21 * scale_y)
+# DIRT_BAR_OFFSET = int(40 * scale_y)
+# PLAYER_BAR_BOTTOM_OFFSET = int(10 * scale_y)
 
 class PlayerBar:
     def __init__(self):
         self.position = None
         self.current_position = None
-
         self.bar_in_clickable = False
-        self.predicted_in_clickable = False
-        self.in_clickable = False
         
         # prediction
         self.predicted_position = None
@@ -136,49 +75,48 @@ class PlayerBar:
         self.current_acceleration = 0
         self.player_bar_tracker = MovementTracker()
 
-        self.img = None
         self.mask = None
+        self.kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
 
     def find_bar(self, 
         screenshot, 
-        region_left, region_top, region_height,
+        region_left, region_height,
 
         clickable_position
     ):
+        if not clickable_position: return
+
         player_bar_center = None
         player_bar_bbox = None
 
         # edit screenshot #
-        mask = cv2.Canny(screenshot, 625, 625)
+        # sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
+        # abs_sobelx = cv2.convertScaleAbs(sobelx)
+        mask = cv2.Canny(screenshot, 600, 600)
+
+        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY) 
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # get average middle position of contours #
-        if contours and len(contours) >= 2:
-            sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
-            vertical_lines = []
+        self.mask = mask
+
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            if w >= 1 and h > 15 and h / w > 5.5:
+                fixed_x = region_left + (x + w // 2) - 5
+
+                player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
+                player_bar_center = fixed_x
+                break
         
-            for contour in sorted_contours:
-                x, y, w, h = cv2.boundingRect(contour)
-                if w == 1 and h == region_height:
-                    vertical_lines.append((x, y, w, h))
-            
-            if len(vertical_lines) <= 0: return
-
-            # get bboxes #
-            x, y, w, h = vertical_lines[0]
-            fixed_x = region_left + (x + w // 2) - 5
-
-            player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
-            player_bar_center = fixed_x
-        else: return
+        if not player_bar_center:
+            self.position = None
+            self.current_position = None
+            return
 
         # update variables for prediction #
         self.position = player_bar_bbox
         self.update_values(player_bar_center, clickable_position)
-        self.in_clickable = self.bar_in_clickable and self.predicted_in_clickable
-
-        self.mask = mask
-        self.img = screenshot
     
     # Prediction system #
     def update_values(self, current_left, clickable_position):
@@ -196,12 +134,7 @@ class PlayerBar:
 
         # kinematic equation #
         t = float(Config.PREDICTION_MAX_TIME_AHEAD)
-        self.predicted_position = current_left + (self.current_velocity * t)
-        
-        if abs(self.current_acceleration) > 100:
-            self.predicted_position += 0.5 * self.current_acceleration * (t ** 2)
-
-        self.predicted_in_clickable = is_pos_in_bbox(self.predicted_position, bbox_left, bbox_width)
+        self.predicted_position = current_left + (self.current_velocity * t) + 0.5 * self.current_acceleration * (t ** 2)
 
 class DirtBar:
     def __init__(self):
@@ -209,14 +142,13 @@ class DirtBar:
         self.clickable_position = None
         
         self.kernel = np.ones((5, 15), np.uint8)
-        self.img = None
         self.mask = None
 
     def find_dirt(self, 
         screenshot,
         region_left, region_top, region_width
     ):
-        dirt_part_bbox_relative_to_bar = None
+        dirt_bar_absolute_position = None
 
         # edit screenshot #
         _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV)
@@ -224,30 +156,28 @@ class DirtBar:
         mask = cv2.bitwise_not(mask)
 
         self.mask = mask
-        self.img = screenshot
 
         # find dirt part #
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
         if contours:
             largest_contour = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest_contour)
-
-            if 50 < w >= region_width - 5:
+            if 25 < w >= region_width - 5:
                 self.position = None
                 self.clickable_position = None
                 return
             
-            dirt_part_bbox_relative_to_bar = (x, y, w, h)
+            dirt_bar_absolute_position = (region_left + x, region_top + y, w, h)
 
             # set clickable part #
-            target_width = Config.CLICKABLE_WIDTH
-            clickable_x = x + (w - target_width) // 2
+            clickable_percentage = Config.CLICKABLE_WIDTH 
+            clickable_width = int(w * clickable_percentage)
+            clickable_x = x + (w - clickable_width) // 2
 
             clickable_part_bbox = (
                 region_left + clickable_x,
                 region_top + y,
-                target_width,
+                clickable_width,
                 h
             )
         else:
@@ -256,81 +186,57 @@ class DirtBar:
             return
 
         # update variables #
-        self.position = dirt_part_bbox_relative_to_bar
+        self.position = dirt_bar_absolute_position
         self.clickable_position = clickable_part_bbox
 
 ## MAIN HANDLER FOR CLICKS ##
 class MainHandler:
     def __init__(self):
-        self.black_pixel = np.array([0, 0, 0, 255])
-
-        self.BarUI = BarUI()
+        # initliaze classes #
         self.PlayerBar = PlayerBar()
         self.DirtBar = DirtBar()
 
         # click and find variables #
-        self.was_in_zone = False
-        self.last_click_time = 0
-        self.last_frame_time = 0
-        self.frame_times = []
+        # self.was_in_zone = False
+        # self.just_entered = False
+        self.click_cooldown = 0
 
-        self.current_time_ms = 0
-
-        self.confidence = 0.0
-        self.should_click = False
-        self.prediction_used = False
-        self.click_delay = 0
+        # self.last_frame_time = 0
+        # self.frame_times = []
 
         # debug images #
         self.debug_img = None
 
-        self.start_minigame_img = np.zeros((50, 350, 3), dtype=np.uint8)
-        self.waiting_for_minigame_img = np.zeros((50, 500, 3), dtype=np.uint8)
-
-        self.focus_roblox_img = np.zeros((50, 350, 3), dtype=np.uint8)
-        self.rejoining_img = np.zeros((50, 350, 3), dtype=np.uint8)
-
-        self.selling_img = np.zeros((50, 350, 3), dtype=np.uint8)
-
-        cv2.putText(self.start_minigame_img, "START MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
-        cv2.putText(self.waiting_for_minigame_img, "WAITING FOR MINIGAME", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
-        
-        cv2.putText(self.focus_roblox_img, "FOCUS ROBLOX", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
-        cv2.putText(self.rejoining_img, "REJOINING...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 125, 255), thickness=2)
-
-        cv2.putText(self.selling_img, "SELLING ITEMS...", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), thickness=2)
-
-    def setup_bar(self):
-        logging.info("Loading Bar UI position...")
-        self.debug_img = self.start_minigame_img
-
-        if self.BarUI.set_region() != True:
-            pymsgbox.alert("Failed to setup Bar Region.")
-            sys.exit(1)
-        
-        self.debug_img = self.waiting_for_minigame_img
-
-    def update_state(self, custom_sct=None):
-        if Variables.is_rejoining == True:
-            self.debug_img = self.rejoining_img
-            return
-
-        if Variables.roblox_focused == False:
-            self.debug_img = self.focus_roblox_img
-            return
-        
-        if Variables.is_selling == True:
-            self.debug_img = self.selling_img
-            return
-            
-        frame_start_time = time.perf_counter()
+    def update_state(self, sct):
+        if Variables.is_rejoining == True: return
+        if Variables.is_roblox_focused == False and Variables.is_selecting_region == False: return
+        if Variables.is_selling == True: return
         
         # get offsets #
         region_left, region_top, region_width, region_height = Variables.minigame_region.values()
 
         # take screenshots #
-        screenshot_np = take_screenshot(Variables.minigame_region, custom_sct=custom_sct)
+        screenshot_np = take_screenshot(Variables.minigame_region, sct)
+        if screenshot_np is None: Variables.is_minigame_active = False; return
         gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2GRAY)
+
+        if Variables.is_selecting_region == True:
+            # find clickable region #
+            self.DirtBar.find_dirt( 
+                gray_screenshot,
+                region_left, region_top, region_width
+            )
+
+            # if clickable_position is not none we can update playerBar #
+            self.PlayerBar.find_bar(
+                gray_screenshot,
+                region_left, region_height,
+                self.DirtBar.clickable_position
+            )
+
+            # create debug image
+            self.create_debug_image(screenshot_np, region_left)
+            return
 
         # find clickable region #
         self.DirtBar.find_dirt( 
@@ -340,84 +246,63 @@ class MainHandler:
 
         # handle status #
         if self.DirtBar.clickable_position is None:
-            self.debug_img = self.waiting_for_minigame_img
             Variables.is_minigame_active = False
             self.was_in_zone = False
             return
-        else:
-            Variables.is_minigame_active = True
+        else: Variables.is_minigame_active = True
 
         # if clickable_position is not none we can update playerBar #
         self.PlayerBar.find_bar(
-            screenshot_np,
-            region_left, region_top, region_height,
+            gray_screenshot,
+            region_left, region_height,
             self.DirtBar.clickable_position
         )
 
-        # create debug image
-        if Config.SHOW_DEBUG:
-            threading.Thread(
-                target=self.create_debug_image,
-                args=(
-                    screenshot_np,
-
-                    region_left, region_top,
-                    region_height, region_width,
-                ),
-                daemon=True
-            ).start()
-
         if self.PlayerBar.current_position is None:
-            self.debug_img = self.waiting_for_minigame_img
             Variables.is_minigame_active = False
             self.was_in_zone = False
             return
-        else:
-            Variables.is_minigame_active = True
+        else: Variables.is_minigame_active = True
 
         # zone tracking variables #
-        in_zone_now = self.PlayerBar.bar_in_clickable
-        self.just_entered = in_zone_now and not self.was_in_zone
-        self.was_in_zone = in_zone_now
+        # in_zone_now = self.PlayerBar.bar_in_clickable
+        # self.just_entered = in_zone_now and not self.was_in_zone
+        # self.was_in_zone = in_zone_now
 
-        # handle frames and processing time #
-        processing_time = (time.perf_counter() - frame_start_time) * 1000
-        self.frame_times.append(processing_time)
-        if len(self.frame_times) > Config.TARGET_FPS:
-            self.frame_times.pop(0)
-
-        # return screenshot_np, bar_left_offset, bar_top_offset, bar_height, bar_width
+        # create debug image
+        if Config.SHOW_DEBUG:
+            self.create_debug_image(screenshot_np, region_left)
 
     def handle_click(self):
         if not Variables.is_minigame_active or self.PlayerBar.current_position is None:
             return
         
-        self.current_time_ms = int(time.time() * 1000)
+        current_time_ms = int(time.time() * 1000)
 
         # positions #
         player_bar_center = self.PlayerBar.current_position
         clickable_part = self.DirtBar.clickable_position
-        clickable_center = clickable_part[0] + (clickable_part[2] // 2)
-        clickable_radius = clickable_part[2] // 2
+        clickable_left, clickable_width = clickable_part[0], clickable_part[2]
+        clickable_center = clickable_left + (clickable_width // 2)
+        clickable_radius = clickable_width // 2
 
         # prediction variables #
-        self.confidence = 0.0
-        self.should_click = False
-        self.prediction_used = False
-        self.click_delay = 0
+        confidence = 0.0
+        should_click = False
+        prediction_used = False
+        click_delay = 0
 
         # verify if we should click or no #
         if (
-            self.current_time_ms - self.last_click_time >= Config.MIN_CLICK_INTERVAL and
-            self.just_entered and
-            not Inputs.clicking_lock.locked()
+            current_time_ms >= self.click_cooldown
+            and not Inputs.clicking_lock.locked()
         ):
             if Config.USE_PREDICTION:
                 predicted_player_bar = self.PlayerBar.predicted_position
                 current_velocity = self.PlayerBar.current_velocity
 
                 if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
-                    player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity >= 0 else (player_bar_center > clickable_center)
+                    player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
 
                     if player_bar_to_clickable: # check if player bar is going towards clickable part #
                         distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
@@ -430,62 +315,77 @@ class MainHandler:
                                 arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
 
                                 if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
-                                    self.should_click, self.prediction_used, self.click_delay = True, True, arrival_in_ms
+                                    should_click, prediction_used, click_delay = True, True, arrival_in_ms
             
-            # fallback #
-            if not self.should_click and self.PlayerBar.bar_in_clickable:
-                self.should_click = True
-                # click_delay = 0
-                # confidence = 1.0
+                if not should_click:
+                    dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
+                    dirt_bar_center = dirt_left + dirt_width / 2
+
+                    # Compute player bar center correctly
+                    player_bar_center = self.PlayerBar.current_position
+
+                    center_distance = abs(player_bar_center - dirt_bar_center)
+                    normalized_distance = center_distance / (dirt_width / 2)
+                    confidence = 1.0 - normalized_distance
+
+                    is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
+
+                    if confidence >= Config.MIN_CENTER_CONFIDENCE:
+                        should_click = True
+                        prediction_used = True
+                    elif is_moving_slowly and confidence >= Config.MIN_SLOW_CONFIDENCE:
+                        should_click = True
+                        prediction_used = True
+            
+            if not should_click and self.PlayerBar.bar_in_clickable:
+                should_click = True
 
             # do the click #
-            if self.should_click:
+            if should_click:
                 Inputs.clicking_lock.acquire()
-                threading.Thread(target=Inputs.left_click, args=(self.click_delay,)).start()
+                threading.Thread(target=Inputs.left_click_lock, args=(click_delay,)).start()
 
-                self.last_click_time = self.current_time_ms
+                self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL + click_delay
+
                 Variables.click_count += 1
-                Variables.last_minigame_interaction = self.current_time_ms
+                Variables.last_minigame_interaction = current_time_ms
 
-                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and self.prediction_used:
-                    threading.Thread(target=write_image, args=(os.path.join(StaticVariables.prediction_screenshots_path, Variables.click_count + ("_pred" if self.prediction_used else "") + ".png"), self.debug_img, ), daemon=True).start()
+                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and prediction_used:
+                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, str(Variables.click_count) + ("_pred" if prediction_used else "") + ".png"), self.debug_img)
 
-    def create_debug_image(self, 
+    def create_debug_image(self,
         screenshot_np,
-        region_left, region_top,
-        region_height, region_width
+        region_left
     ):
+        # Get screenshot dimensions for proper coordinate conversion
+        screenshot_height = screenshot_np.shape[:2][0]
+        
         # draw the dirt part and clickable part #
         if self.DirtBar.position:
-            dx, dy, dw, _ = self.DirtBar.position
-            cv2.rectangle(screenshot_np, (dx, dy), (dx + dw, region_height), (255, 255, 0), 2)
+            dx, _, dw, _ = self.DirtBar.position
+            cv2.rectangle(screenshot_np, (dx - region_left, 0), (dx - region_left + dw, screenshot_height), (0, 255, 255), 2)
         
         if self.DirtBar.clickable_position:
-            c_left, c_top, c_width, _ = self.DirtBar.clickable_position
-            cv2.rectangle(screenshot_np, (c_left - region_left, c_top - region_top), (c_left - region_left + c_width, region_height), (255, 0, 0), 2)
+            cx, _, cw, _ = self.DirtBar.clickable_position
+            x1 = int(cx - region_left)
+            x2 = int(cx - region_left + cw)
+            cv2.rectangle(screenshot_np, (x1, 0), (x2, screenshot_height), (125, 255, 0), 2)
 
         # draw the player bar (current and prediction) #
-        p_left, p_top, p_width = 0, 0, 0
-        if self.PlayerBar.position:
-            p_left, p_top, p_width, _ = self.PlayerBar.position
-            cv2.rectangle(screenshot_np, (p_left - region_left, p_top - region_top), (p_left - region_left + p_width, region_height), (255, 0, 0), 2)
+        plr_x = self.PlayerBar.current_position
+        pred_x = self.PlayerBar.predicted_position
 
-        if Config.USE_PREDICTION == True and self.PlayerBar.predicted_position is not None:
-            predict_left = int(self.PlayerBar.predicted_position)
-            cv2.rectangle(screenshot_np, (predict_left - region_left, p_top - region_top), (predict_left - region_left + p_width, region_height), (255, 0, 255), -1)
+        if plr_x is not None:
+            plr_x = int(plr_x - region_left)
+            cv2.line(screenshot_np, (plr_x, 0), (plr_x, screenshot_height), (0, 0, 255), Config.PLAYER_BAR_WIDTH)
 
-        # info img #
-        info_img = np.zeros((50, region_width, 3), dtype=np.uint8)
-        debug_text = (f"Pred: {self.prediction_used} (Conf: {self.confidence:.2f} - Delay: {self.click_delay:.3f}) | " if Config.USE_PREDICTION == True else "") + f"Velocity: {self.PlayerBar.current_velocity:.3f} | Time: {self.current_time_ms}"
-        cv2.putText(info_img, debug_text, (10, 30), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 255, 0) if self.confidence >= Config.PREDICTION_CONFIDENCE else (255, 255, 255), thickness=1)
+        if Config.USE_PREDICTION and pred_x is not None:
+            pred_x = int(pred_x - region_left)
+            cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), Config.PLAYER_BAR_WIDTH) 
 
-        # stack masks and imgs and set debug_img #
+        # finally set the debug img #
         self.debug_img = stack_images_with_dividers([
-            info_img, screenshot_np, 
-            # self.DirtBar.img, self.DirtBar.mask,
-            # self.PlayerBar.img, self.PlayerBar.mask
+            screenshot_np, 
+            # self.DirtBar.mask,
+            # self.PlayerBar.mask
         ])
-
-    def cleanup(self):
-        logging.info("Cleaning...")
-        screenshot_cleanup()

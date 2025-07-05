@@ -1,0 +1,76 @@
+import psutil, logging, subprocess
+import platform, traceback
+
+__all__ = ["is_roblox_focused", "focus_roblox", "kill_roblox", "is_roblox_running"]
+
+# make functions depending on the os #
+current_os = platform.system()
+
+if current_os == "Windows":
+    import win32gui, win32con, pygetwindow # type: ignore
+    
+    def is_roblox_focused():
+        try:
+            title = pygetwindow.getActiveWindowTitle()
+            if not title: return False
+
+            return "Roblox" == title
+        except Exception as e: logging.error(f"Error checking focus on Roblox: {traceback.format_exc()}")
+        
+    def focus_roblox():
+        try:
+            roblox_window = pygetwindow.getWindowsWithTitle("Roblox")
+            if not roblox_window: return
+            roblox_window = roblox_window[0]
+
+            roblox_window.restore() # minimized #
+            roblox_window.activate()
+
+            win32gui.ShowWindow(roblox_window._hWnd, win32con.SW_SHOW)
+            win32gui.SetForegroundWindow(roblox_window._hWnd)
+        except Exception as e: logging.error(f"Error focusing Roblox: {traceback.format_exc()}")
+
+    def kill_roblox(): subprocess.call("TASKKILL /F /IM RobloxPlayerBeta.exe")
+    def is_roblox_running(): return "robloxplayerbeta.exe" in [p.name().lower() for p in psutil.process_iter()]
+
+elif current_os == "Linux": # xdotool
+    def is_roblox_focused():
+        try:
+            root = subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE)
+            stdout, _ = root.communicate()
+            active_window_id = stdout.strip().split()[-1]
+            
+            if active_window_id:
+                title_proc = subprocess.Popen(["xprop", "-id", active_window_id, "WM_NAME"], stdout=subprocess.PIPE)
+                stdout, _ = title_proc.communicate()
+                title = stdout.strip().decode("utf-8", "ignore")
+
+                return f'"sober"' in title.lower()
+            return False
+        except Exception as e: logging.error(f"Error checking focus on Roblox: {traceback.format_exc()}")
+        
+    def focus_roblox():
+        try:
+            result = subprocess.check_output(["xdotool", "search", "--name", "sober"])
+            window_ids = result.decode().strip().split("\n")
+            if not window_ids: return
+
+            subprocess.call(["xdotool", "windowactivate", "--sync", window_ids[0]])
+        except Exception as e: logging.error(f"Error focusing Roblox: {traceback.format_exc()}")
+        
+    def kill_roblox(): subprocess.call(["pkill", "-x", "sober"])
+    def is_roblox_running(): return "sober" in [p.name().lower() for p in psutil.process_iter()]
+
+elif current_os == "Darwin":
+    from AppKit import NSWorkspace # type: ignore
+
+    def is_roblox_focused():
+        active_app = NSWorkspace.sharedWorkspace().activeApplication()
+        if not active_app: return False
+        if "NSApplicationName" not in active_app: return False
+
+        return active_app["NSApplicationName"] == "Roblox"
+    
+    def focus_roblox(): subprocess.call(["osascript", "-e", "'tell application \"Roblox\" to activate'"])
+    def kill_roblox(): subprocess.call(["pkill", "-9", "-f", '"RobloxPlayer"'])
+    def is_roblox_running(): return "robloxplayer" in [p.name().lower() for p in psutil.process_iter()]

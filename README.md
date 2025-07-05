@@ -3,85 +3,161 @@
 
 # DIG macro
 <p align="center">
-    <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/digmacro-showcase.gif" alt="Showcase video"> <br />
-    Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>.  <br />
+    <!-- <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase.gif" alt="Showcase video"> <br /> -->
+    Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>. <br />
     <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a></i>
 </p>
 
-## Table of Contents
-* [Requirements](#requirements)
-* [Features](#features)
-* [Installation](#installation)
-    * [How to Run](#how-to-run)
-    * [How to Stop](#how-to-stop)
-* [Configuration](#configuration)
-    * [Pathfinding Macros Configuration](#pathfinding-macros)
+## What is This?
+DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.roblox.com/games/126244816328678/DIG) automatically.
+
+---
+
+## 📑 Table of Contents
+- [Features](#features)
+- [Supported Operating Systems](#supported-operating-systems)
+- [Quick Start](#quick-start)
+  - [1. Download and Install](#1-download-and-install)
+  - [2. Running the Macro](#2-running-the-macro)
+- [How to Stop the Macro](#how-to-stop-the-macro)
+- [Editing the Configuration](#editing-the-configuration)
+  - [How to Open the Configuration](#how-to-open-the-configuration)
+- [Pathfinding Macros (Movement Patterns)](#pathfinding-macros-movement-patterns)
+  - [How to Add or Edit Movement Patterns](#how-to-add-or-edit-movement-patterns)
+- [Troubleshooting](#troubleshooting)
+- [Tips](#tips)
+
+---
 
 ## Features
- * **Configuration GUI**: GUI to easily configure each macro setting with information about each setting.
- * **Prediction system**: Predicts the player bar position to make digging faster.
- * **Pathfinding**: Macro will move you around the starting position with different pathfinding macros (square, etc.).
- * **Boss support**: This macro allows you to fight bosses with it.
- * **Auto Sell**: Automatically sells your items after certain amount of digs or after finishing the pathfinding macro. (requires 'Sell Anywhere' gamepass)
- * **Auto Rejoin**: Automatically rejoins DIG if you disconnect or if something went wrong.
+ * **Custom GUI**: A custom graphical interface with options and macro status.
+ * **Configuration GUI**: A graphical interface that allows you to simply configure any macro setting and provides information about each one.
+ * **Auto Sell**: Automatically sells your items after a given number of digs or after completing the pathfinding macro. (requires 'Sell Anywhere' gamepass)
+ * **Auto Rejoin**: If you disconnect or something goes wrong, the macro will automatically rejoin DIG.
+ * **Auto Start Minigame**: Starts the minigame automatically for you.
+ * **Prediction System**: Predicts the player's bar position, resulting in faster digging.
+ * **Pathfinding Macros**: A system that will move you around from where you started using various movement patterns (square, etc.).
+ * **Boss Support**: You can use this macro to battle bosses.
 
-## Requirements
- * [Python](https://www.python.org/) **[Recommended version: 3.13]**
+---
 
-## Installation
-> [!WARNING]
-> The speed of the macro can depend on your computer's performance and on current Roblox FPS. **This macro will missclick and could end your streak!**
-
-1. **Download:** https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip
-2. **Extract the downloaded zip file (digmacro-dev.zip).**
-3. **Open the folder (digmacro-dev).**
-
-### How to Run
+## Supported Operating Systems
 > [!NOTE]
-> If you are using the macro for the first time (or you deleted the `storage/pos.json` file) you need to **Change the in-game setting** `Minigame Dimming` to **`1`**. Afterwards you can set it to what value you want.
+> Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
+> Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-1. **Run the Script:**
-    Simply run the macro by opening `start.bat` or `digmacro.exe`.
+### Windows (Recommended)
+- **Supported:** Windows 8, Windows 8.1, Windows 10, and Windows 11
+- **Tested on:** Windows 10, Windows 11
+- **Not officially supported:** Windows 7 (may work, but not tested)
 
-### How to Stop
-  * Simply **close the macro window**.
-  * Alternatively, you can hold `Ctrl+E` or press `Ctrl+C` in the terminal where the script is running.
+### Linux
+- **Supported:** Most modern distributions, including Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.
+- **Tested on:** Linux Mint 22.1 Cinnamon
 
-## Configuration
-  * Simply run `edit.bat` (or `digmacro.exe --edit-config`) to open the configuration GUI.
+### macOS
+- ⚠️ **Support is experimental and work-in-progress. The macro should run, but the detection/clicking handler will not work as of today.** ⚠️
+- *Support for macOS is being worked on the Apple M3 16 GB, Sequoia 15.5 (with Retina display)*
 
-## Pathfinding Macros
-The macro movement patterns are defined in a JSON file that specifies key presses and durations for each shape or pattern.
+*If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request.*
 
-### Macro Format
-Each macro consists of a list of keypress instructions. Each instruction is an array containing:
+---
 
-* **Key(s)**: Either a single key (e.g., `"w"`, `"a"`, `"s"`, `"d"`) or a combination of keys (e.g., `["w", "d"]` means pressing **W** and **D** together).
-* **Duration**: A float representing how long (in seconds) to hold the key(s).
+## Quick Start
 
-Example:
+### 1. Download and Install
+1. **Download the latest version from Releases:**  
+   [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
+2. **Extract the ZIP File:**  
+   Right-click the downloaded file and choose "Extract Here" or "Extract All".
+3. **Open the Folder:**  
+   Go into the extracted `digmacro-[windows/linux/macos]` folder.
 
-```json
-"square": [
-    ["w", 1.0],
-    ["d", 1.0],
-    ["s", 1.0],
-    ["a", 1.0]
-]
-```
+### 2. Running the Macro
+- **Windows:** Double-click `launch.bat`
+- **Linux/macOS:** Run `sh launch.sh` in your terminal
 
-### How to Add New Macros
+You will be asked:
+- Whether to run from source (for developers) or standalone (for most users).
+    - Press **1** to use the standalone version. (`digmacro.[exe/bin/app]` is required)
+    - Press **2** to use the source version. (`src` folder is required)
+- Whether to start the macro or edit the configuration.
+    - Press **1** to start the macro.
+    - Press **2** to edit the configuration of the macro.
 
-1. Open the macro configuration file (`storage/pathfinding_macros.json`) in a text editor.
-2. Add a new key-value pair to the JSON object with your desired macro name and pattern.
-   For example, to add a "vertical_line" shape:
+---
 
+## How to Stop the Macro
+> [!NOTE]
+> Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
+
+- **Close the Macro Window:**  
+  Just click the `close (X)` button or `Exit` button.
+- **Keyboard Shortcuts:**
+  Hold `Ctrl+E` or press `Ctrl+C` in the terminal window where the macro is running.
+  
+---
+
+## Editing the Configuration
+You can easily change how the macro works using a simple graphical interface.
+
+### How to Open the Configuration
+Follow the same steps as running the macro, but when asked **"What would you like to do?"**, simply enter **2** to edit the configuration instead of starting the macro.
+
+---
+
+## Pathfinding Macros (Movement Patterns)
+The macro can move your character in different patterns (like a square, line, etc.). You can use the built-in patterns or create your own.
+
+### How to Add or Edit Movement Patterns
+1. **Open the File:**  
+   Go to the `storage` folder and open `pathfinding_macros.json` with a text editor (like Notepad).
+
+2. **Understanding the Format:**  
+   Each pattern is a list of steps. Each step tells the macro which key(s) to press and for how long.
+
+   - **Single Key:**  
+     `"w"` means press W.
+   - **Multiple Keys:**  
+     `["w", "d"]` means press W and D together.
+   - **Duration:**  
+     The number (like `1.0`) is how many seconds to hold the key(s).
+
+   **Example:**
+   ```json
+   "square": [
+       ["w", 1.0],
+       ["d", 1.0],
+       ["s", 1.0],
+       ["a", 1.0]
+   ]
    ```
+
+3. **Add Your Own Pattern:**  
+   Add a new entry with your chosen name and steps.  
+   For example, to add a "vertical_line" pattern:
+   ```json
    {
-        "your_macro": [ ["w", 1.0], [["s", "d"], 0.5], ... ],
-        "square: [ ... ],
-        ...
+       "vertical_line": [
+           ["w", 2.0],
+           ["s", 2.0]
+       ],
+       "square": [
+           ["w", 1.0],
+           ["d", 1.0],
+           ["s", 1.0],
+           ["a", 1.0]
+       ]
    }
    ```
-3. Save the file.
-4. The new macro will now be available inside the configuration GUI.
+
+4. **Save the File:**  
+   After editing, save the file. Your new pattern will appear in the configuration GUI.
+
+---
+
+## Troubleshooting
+- **Macro is missing clicks or not working well:**  
+  The macro's speed depends on your computer and Roblox's performance. Try lowering the speed in the configuration if you have issues.
+- **Need help?**  
+  Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.

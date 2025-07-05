@@ -1,53 +1,88 @@
 import os, shutil
+import logging
 
-def write(filename, content):
+def write(filename: str, content: str) -> bool:
     try:
-        with open(file=filename, mode="w") as f:
+        with open(file=filename, mode="w", encoding="utf-8") as f:
             f.write(content)
-            f.close()
+
+        logging.info(f"Successfully wrote content to '{filename}'.")
         return True
-    except Exception as e:
-        print(f"[FileHandler.write] Failed to save '{str(filename)}': {e}")
+    
+    except IOError as e:
+        logging.error(f"Failed to write to '{filename}': {e}")
         return False
     
-def read(filename):
-    try:
-        content = None
-        with open(file=filename, mode="r") as f:
-            content = str(f.read())
-            f.close()
-        
-        return content
     except Exception as e:
-        print(f"[FileHandler.write] Failed to save '{str(filename)}': {e}")
+        logging.error(f"An unexpected error occurred while writing to '{filename}': {e}")
+        return False
+
+def read(filename: str) -> str | None:
+    try:
+        with open(file=filename, mode="r", encoding="utf-8") as f:
+            content = f.read()
+        
+        logging.info(f"Successfully read content from '{filename}'.")
+        return content
+    
+    except FileNotFoundError:
+        logging.warning(f"File not found: '{filename}'.")
+        return None
+    
+    except IOError as e:
+        logging.error(f"Failed to read from '{filename}': {e}")
+        return None
+    
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while reading from '{filename}': {e}")
         return None
 
 # folders #
-def create_folder(folderpath):
+def create_folder(folderpath: str) -> bool:
     try:
-        if not os.path.isdir(folderpath):
-            os.makedirs(folderpath)
-        
+        os.makedirs(folderpath, exist_ok=True)
+
+        logging.info(f"Folder '{folderpath}' created or already exists.")
         return True
-    except Exception as e:
-        print(f"[FileHandler.create_folder] Failed to create folder '{str(folderpath)}': {e}")
+    
+    except OSError as e:
+        logging.error(f"Failed to create folder '{folderpath}': {str(e)}")
         return False
     
-def is_folder_empty(folderpath):
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while creating folder '{folderpath}': {str(e)}")
+        return False
+
+def is_folder_empty(folderpath: str) -> bool:
     try:
         if not os.path.isdir(folderpath):
-            return len(os.listdir(folderpath)) > 0
-        return False
-    except Exception as e:
-        print(f"[FileHandler.is_folder_empty] Failed to check folder '{str(folderpath)}': {e}")
+            logging.warning(f"Folder '{folderpath}' does not exist.")
+            return False
+        
+        return len(os.listdir(folderpath)) == 0
+    
+    except OSError as e:
+        logging.error(f"Failed to access folder '{folderpath}': {e}")
         return False
     
-def try_delete_folder(folderpath):
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while checking folder '{folderpath}': {e}")
+        return False
+
+def try_delete_folder(folderpath: str) -> bool:
     try:
-        if not os.path.isdir(folderpath):
+        if os.path.isdir(folderpath):
             shutil.rmtree(folderpath)
+            logging.info(f"Successfully deleted folder '{folderpath}'.")
             return True
+        else:
+            logging.info(f"Folder '{folderpath}' does not exist, no deletion needed.")
+            return True
+        
+    except OSError as e:
+        logging.error(f"Failed to delete folder '{folderpath}': {e}")
         return False
+    
     except Exception as e:
-        print(f"[FileHandler.is_folder_empty] Failed to check folder '{str(folderpath)}': {e}")
+        logging.error(f"An unexpected error occurred while deleting folder '{folderpath}': {e}")
         return False
