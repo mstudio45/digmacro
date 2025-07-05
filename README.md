@@ -47,18 +47,21 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-* Windows (Recommended)
-    - **Supported:** Windows 10 and newer
-    - **Tested on:** Windows 10, Windows 11
+| Operating System | Support Status | Supported Versions | Tested On | Notes |
+|------------------|----------------|-------------------|-----------|-------|
+| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer | Windows 10, Windows 11 | Best performance and compatibility |
+| **Linux** | ✅ Full Support | Most modern distributions (Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.) | Linux Mint 22.1 Cinnamon (X11) | Wayland not tested |
+| **macOS** | 🧪 Experimental | macOS Sequoia 15.5+ | Apple M3 16 GB, Sequoia 15.5 (Retina) | Work-in-progress, known issues exist |
 
-* Linux
-    - **Supported:** Most modern distributions, including Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.
-    - **Tested on:** Linux Mint 22.1 Cinnamon (X11)
-    - **Wayland** was not tested.
-
-* macOS
-    - ⚠️ **Support is experimental and work-in-progress. The macro should run, but the detection/clicking handler will not work as of today.** ⚠️
-    - *Support for macOS is being worked on the Apple M3 16 GB, Sequoia 15.5 (with Retina display)*
+### macOS Feature Status
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Main GUI Support | ✅ Working | No issues observed while testing |
+| Configuration GUI Support | ✅ Working | No issues observed while testing |
+| Region Selection GUI Support | ✅ Working | No issues observed while testing |
+| Box Detection | ✅ Working | No issues observed while testing |
+| In Minigame Detection | ⚠️ Issues exist | Fails to persist detection of being inside a minigame after clicking once or twice |
+| Click Handler | ⚠️ Issues exist | Due to minigame detection and some other issues, can fail to click sometimes |
 
 *If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request.*
 
