@@ -18,5 +18,4 @@
 [Fixes]
 + Fixed issues with Windows 11 (works now)
 + Fixed several previous GUI issues with MacOS (tkinter non main thread issues)
-+
 ```
