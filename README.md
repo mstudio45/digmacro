@@ -25,7 +25,7 @@ DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.ro
 - [Pathfinding Macros (Movement Patterns)](#pathfinding-macros-movement-patterns)
   - [How to Add or Edit Movement Patterns](#how-to-add-or-edit-movement-patterns)
 - [Troubleshooting](#troubleshooting)
-- [Tips](#tips)
+- [Credits](#credits)
 
 ---
 
@@ -158,7 +158,12 @@ The macro can move your character in different patterns (like a square, line, et
 ---
 
 ## Troubleshooting
-- **Macro is missing clicks or not working well:**  
-  The macro's speed depends on your computer and Roblox's performance. Try lowering the speed in the configuration if you have issues.
+- **Macro is missing clicks or not working well:** 
+  The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) if you have issues.
 - **Need help?**  
   Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.
+
+---
+
+## Credits
+ * [upio (notpoiu)](https://github.com/notpoiu): Helped with macOS support and testing
