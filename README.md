@@ -66,11 +66,12 @@ DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.ro
 ## Quick Start
 
 ### 1. Download and Install
-1. **Download the latest version from Releases:**  
-   [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
-2. **Extract the ZIP File:**  
+1. **Download the latest version:**
+    - From releases: [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
+    - Source: [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) **Use this if you want to run the source or the `dev` version**
+3. **Extract the ZIP File:**  
    Right-click the downloaded file and choose "Extract Here" or "Extract All".
-3. **Open the Folder:**  
+4. **Open the Folder:**  
    Go into the extracted `digmacro-[windows/linux/macos]` folder.
 
 ### 2. Running the Macro
