@@ -125,11 +125,9 @@ Used for image recognition and prediction systems
 > [!NOTE]
 > Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
 
-- **Close the Macro Window:**  
-  Just click the `close (X)` button or `Exit` button.
-- **Keyboard Shortcuts:**
-  Hold `Ctrl+E` or press `Ctrl+C` in the terminal window where the macro is running.
-  
+- **Close the Macro Window:** Just click the `close (X)` button or `Exit` button.
+- **Keyboard Shortcuts:** Hold `Ctrl+E` or press `Ctrl+C` in the terminal window where the macro is running.
+
 ---
 
 ## ⚙️ Editing the Configuration
