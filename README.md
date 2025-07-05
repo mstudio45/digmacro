@@ -47,13 +47,13 @@ DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.ro
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
 * Windows (Recommended)
-    - **Supported:** Windows 8, Windows 8.1, Windows 10, and Windows 11
+    - **Supported:** Windows 10 and newer
     - **Tested on:** Windows 10, Windows 11
-    - **Not officially supported:** Windows 7 (may work, but not tested)
 
 * Linux
     - **Supported:** Most modern distributions, including Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.
-    - **Tested on:** Linux Mint 22.1 Cinnamon
+    - **Tested on:** Linux Mint 22.1 Cinnamon (X11)
+    - **Wayland** was not tested.
 
 * macOS
     - ⚠️ **Support is experimental and work-in-progress. The macro should run, but the detection/clicking handler will not work as of today.** ⚠️
@@ -69,7 +69,7 @@ DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.ro
 1. **Download the latest version:**
     - From releases: [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
     - Source: [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) **Use this if you want to run the source or the `dev` version**
-3. **Extract the ZIP File:**  
+3. **Extract the ZIP File:**
    Right-click the downloaded file and choose "Extract Here" or "Extract All".
 4. **Open the Folder:**  
    Go into the extracted `digmacro-[windows/linux/macos/dev]` folder.
