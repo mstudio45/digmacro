@@ -25,7 +25,7 @@ class SellUI:
         Inputs.press_key("g")
         time.sleep(1)
 
-    def sell_items(self, total_sold_add, sct):
+    def sell_items(self, total_sold_add):
         if not Variables.is_idle():             logging.debug("Not idle, skipping..."); return
         if not Variables.is_roblox_focused:     logging.debug("Roblox is not focused."); return
         Variables.is_selling = True
@@ -34,11 +34,15 @@ class SellUI:
         tryidx = 0
         button_pos = None
 
+        Inputs.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
+
         while Variables.is_running == True and tryidx < 5:
             self.toggle_shop()
 
-            button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, sct)
+            button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, log=True)
             if button_pos is not None: break
+
+            time.sleep(0.25)
             tryidx = tryidx + 1
 
         if not button_pos or not Variables.is_running or tryidx >= 4:

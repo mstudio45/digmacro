@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import cv2, base64, io
 from PIL import Image
-import platform; 
+import platform, mss
 
 current_os = platform.system()
 import interface.msgbox as msgbox
@@ -312,7 +312,7 @@ def stack_images_with_dividers(images, margin_thickness=2):
         logging.error(f"Failed to stack images: \n{traceback.format_exc()}")
         return None
     
-def find_image(image, confidence, sct, log=False, region=None):
+def find_image(image, confidence, log=False, region=None):
     if region == None:
         if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam (Windows)":
             region = logical_screen_region
@@ -320,15 +320,20 @@ def find_image(image, confidence, sct, log=False, region=None):
             region = screen_region
     
     try:
+        sct = mss.mss()
         screenshot_bgr = take_screenshot(region, sct)
 
         template = cv2.imread(image, cv2.IMREAD_COLOR) if isinstance(image, str) else image
         if template is None:
+            try: sct.close() 
+            except: pass
             logging.error("Image is None.")
             return None
         
         # ensure same format and number of dimensions #
         if len(screenshot_bgr.shape) != len(template.shape):
+            try: sct.close() 
+            except: pass
             logging.error("Screenshot and template have different number of dimensions.")
             return None
 
@@ -342,6 +347,8 @@ def find_image(image, confidence, sct, log=False, region=None):
 
         # template (img we want to find) is bigger than screenshot #
         if h_template > h_screen or w_template > w_screen:
+            try: sct.close() 
+            except: pass
             logging.error("Image is bigger than screenshot.")
             return None
         
@@ -351,6 +358,9 @@ def find_image(image, confidence, sct, log=False, region=None):
 
         if log == True: print(f"Max: {max_val} >= {confidence}")
         if max_val >= confidence:
+            try: sct.close() 
+            except: pass
+            
             top_left = max_loc
             return { "left": top_left[0], "top": top_left[1], "width": w_template, "height": h_template }
         

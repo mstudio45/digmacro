@@ -1,4 +1,4 @@
-import time, webbrowser, shutil
+import time, webbrowser, platform
 import subprocess, logging
 
 from config import Config
@@ -7,6 +7,7 @@ from variables import Variables, StaticVariables
 import utils.roblox.window as RobloxWindow
 from utils.images.screen_images import find_image, resize_image
 
+current_os = platform.system()
 __all__ = ["can_rejoin", "rejoin_dig"]
 
 # images #
@@ -15,10 +16,10 @@ reconnect_btn = resize_image(StaticVariables.reconnect_btn_imgpath)
 
 # rejoin stuff #
 def create_rotocol(): return "roblox://experiences/start?placeId=126244816328678&linkCode=" + str(Config.PRIVATE_SERVER_CODE)
-def can_rejoin(total_idle_time, sct):
+def can_rejoin(total_idle_time):
     if not RobloxWindow.is_roblox_running(): return True
     if total_idle_time >= Config.AUTO_REJOIN_INACTIVITY_TIMEOUT * 60: return True
-    if find_image(reconnect_btn, Config.AUTO_REJOIN_RECONNECT_CONFIDENCE, sct) is not None: return True
+    if find_image(reconnect_btn, Config.AUTO_REJOIN_RECONNECT_CONFIDENCE) is not None: return True
     
     return False
 
@@ -38,7 +39,7 @@ def launch_protocol(protocol):
         stderr=subprocess.DEVNULL
     )
 
-def rejoin_dig(sct):
+def rejoin_dig():
     if not Config.AUTO_REJOIN: return
     if not Variables.is_idle(): return
 
@@ -56,12 +57,12 @@ def rejoin_dig(sct):
         time.sleep(1.5)
         
         if not Variables.is_roblox_focused: RobloxWindow.focus_roblox()
-        img = find_image(topbar_btn, Config.AUTO_REJOIN_CONFIDENCE, sct, log=True)
+        img = find_image(topbar_btn, Config.AUTO_REJOIN_CONFIDENCE, log=True)
 
         if img is not None: found_times = found_times + 1
         if found_times >= 3: break # found it 3 times to be 100% sure
 
-        if time.time() - start_time >= 30: # if it still didnt find the shop btn for over 30 seconds, restart the process
+        if time.time() - start_time > 45: # if it still didnt find the shop btn for over 45 seconds, restart the process
             launch_protocol(protocol)
             start_time = time.time()
 
@@ -78,4 +79,5 @@ def rejoin_dig(sct):
     Variables.last_minigame_interaction = None
 
     time.sleep(0.1)
+    logging.info("Successfully rejoined.")
     Variables.is_rejoining = False

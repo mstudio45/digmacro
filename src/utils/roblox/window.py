@@ -51,7 +51,7 @@ elif current_os == "Linux": # xdotool
         
     def focus_roblox():
         try:
-            result = subprocess.check_output(["xdotool", "search", "--name", "sober"])
+            result = subprocess.check_output(["xdotool", "search", "--class", "sober"])
             window_ids = result.decode().strip().split("\n")
             if not window_ids: return
 

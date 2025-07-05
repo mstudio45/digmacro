@@ -8,28 +8,18 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
     print(f"Current OS '{current_os}' is not supported.")
     sys.exit(0)
 
+compiled = "__compiled__" in globals()
 def restart_macro():
-    cmd = "start" if current_os == "Windows" else "sh"
+    if compiled:
+        executable_path = sys.executable
+        subprocess.Popen([executable_path, "--skip-selection"], shell=True)
+    else:
+        script_path = os.path.abspath(__file__)
+        subprocess.Popen([sys.executable, script_path, "--skip-selection"], shell=False)
 
-    # get args #
-    args = "--run-standalone" if Variables.is_compiled else "--run-source"
-    args = args + " --start"
-
-    # get file name #
-    file_name = "launch.bat" if current_os == "Windows" else "launch.sh"
-
-    # get script path #
-    script_path = os.path.dirname(__file__)
-    if Variables.is_compiled == False:
-        script_path = os.path.abspath(os.path.join(script_path, os.pardir))
-    script_path = os.path.join(script_path, file_name)
-
-    # run #
-    subprocess.Popen([cmd, script_path] + args.split(), shell=Variables.is_compiled)
     os.kill(os.getpid(), 9)
 
 # install requirements #
-compiled = "__compiled__" in globals()
 check_packages = True
 installed_missing_packages = False
 
@@ -358,7 +348,6 @@ if check_packages:
 import logging
 import threading
 import mss, pyautogui, pynput
-import webbrowser
 
 from PySide6.QtWidgets import QApplication
 import interface.msgbox as msgbox
@@ -421,19 +410,34 @@ if __name__ == "__main__":
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}")
 
-    # config ui #
-    if "--edit-config" in sys.argv:
-        logging.info("Loading Config GUI...")
-        if current_os == "Linux":
-            os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = ""
-            os.environ["QT_STYLE_OVERRIDE"] = "fusion"
+    run_config = False
 
-        q_app = QApplication(sys.argv)
+    if "--skip-selection" in sys.argv:
+        logging.info("Skipping config/start selection.")
+    else:
+        res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
+        if res == "Edit the configuration":
+            # config ui #
+            logging.info("Loading Config GUI...")
+            if current_os == "Linux":
+                os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = ""
+                os.environ["QT_STYLE_OVERRIDE"] = "fusion"
 
-        config_ui = ConfigUI()
-        config_ui.show()
-        sys.exit(q_app.exec())
+            q_app = QApplication(sys.argv)
 
+            config_ui = ConfigUI()
+            config_ui.show()
+            q_app.exec()
+
+            if config_ui.start_macro_now == True:
+                restart_macro()
+            else:
+                os.kill(os.getpid(), 9)
+                
+        elif res == "Exit":
+            os.kill(os.getpid(), 9)
+        else:
+            logging.info("Starting the macro...")
 
     # main loader #
     logging.info("Importing libraries...")
@@ -586,7 +590,7 @@ if __name__ == "__main__":
                     logging.info("Selling items...")
                     self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
 
-                    self.sell_handler.sell_items(Variables.dig_count, self.sct)
+                    self.sell_handler.sell_items(Variables.dig_count)
                 return
 
             not_sold = max(1, Variables.dig_count - self.sell_handler.total_sold)
@@ -596,7 +600,7 @@ if __name__ == "__main__":
 
             logging.info(f"Selling items... {not_sold} % {required}")
             self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
-            self.sell_handler.sell_items(Variables.dig_count, self.sct)
+            self.sell_handler.sell_items(Variables.dig_count)
 
         def start_minigame(self, after_equip=False):
             if Variables.is_minigame_active: return
@@ -629,7 +633,6 @@ if __name__ == "__main__":
 
         def main_loop(self, _):
             sct = mss.mss()
-            
             while Variables.is_running:
                 time.sleep(0.25)
 
@@ -645,16 +648,17 @@ if __name__ == "__main__":
                         if Variables.is_rejoining: 
                             continue
 
-                        if can_rejoin(self.total_idle_time, sct):
+                        if can_rejoin(self.total_idle_time):
                             self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
 
                             self.total_idle_time = 0
-                            rejoin_dig(sct)
+                            rejoin_dig()
                             continue
 
                     # skip main loop if roblox is not focused #
                     if not Variables.is_roblox_focused:
                         self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
+                        time.sleep(0.5)
                         continue
 
                     # handling dig_count and if digging finished #
@@ -694,6 +698,7 @@ if __name__ == "__main__":
                         self.start_minigame()
             ###############################################################################################
             logging.info("Main loop has successfully ended.")
+            self.ui.stop_window()
 
         # thread functions #
         def setup_finder_thread(self):

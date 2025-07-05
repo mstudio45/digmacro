@@ -453,11 +453,11 @@ class ConfigManager:
             f.close()
 
     # setter #
-    def set(self, section, key, value):
+    def set(self, section, key, value, save_config=True):
         if section in self.config and key in self.config[section]:
             setattr(self, key,  value)
             self.config[section][key] = value
-            self.save_config() # instant save #
+            if save_config: self.save_config() # instant save #
         else:
             raise ValueError(f"[ConfigManager.set] Section '{section}' or key '{key}' not found in configuration.")
 
@@ -485,6 +485,7 @@ from PySide6.QtWidgets import (
 class ConfigUI(QWidget):
     def __init__(self):
         super().__init__()
+        self.start_macro_now = False
 
         self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
         self.setGeometry(100, 100, 800, 700)
@@ -500,7 +501,7 @@ class ConfigUI(QWidget):
     def create_ui(self):
         global Config, config_tooltips
 
-                # info label #
+        # info label #
         info_label = QLabel("Hover over the options to see more information.")
         self.layout.addWidget(info_label)
 
@@ -581,7 +582,15 @@ class ConfigUI(QWidget):
         load_default_button.clicked.connect(self.load_default_settings)
         button_layout.addWidget(load_default_button)
 
+        start_macro_button = QPushButton("Start Macro")
+        start_macro_button.clicked.connect(self.start_macro)
+        button_layout.addWidget(start_macro_button)
+
         self.layout.addLayout(button_layout)
+
+    def start_macro(self):
+        self.start_macro_now = True
+        self.close()
 
     def load_current_settings(self):
         for section, options in Config.config.items():
@@ -649,7 +658,7 @@ class ConfigUI(QWidget):
                         new_value = widget.currentText()
 
                     if new_value is not None:
-                        Config.set(section, key, new_value)
+                        Config.set(section, key, new_value, save_config=False)
         
         QMessageBox.information(self, "Settings Saved", "Configuration has been saved successfully!")
 

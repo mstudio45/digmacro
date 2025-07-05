@@ -21,8 +21,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 - [Features](#-features)
 - [Supported Operating Systems](#-supported-operating-systems)
 - [Quick Start](#-quick-start)
-  - [1. Download and Install](#-1-download-and-install)
-  - [2. Running the Macro](#%EF%B8%8F-2-running-the-macro)
+  - [Download and Run](#-1-download-and-run)
     - [Permissions on macOS](#-permissions-on-macos)
 - [How to Stop the Macro](#%EF%B8%8F-how-to-stop-the-macro)
 - [Editing the Configuration](#%EF%B8%8F-editing-the-configuration)
@@ -73,27 +72,28 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 
 ## 🚀 Quick Start
 
-### 📥 1. Download and Install
-1. **Download the latest version:**
-    - From releases: [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
-    - Source: [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) - **Use this if you want to run the source or the `dev` version.**
-3. **Extract the ZIP File:**
-   Right-click the downloaded file and choose "Extract Here" or "Extract All".
-4. **Open the Folder:**  
-   Go into the extracted `digmacro-[windows/linux/maco or main/dev]` folder.
+### 📥 Download and Run
 
-### ▶️ 2. Running the Macro
-- **Windows:** Double-click `digmacro.exe`.
-- **Linux:** Run `./digmacro.bin` in your terminal.
-- **macOS:** Run `./digmacro` in your terminal.
+#### Standalone (pre-built) version
+  1. **Download the latest version:**
+    [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
+  2. **Extract the binary file for your Operating System:**
+    Find the correct binary file for your OS.
+  3. **Run the macro:**
+    - **Windows:** Double-click `digmacro_windows.exe`.
+    - **Linux:** Run `./digmacro_linux.bin` in your terminal.
+    - **macOS:** Run `./digmacro_macos` in your terminal.
 
-If you have run from terminal, the script will prompt you with the following questions:
-- Whether to run from source (for developers) or standalone (for most users).
-    - Press **1** to use the standalone version. (`digmacro.[exe/bin/app]` is required)
-    - Press **2** to use the source version. (`src` folder is required)
-- Whether to start the macro or edit the configuration.
-    - Press **1** to start the macro.
-    - Press **2** to edit the configuration of the macro.
+#### Source version
+  1. **Download the latest version:**
+    [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
+  2. **Extract the ZIP File:**
+    Right-click the downloaded file and choose "Extract Here" or "Extract All".
+  3. **Open the Folder:**  
+    Go into the extracted `digmacro-[main/dev]` folder.
+  4. **Run the macro:**
+    - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
+    - **Linux/macOS:** Run `sh launch.sh` in your terminal.
 
 ---
 
@@ -136,7 +136,7 @@ Used for image recognition and prediction systems
 You can easily change how the macro works using a simple graphical interface.
 
 ### 🔧 How to Open the Configuration
-Follow the same steps as running the macro, but when asked **"What would you like to do?"**, simply enter **2** to edit the configuration instead of starting the macro.
+Follow the same steps as running the macro, but when asked **"What would you like to do?"**, simply select **Edit the configuration** to edit the configuration instead of starting the macro.
 
 ---
 
