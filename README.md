@@ -193,6 +193,8 @@ The macro can move your character in different patterns (like a square, line, et
 ## 🔧 Troubleshooting
 - **Macro is missing clicks or not working well:** 
   The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) if you have issues.
+- **Running from source with MacOS is not working well:**
+  This may be due to using Python from Homebrew, please uninstall python from homebrew for the best experience.
 - **Need help?**  
   Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.
 
