@@ -18,7 +18,12 @@ class UIBase:
     
     # api functions #
     def resize_window(self, width, height):
-        self.window.resize(int(width * scale_x), int(height * scale_y))
+        if current_os == "Windows":
+            width, height = int(width * scale_x), int(height * scale_y)
+        else:
+            width, height = int(width), int(height)
+            
+        self.window.resize(width, height)
         return "Done"
 
     def get_session_id(self):
