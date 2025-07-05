@@ -11,6 +11,10 @@
 ## What is This?
 DIG Macro is a tool that automatically plays the minigame in the roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG).
 
+## How does this work?
+DIG Macro uses [python](https://www.python.org/) and computer vision to detect when to click inside the digging minigame. It uses pywebview which is a wrapper around a web browser to create a custom GUI.
+
+
 ---
 
 ## 📑 Table of Contents
@@ -79,10 +83,11 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
    Go into the extracted `digmacro-[windows/linux/maco or main/dev]` folder.
 
 ### ▶️ 2. Running the Macro
-- **Windows:** Double-click `launch.bat`
-- **Linux/macOS:** Run `sh launch.sh` in your terminal
+- **Windows:** Double-click `digmacro.exe`.
+- **Linux:** Run `./digmacro.bin` in your terminal.
+- **macOS:** Run `./digmacro` in your terminal.
 
-You will be asked:
+If you have run from terminal, the script will prompt you with the following questions:
 - Whether to run from source (for developers) or standalone (for most users).
     - Press **1** to use the standalone version. (`digmacro.[exe/bin/app]` is required)
     - Press **2** to use the source version. (`src` folder is required)
