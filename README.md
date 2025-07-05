@@ -88,6 +88,30 @@ You will be asked:
 
 ---
 
+#### **Permissions on macOS**
+If you are running the macro on MacOS, you may need to allow the terminal to have accessibility, screen recording and input monitoring permissions.
+
+**1. Accessibility Permissions**
+> Required for controlling mouse clicks and keyboard input
+Needed for the automation features to work
+
+**How to grant:** System Preferences → Security & Privacy → Privacy → Accessibility → Add the application (Terminal)
+
+
+**2. Screen Recording Permissions**
+> Required for taking screenshots to analyze the game state
+Used for image recognition and prediction systems
+
+**How to grant:** System Preferences → Security & Privacy → Privacy → Screen Recording → Add the application (Terminal)
+
+
+**3. Input Monitoring Permissions**
+> Required for keyboard and mouse event handling
+
+**How to grant:** System Preferences → Security & Privacy → Privacy → Input Monitoring → Add the application (Terminal)
+
+---
+
 ## How to Stop the Macro
 > [!NOTE]
 > Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
