@@ -74,6 +74,6 @@ elif [ "$MODE" = "standalone" ]; then
         *)          echo "Unsupported operating system: $OS"; exit 1 ;;
     esac
     
-    echo "Starting the built version..."
+    echo "Starting the built version... This might take a while."
     $STANDALONE_EXEC $ARGS --mode "$MODE" &
 fi

@@ -50,7 +50,7 @@ if "!MODE!" == "source" (
 )
 
 if "!MODE!" == "standalone" (
-    echo Starting the built version...
+    echo Starting the built version... This might take a while.
     start "" "%cd%\digmacro.exe" !ARGS! --mode !MODE!
     goto :end
 )
