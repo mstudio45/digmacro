@@ -46,18 +46,18 @@ DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.ro
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-### Windows (Recommended)
-- **Supported:** Windows 8, Windows 8.1, Windows 10, and Windows 11
-- **Tested on:** Windows 10, Windows 11
-- **Not officially supported:** Windows 7 (may work, but not tested)
+* Windows (Recommended)
+    - **Supported:** Windows 8, Windows 8.1, Windows 10, and Windows 11
+    - **Tested on:** Windows 10, Windows 11
+    - **Not officially supported:** Windows 7 (may work, but not tested)
 
-### Linux
-- **Supported:** Most modern distributions, including Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.
-- **Tested on:** Linux Mint 22.1 Cinnamon
+* Linux
+    - **Supported:** Most modern distributions, including Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.
+    - **Tested on:** Linux Mint 22.1 Cinnamon
 
-### macOS
-- ⚠️ **Support is experimental and work-in-progress. The macro should run, but the detection/clicking handler will not work as of today.** ⚠️
-- *Support for macOS is being worked on the Apple M3 16 GB, Sequoia 15.5 (with Retina display)*
+* macOS
+    - ⚠️ **Support is experimental and work-in-progress. The macro should run, but the detection/clicking handler will not work as of today.** ⚠️
+    - *Support for macOS is being worked on the Apple M3 16 GB, Sequoia 15.5 (with Retina display)*
 
 *If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request.*
 
