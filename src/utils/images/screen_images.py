@@ -21,6 +21,7 @@ BASE_RESOLUTION = (1920, 1080)
 scale_x, scale_y, scale_factor = 1.0, 1.0, 1.0
 base_width, base_height = BASE_RESOLUTION
 screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "height": BASE_RESOLUTION[1] }
+logical_screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "height": BASE_RESOLUTION[1] }
 
 # calculate valid display resolutions (physical) and get scale_factor #
 class FailedToGetDiplayResolutionException(Exception): ...
@@ -124,6 +125,12 @@ try:
             "width": macos_screen_info["physical_width"], 
             "height": macos_screen_info["physical_height"]
         }
+        logical_screen_region = {
+            "left": macos_screen_info["left"],
+            "top": macos_screen_info["top"],
+            "width": macos_screen_info["logical_width"], 
+            "height": macos_screen_info["logical_height"]
+        }
 
     elif current_os == "Windows":
         import ctypes
@@ -201,6 +208,12 @@ try:
             "width": windows_screen_info["physical_width"], 
             "height": windows_screen_info["physical_height"]
         }
+        logical_screen_region = {
+            "left": windows_screen_info["left"],
+            "top": windows_screen_info["top"],
+            "width": windows_screen_info["logical_width"], 
+            "height": windows_screen_info["logical_height"]
+        }
 
     elif current_os == "Linux":
         from screeninfo import get_monitors
@@ -210,6 +223,12 @@ try:
         if not primary_monitor: raise FailedToGetDiplayResolutionException("Could not find any monitors with the 'screeninfo' library.")
 
         screen_region = {
+            "left": primary_monitor.x,
+            "top": primary_monitor.y,
+            "width": primary_monitor.width,
+            "height": primary_monitor.height
+        }
+        logical_screen_region = {
             "left": primary_monitor.x,
             "top": primary_monitor.y,
             "width": primary_monitor.width,
@@ -293,7 +312,13 @@ def stack_images_with_dividers(images, margin_thickness=2):
         logging.error(f"Failed to stack images: \n{traceback.format_exc()}")
         return None
     
-def find_image(image, confidence, sct, log=False, region=screen_region):
+def find_image(image, confidence, sct, log=False, region=None):
+    if region == None:
+        if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam (Windows)":
+            region = logical_screen_region
+        else:
+            region = screen_region
+    
     try:
         screenshot_bgr = take_screenshot(region, sct)
 
@@ -324,7 +349,7 @@ def find_image(image, confidence, sct, log=False, region=screen_region):
         result = cv2.matchTemplate(screenshot_bgr, template, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-        if log == True: logging.debug(f"Max: {max_val} >= {confidence}")
+        if log == True: print(f"Max: {max_val} >= {confidence}")
         if max_val >= confidence:
             top_left = max_loc
             return { "left": top_left[0], "top": top_left[1], "width": w_template, "height": h_template }

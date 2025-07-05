@@ -233,8 +233,7 @@ if check_packages:
                 "pywin32": "win32gui",
 
                 # input libs #
-                "pydirectinput_rgx": "pydirectinput",
-                "PyDirectInput": "pydirectinput",
+                "pyautoit": "autoit"
             },
 
             "Linux": {
@@ -372,12 +371,6 @@ from variables import Variables, StaticVariables
 import utils.general.filehandler as FileHandler
 
 # unslow packages #
-if current_os == "Windows":
-    import pydirectinput # type: ignore
-    pydirectinput.PAUSE = None
-    pydirectinput.MINIMUM_SLEEP_IDEAL = None
-    pydirectinput.MINIMUM_SLEEP_ACTUAL = None
-
 pyautogui.PAUSE = 0
 pyautogui.MINIMUM_DURATION = 0.0
 pyautogui.MINIMUM_SLEEP = 0.0
@@ -403,7 +396,7 @@ if __name__ == "__main__":
 
     ## check version ##
     current_version = "2.0.0"
-    current_branch = "dev"
+    current_branch = "beta"
 
     try:
         logging.info("Checking current version...")
@@ -415,8 +408,14 @@ if __name__ == "__main__":
         # check versions #
         if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
         if versions[current_branch] != current_version:
-            msgbox.alert(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}")
-            webbrowser.open("https://github.com/mstudio45/digmacro")
+            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}\nDo you want to open the Github repository?")
+            if res == "Yes":
+                try:
+                    if current_os == "Windows":
+                        os.startfile("https://github.com/mstudio45/digmacro")
+                    else:
+                        subprocess.run([Variables.unix_macos_open_cmd, "https://github.com/mstudio45/digmacro"])
+                except Exception as e: logging.error(f"Failed to open link: {e}")
         
         logging.debug(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
     except Exception as e:
@@ -460,6 +459,8 @@ if __name__ == "__main__":
             self.hotkeys = None
 
             # classes #
+            self.sct = mss.mss()
+
             self.region_selector = RegionSelector()
             self.finder = MainHandler()
             self.pathfinding = PathfingingHandler()
@@ -585,7 +586,7 @@ if __name__ == "__main__":
                     logging.info("Selling items...")
                     self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
 
-                    self.sell_handler.sell_items(Variables.dig_count)
+                    self.sell_handler.sell_items(Variables.dig_count, self.sct)
                 return
 
             not_sold = max(1, Variables.dig_count - self.sell_handler.total_sold)
@@ -595,7 +596,7 @@ if __name__ == "__main__":
 
             logging.info(f"Selling items... {not_sold} % {required}")
             self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
-            self.sell_handler.sell_items(Variables.dig_count)
+            self.sell_handler.sell_items(Variables.dig_count, self.sct)
 
         def start_minigame(self, after_equip=False):
             if Variables.is_minigame_active: return
@@ -764,6 +765,7 @@ if __name__ == "__main__":
             Variables.is_running = False
 
             screenshot_cleanup()
+            self.sct.close()
 
             # stop hotkeys #
             if self.hotkeys:
@@ -807,7 +809,7 @@ if __name__ == "__main__":
 
     # load main macro handler #
     macro = MacroHandler()
-
+    
     # region #
     macro.setup_finder_thread()
     macro.setup_region_setter()

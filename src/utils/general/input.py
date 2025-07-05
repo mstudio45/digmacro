@@ -16,7 +16,7 @@ from variables import Variables
 clicking_lock = threading.Lock() # using lock
 if Config.MOUSE_INPUT_PACKAGE == "Native Calls" and current_os != "Linux": # Native Calls, only with Darwin and Windows (TO-DO: linux evdev)
     if current_os == "Windows": 
-        import win32con, ctypes, pydirectinput # type: ignore
+        import win32con, ctypes, autoit # type: ignore
 
         # setup user32 #
         user32 = ctypes.windll.user32
@@ -35,10 +35,7 @@ if Config.MOUSE_INPUT_PACKAGE == "Native Calls" and current_os != "Linux": # Nat
 
         def move_mouse(x, y):
             if not Variables.is_running: return
-            try:
-                pydirectinput.moveTo(x, y, duration=0.015)
-                pydirectinput.move(1, 1, duration=0.01)
-            except: pass
+            autoit.mouse_move(x, y)
         
     elif current_os == "Darwin":
         from Quartz import * # type: ignore
@@ -71,6 +68,13 @@ if Config.MOUSE_INPUT_PACKAGE == "Native Calls" and current_os != "Linux": # Nat
             
             CGEventPost(kCGHIDEventTap, mouse_down) # type: ignore
             CGEventPost(kCGHIDEventTap, mouse_up) # type: ignore
+
+        def move_mouse(x, y):
+            if not Variables.is_running: return
+            
+            event_source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) # type: ignore
+            mouse_move = CGEventCreateMouseEvent(event_source, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft) # type: ignore
+            CGEventPost(kCGHIDEventTap, mouse_move) # type: ignore
 else:
     _pynput_mouse_controller = pynput.mouse.Controller()
 

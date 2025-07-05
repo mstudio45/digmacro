@@ -6,6 +6,7 @@ python3 -m nuitka \
   --standalone \
   --macos-create-app-bundle \
   --macos-app-icon=assets/icons/macos_icon.icns \
+  --macos-app-name=DIGMacro \
   --enable-plugin=pyside6 \
   --enable-plugin=tk-inter \
   --include-data-dir=assets=assets \

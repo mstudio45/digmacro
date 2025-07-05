@@ -26,8 +26,8 @@ class SellUI:
         time.sleep(1)
 
     def sell_items(self, total_sold_add, sct):
-        if not Variables.is_idle():         logging.debug("Not idle, skipping..."); return
-        if not Variables.is_roblox_focused:    logging.debug("Roblox is not focused."); return
+        if not Variables.is_idle():             logging.debug("Not idle, skipping..."); return
+        if not Variables.is_roblox_focused:     logging.debug("Roblox is not focused."); return
         Variables.is_selling = True
 
         # try to get the button #
@@ -37,8 +37,9 @@ class SellUI:
         while Variables.is_running == True and tryidx < 5:
             self.toggle_shop()
 
-            button_pos = find_image(self.sell_img, sct, confidence=Config.AUTO_SELL_BUTTON_CONFIDENCE)
+            button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, sct)
             if button_pos is not None: break
+            tryidx = tryidx + 1
 
         if not button_pos or not Variables.is_running or tryidx >= 4:
             logging.debug("Button not found.");

@@ -14,22 +14,23 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
 ---
 
 ## 📑 Table of Contents
-- [Features](#features)
-- [Supported Operating Systems](#supported-operating-systems)
-- [Quick Start](#quick-start)
-  - [1. Download and Install](#1-download-and-install)
-  - [2. Running the Macro](#2-running-the-macro)
-- [How to Stop the Macro](#how-to-stop-the-macro)
-- [Editing the Configuration](#editing-the-configuration)
-  - [How to Open the Configuration](#how-to-open-the-configuration)
-- [Pathfinding Macros (Movement Patterns)](#pathfinding-macros-movement-patterns)
-  - [How to Add or Edit Movement Patterns](#how-to-add-or-edit-movement-patterns)
-- [Troubleshooting](#troubleshooting)
-- [Credits](#credits)
+- [Features](#-features)
+- [Supported Operating Systems](#-supported-operating-systems)
+- [Quick Start](#-quick-start)
+  - [1. Download and Install](#-1-download-and-install)
+  - [2. Running the Macro](#-2-running-the-macro)
+    - [Permissions on macOS](#-permissions-on-macos)
+- [How to Stop the Macro](#-how-to-stop-the-macro)
+- [Editing the Configuration](#-editing-the-configuration)
+  - [How to Open the Configuration](#-how-to-open-the-configuration)
+- [Pathfinding Macros (Movement Patterns)](#-pathfinding-macros-movement-patterns)
+  - [How to Add or Edit Movement Patterns](#-how-to-add-or-edit-movement-patterns)
+- [Troubleshooting](#-troubleshooting)
+- [Credits](#-credits)
 
 ---
 
-## Features
+## ✨ Features
  * **Custom GUI**: A custom graphical interface with options and macro status.
  * **Configuration GUI**: A graphical interface that allows you to simply configure any macro setting and provides information about each one.
  * **Auto Sell**: Automatically sells your items after a given number of digs or after completing the pathfinding macro. (requires 'Sell Anywhere' gamepass)
@@ -41,7 +42,7 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
 
 ---
 
-## Supported Operating Systems
+## 💻 Supported Operating Systems
 > [!NOTE]
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
@@ -63,18 +64,18 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Download and Install
+### 📥 1. Download and Install
 1. **Download the latest version:**
     - From releases: [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
     - Source: [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) - **Use this if you want to run the source or the `dev` version.**
 3. **Extract the ZIP File:**
    Right-click the downloaded file and choose "Extract Here" or "Extract All".
 4. **Open the Folder:**  
-   Go into the extracted `digmacro-[windows/linux/macos/dev]` folder.
+   Go into the extracted `digmacro-[windows/linux/maco or main/dev]` folder.
 
-### 2. Running the Macro
+### ▶️ 2. Running the Macro
 - **Windows:** Double-click `launch.bat`
 - **Linux/macOS:** Run `sh launch.sh` in your terminal
 
@@ -88,7 +89,7 @@ You will be asked:
 
 ---
 
-#### **Permissions on macOS**
+#### 🔐 **Permissions on macOS**
 If you are running the macro on MacOS, you may need to allow the terminal to have accessibility, screen recording and input monitoring permissions.
 
 **1. Accessibility Permissions**
@@ -112,7 +113,7 @@ Used for image recognition and prediction systems
 
 ---
 
-## How to Stop the Macro
+## ⏹️ How to Stop the Macro
 > [!NOTE]
 > Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
 
@@ -123,18 +124,18 @@ Used for image recognition and prediction systems
   
 ---
 
-## Editing the Configuration
+## ⚙️ Editing the Configuration
 You can easily change how the macro works using a simple graphical interface.
 
-### How to Open the Configuration
+### 🔧 How to Open the Configuration
 Follow the same steps as running the macro, but when asked **"What would you like to do?"**, simply enter **2** to edit the configuration instead of starting the macro.
 
 ---
 
-## Pathfinding Macros (Movement Patterns)
+## 🗺️ Pathfinding Macros (Movement Patterns)
 The macro can move your character in different patterns (like a square, line, etc.). You can use the built-in patterns or create your own.
 
-### How to Add or Edit Movement Patterns
+### ➕ How to Add or Edit Movement Patterns
 1. **Open the File:**  
    Go to the `storage` folder and open `pathfinding_macros.json` with a text editor (like Notepad).
 
@@ -181,7 +182,7 @@ The macro can move your character in different patterns (like a square, line, et
 
 ---
 
-## Troubleshooting
+## 🔧 Troubleshooting
 - **Macro is missing clicks or not working well:** 
   The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) if you have issues.
 - **Need help?**  
@@ -189,5 +190,5 @@ The macro can move your character in different patterns (like a square, line, et
 
 ---
 
-## Credits
+## 👥 Credits
  * [upio (notpoiu)](https://github.com/notpoiu): Helped with macOS support and testing and made the ui design
