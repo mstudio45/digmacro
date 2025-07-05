@@ -571,7 +571,7 @@ if __name__ == "__main__":
             if not Variables.is_running: return
 
             if current_os == "Darwin": # macos will crash for some reason
-                logging.info("Global hotkeys disabled on macOS. You can stop the macro by closing the debug window.")
+                logging.info("Global hotkeys disabled on macOS. You can stop the macro by closing the UI window.")
                 return
             
             try:
@@ -581,7 +581,7 @@ if __name__ == "__main__":
                 logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.")
             except Exception as e:
                 logging.warning(f"Failed to setup global hotkeys: {e}")
-                logging.info("You can stop the macro by closing the debug window.")
+                logging.info("You can stop the macro by closing the UI window.")
 
         # main function #
         def sell_all_items(self, was_last_key=False):
@@ -602,8 +602,9 @@ if __name__ == "__main__":
             self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
             self.sell_handler.sell_items(Variables.dig_count)
 
-        def start_minigame(self, after_equip=False):
+        def start_minigame(self, equipped=False):
             if Variables.is_minigame_active: return
+            if not Variables.is_roblox_focused: return
 
             logging.info("Starting minigame...")
             self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count}", "green")
@@ -614,22 +615,28 @@ if __name__ == "__main__":
             # waiting of max 1.5 sec #
             start = time.time()
             timed_out = False
-            while Variables.is_running:
+            while Variables.is_running and Variables.is_roblox_focused:
                 time.sleep(0)
 
                 timed_out = (time.time() - start) > 1.5
                 if Variables.is_minigame_active == True or timed_out: break
+            
+            logging.debug(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active} | Equipped: {equipped}")
+            if not Variables.is_running or not Variables.is_roblox_focused: return
+            
+            if timed_out == True and Variables.is_minigame_active == False:
+                if equipped == True:
+                    self.update_window_status("Error", f"Failed to start the minigame in the second try, waiting...", "red")
+                    time.sleep(2.5)
+                    return
                 
-            if not Variables.is_running: return
-
-            logging.debug(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active} | After Equip: {after_equip}")
-            if after_equip != True and timed_out == True and Variables.is_minigame_active == False:
                 self.update_window_status("Error", f"Failed to start the minigame!", "red")
 
                 logging.info("Equipping shovel...")
                 press_key("+") # equip the shovel #
-                if Variables.sleep(0.5): return
-                self.start_minigame(after_equip=True)
+                time.sleep(0.5)
+                return self.start_minigame(equipped=True)
+
 
         def main_loop(self, _):
             sct = mss.mss()
@@ -795,10 +802,10 @@ if __name__ == "__main__":
                 if not ui: continue
 
                 try:
-                    logging.info("Closing debug window...")
+                    logging.info("Closing UI window...")
                     ui.stop_window()
-                    logging.info("Debug window closed")
-                except Exception as e: logging.warning(f"Error closing debug window: {traceback.format_exc()}")
+                    logging.info("UI window closed")
+                except Exception as e: logging.warning(f"Error closing UI window: {traceback.format_exc()}")
 
             # call cleaning functions #
             logging.info("Calling cleanup functions...")

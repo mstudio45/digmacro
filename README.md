@@ -99,6 +99,8 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 
 #### 🔐 **Permissions on macOS**
 If you are running the macro on MacOS, you may need to allow the terminal to have accessibility, screen recording and input monitoring permissions.
+> [!WARNING]
+> Since you are giving **Terminal** all of these permissions, it is recommended that you disable them all after ending the macro.
 
 **1. Accessibility Permissions**
 > Required for controlling mouse clicks and keyboard input

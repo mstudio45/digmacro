@@ -2,6 +2,7 @@ import os, time, threading, logging, traceback
 import cv2
 import webview, platform, subprocess
 
+from config import Config
 from utils.images.screen_images import image_to_base64, scale_x, scale_y
 from variables import StaticVariables, Variables
 
@@ -90,14 +91,23 @@ class WebUI(UIBase):
         webview.start(gui=gui_type)
 
     def update(self):
-        while Variables.is_running == True:
+        frame_time = 1 / Config.DEBUG_FPS
+
+        while not self._stop_event.is_set():
+            frame_start = time.perf_counter()
+            
             try:
                 if self.finder.debug_img is not None:
                     self.window.evaluate_js(f'updateImage("{image_to_base64(self.finder.debug_img)}")')
                 else:
                     self.window.evaluate_js("clearImage()")
-            except Exception as e: print(traceback.format_exc())
-            time.sleep(0)
+            except Exception as e: pass
+            
+            elapsed = time.perf_counter() - frame_start
+            sleep_time = max(0, frame_time - elapsed)
+            
+            if sleep_time > 0: time.sleep(sleep_time)
+        
         self.close()
 
 class GuideUI(UIBase):

@@ -202,15 +202,15 @@ settings_table = {
     
     "WINDOW_NAME": {
         "widget": "QLineEdit",
-        "tooltip": "The name of the debug window."
+        "tooltip": "The name of the UI window."
     },
     "SHOW_DEBUG": {
         "widget": "QCheckBox",
-        "tooltip": "Displays a debug image on what the macro knows."
+        "tooltip": "Displays a debug image on what the macro sees."
     },
     "DEBUG_FPS": {
         "widget": "QSpinBox",
-        "tooltip": "The FPS of the debug window.",
+        "tooltip": "The FPS of the debug image inside the UI window.",
         "min": 1,
         "max": 480,
         "step": 1
