@@ -54,6 +54,7 @@ class WebUI(UIBase):
 
         self.finder = finder
         self.next_logic_thread = None
+        self._stop_event = threading.Event() # for some reason that shows up on linux bin, so lets just add it
     
     # api functions #
     def open_link(self, url):
