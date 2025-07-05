@@ -1,15 +1,15 @@
-> [!WARNING]
-> **THIS IS A PRE-RELEASE VERSION OF THE NEXT UPDATE. IT IS WORK IN PROGRESS AND IT MAY NOT WORK CORRECTLY**
-
 # DIG macro
 <p align="center">
-    <!-- <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/showcase.gif" alt="Showcase video"> <br /> -->
+    <img src="https://github.com/user-attachments/assets/a15c5e87-ab1e-44e6-be01-0fd095e00982" alt="Showcase video"> <br />
     Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>. <br />
     <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a></i>
 </p>
 
+> [!WARNING]
+> **THIS IS A PRE-RELEASE VERSION OF THE NEXT UPDATE. IT IS WORK IN PROGRESS AND IT MAY NOT WORK CORRECTLY**
+
 ## What is This?
-DIG Macro is a tool that helps you play the [DIG Roblox minigame](https://www.roblox.com/games/126244816328678/DIG) automatically.
+DIG Macro is a tool that automatically plays the minigame in the roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG).
 
 ---
 
@@ -190,4 +190,4 @@ The macro can move your character in different patterns (like a square, line, et
 ---
 
 ## Credits
- * [upio (notpoiu)](https://github.com/notpoiu): Helped with macOS support and testing
+ * [upio (notpoiu)](https://github.com/notpoiu): Helped with macOS support and testing and made the ui design
