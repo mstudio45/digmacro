@@ -76,9 +76,9 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 
 #### Standalone (pre-built) version
   1. **Download the latest version:**
-    [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
+     * [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
   2. **Extract the binary file for your Operating System:**
-    Find the correct binary file for your OS.
+     * Find the correct binary file for your OS.
   3. **Run the macro:**
      * **Windows:** Double-click `digmacro_windows.exe`.
      * **Linux:** Run `./digmacro_linux.bin` in your terminal.
@@ -86,11 +86,11 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 
 #### Source version
   1. **Download the latest version:**
-    [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
+     * [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
   2. **Extract the ZIP File:**
-    Right-click the downloaded file and choose "Extract Here" or "Extract All".
+     * Right-click the downloaded file and choose "Extract Here" or "Extract All".
   3. **Open the Folder:**  
-    Go into the extracted `digmacro-[main/dev]` folder.
+     * Go into the extracted `digmacro-[main/dev]` folder.
   4. **Run the macro:**
      * **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
      * **Linux/macOS:** Run `sh launch.sh` in your terminal.
