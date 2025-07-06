@@ -2,7 +2,7 @@
 <p align="center">
     <img src="https://github.com/user-attachments/assets/a15c5e87-ab1e-44e6-be01-0fd095e00982" alt="Showcase video"> <br />
     Auto minigame macro for <a href="https://www.roblox.com/games/126244816328678/DIG" target="_blank">DIG</a>. <br />
-    <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a></i>
+    <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a> | <a href="https://discord.gg/hrryPU6cqh">Discord Server</a></i>
 </p>
 
 ## What is This?
