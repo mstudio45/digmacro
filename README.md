@@ -73,11 +73,9 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 ### 📥 Download and Run
 
 #### Standalone (pre-built) version
-  1. **Download the latest version:**
+  1. **Download the latest version for your Operating System:**
      * [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
-  2. **Extract the binary file for your Operating System:**
-     * Find the correct binary file for your OS.
-  3. **Run the macro:**
+  2. **Run the macro:**
      * **Windows:** Double-click `digmacro_windows.exe`.
      * **Linux:** Double-click `digmacro_linux.bin` or run `./digmacro_linux.bin` in your terminal.
      * **macOS:** Double-click `digmacro_macos` or run `./digmacro_macos` in your terminal.
