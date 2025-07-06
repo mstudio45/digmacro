@@ -23,6 +23,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 - [Supported Operating Systems](#-supported-operating-systems)
 - [Quick Start](#-quick-start)
   - [Download and Run](#-1-download-and-run)
+    - [Running on macOS](#-macos-setup)
     - [Permissions on macOS](#-permissions-on-macos)
 - [How to Stop the Macro](#%EF%B8%8F-how-to-stop-the-macro)
 - [Editing the Configuration](#%EF%B8%8F-editing-the-configuration)
@@ -102,7 +103,7 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 ---
 
-###  **MacOS Setup**
+###  **macOS Setup**
 
 1. **Download & unzip** `digmacro_macos.zip`, then double-click `digmacro_macos.app` to launch.
 
@@ -110,7 +111,7 @@ _If you have improvements or patches for additional (or currently supported) ope
    - Go to **System Preferences → Security & Privacy → General**.
    - Click **"Open Anyway"** next to the message about the app being blocked.
 
-**If you still cannot open the app after pressing open anyway (like not launching)**You can use the following command in terminal after changing directories to whereever the digmacro_macos.app file is found:
+**If you still cannot open the app after pressing open anyway (like not launching)** You can use the following command in terminal after changing directories to whereever the digmacro_macos.app file is found:
 
 ```bash
 cd /path/to/digmacro_macos.app # Change this to the actual path where digmacro_macos.app is located like ~/Downloads/
@@ -223,7 +224,7 @@ The macro can move your character in different patterns (like a square, line, et
 
 - **Macro is missing clicks or not working well:**
   - The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) or your screen resolution if you have issues.
-- **Running from source with MacOS is not working well:**
+- **Running from source with macOS is not working well:**
   - This may be due to using Python from Homebrew, please uninstall python from homebrew and install it from the official site for the best experience running from source.
 - **Need help?**
   - Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.
