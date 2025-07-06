@@ -80,7 +80,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
   3. **Run the macro:**
      * **Windows:** Double-click `digmacro_windows.exe`.
      * **Linux:** Run `./digmacro_linux.bin` in your terminal.
-     * **macOS:** Double-click `./digmacro_macos` or run `./digmacro_macos` in your terminal.
+     * **macOS:** Double-click `digmacro_macos` or run `./digmacro_macos` in your terminal.
 
 #### Source version
   1. **Download the latest version:**
