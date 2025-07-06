@@ -1,5 +1,5 @@
 import os, time, threading, logging
-import cv2, mss 
+import cv2 
 import numpy as np
 
 # file imports #
@@ -7,9 +7,11 @@ from variables import Variables, StaticVariables
 from config import Config
 
 from utils.images.screenshots import take_screenshot
-import utils.general.input as Inputs
+from utils.images.screen import *
+
+import utils.general.mouse as Mouse
+import utils.general.keyboard as Keyboard
 from utils.general.movement_tracker import MovementTracker
-from utils.images.screen_images import *
 
 import platform; current_os = platform.system()
 
@@ -22,7 +24,7 @@ class SellUI:
         self.total_sold = 0
     
     def toggle_shop(self):
-        Inputs.press_key("g")
+        Keyboard.press_key("g")
         time.sleep(1)
 
     def sell_items(self, total_sold_add):
@@ -34,7 +36,7 @@ class SellUI:
         tryidx = 0
         button_pos = None
 
-        Inputs.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
+        Mouse.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
 
         while Variables.is_running == True and tryidx < 5:
             self.toggle_shop()
@@ -54,9 +56,9 @@ class SellUI:
         target_y = button_pos["top"]  + button_pos["height"] // 2
 
         # sell items #
-        Inputs.move_mouse(target_x, target_y)
+        Mouse.move_mouse(target_x, target_y)
         time.sleep(0.15)
-        Inputs.left_click()
+        Mouse.left_click()
         time.sleep(0.15)
         self.toggle_shop()
 
@@ -300,7 +302,7 @@ class MainHandler:
         # verify if we should click or no #
         if (
             current_time_ms >= self.click_cooldown
-            and not Inputs.clicking_lock.locked()
+            and not Mouse.clicking_lock.locked()
         ):
             if Config.USE_PREDICTION:
                 predicted_player_bar = self.PlayerBar.predicted_position
@@ -347,8 +349,8 @@ class MainHandler:
 
             # do the click #
             if should_click:
-                Inputs.clicking_lock.acquire()
-                threading.Thread(target=Inputs.left_click_lock, args=(click_delay,)).start()
+                Mouse.clicking_lock.acquire()
+                threading.Thread(target=Mouse.left_click_lock, args=(click_delay,)).start()
 
                 self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL + click_delay
 

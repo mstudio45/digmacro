@@ -2,7 +2,7 @@ import time, random
 
 __all__ = ["PathfingingHandler"]
 
-from utils.general.input import press_key, press_multiple_keys
+from utils.general.keyboard import press_key, press_multiple_keys
 import logging
 
 from config import Config

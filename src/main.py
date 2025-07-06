@@ -195,6 +195,7 @@ if check_packages:
                 "PyAutoGUI": "pyautogui",
                 "mss": "mss",
                 "screeninfo": "screeninfo",
+                "pyscreenshot": "pyscreenshot",
 
                 # input libs #
                 "pynput": "pynput",
@@ -347,13 +348,13 @@ if check_packages:
 # imports #
 import logging
 import threading
-import mss, pyautogui, pynput
+import pyautogui, pynput, mss
 
 from PySide6.QtWidgets import QApplication
 import interface.msgbox as msgbox
 
 # config and variables # 
-from config import Config, ConfigUI
+from config import Config
 from variables import Variables, StaticVariables
 
 # utils #
@@ -423,27 +424,26 @@ if __name__ == "__main__":
                 os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = ""
                 os.environ["QT_STYLE_OVERRIDE"] = "fusion"
 
+            from interface.config_ui import ConfigUI
             q_app = QApplication(sys.argv)
-
             config_ui = ConfigUI()
             config_ui.show()
             q_app.exec()
 
             if config_ui.start_macro_now == True:
                 restart_macro()
-            else:
+            else: 
                 os.kill(os.getpid(), 9)
-                
-        elif res == "Exit":
-            os.kill(os.getpid(), 9)
-        else:
-            logging.info("Starting the macro...")
+        
+        elif res == "Exit": os.kill(os.getpid(), 9)
+        else: logging.info("Starting the macro...")
 
     # main loader #
     logging.info("Importing libraries...")
     from utils.finder import MainHandler, SellUI
     from utils.pathfinding import PathfingingHandler
-    from utils.general.input import left_click, press_key
+    from utils.general.mouse import left_click
+    from utils.general.keyboard import press_key
     from utils.images.screenshots import screenshot_cleanup
 
     from utils.roblox.rejoin import can_rejoin, rejoin_dig
@@ -640,6 +640,7 @@ if __name__ == "__main__":
 
         def main_loop(self, _):
             sct = mss.mss()
+
             while Variables.is_running:
                 time.sleep(0.25)
 

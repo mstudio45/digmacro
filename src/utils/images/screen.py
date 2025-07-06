@@ -327,6 +327,7 @@ def find_image(image, confidence, log=False, region=None):
         if template is None:
             try: sct.close() 
             except: pass
+
             logging.error("Image is None.")
             return None
         
@@ -334,6 +335,7 @@ def find_image(image, confidence, log=False, region=None):
         if len(screenshot_bgr.shape) != len(template.shape):
             try: sct.close() 
             except: pass
+
             logging.error("Screenshot and template have different number of dimensions.")
             return None
 
@@ -349,6 +351,7 @@ def find_image(image, confidence, log=False, region=None):
         if h_template > h_screen or w_template > w_screen:
             try: sct.close() 
             except: pass
+
             logging.error("Image is bigger than screenshot.")
             return None
         

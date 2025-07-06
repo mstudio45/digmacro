@@ -5,7 +5,7 @@ from config import Config
 from variables import Variables, StaticVariables
 
 import utils.roblox.window as RobloxWindow
-from utils.images.screen_images import find_image, resize_image
+from utils.images.screen import find_image, resize_image
 
 current_os = platform.system()
 __all__ = ["can_rejoin", "rejoin_dig"]

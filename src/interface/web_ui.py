@@ -3,7 +3,7 @@ import cv2
 import webview, platform, subprocess
 
 from config import Config
-from utils.images.screen_images import image_to_base64, scale_x, scale_y
+from utils.images.screen import image_to_base64, scale_x, scale_y
 from variables import StaticVariables, Variables
 
 current_os = platform.system()

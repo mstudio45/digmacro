@@ -4,3 +4,4 @@
 digmacro_venv/
 prebuilt/
 storage/
+tests/
