@@ -199,4 +199,4 @@ The macro can move your character in different patterns (like a square, line, et
 ---
 
 ## 👥 Credits
- * [upio (notpoiu)](https://github.com/notpoiu): Helped with macOS support and testing and made the ui design
+ * [upio (notpoiu)](https://github.com/notpoiu): UI Design and helped with macOS support and testing
