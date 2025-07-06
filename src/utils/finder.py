@@ -326,23 +326,25 @@ class MainHandler:
             
                 if not should_click:
                     dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
-                    dirt_bar_center = dirt_left + dirt_width / 2
+                    dirt_half_width = min(0, dirt_width / 2)
+                    if dirt_half_width != 0:
+                        dirt_bar_center = dirt_left + dirt_half_width
 
-                    # Compute player bar center correctly
-                    player_bar_center = self.PlayerBar.current_position
+                        # Compute player bar center correctly
+                        player_bar_center = self.PlayerBar.current_position
 
-                    center_distance = abs(player_bar_center - dirt_bar_center)
-                    normalized_distance = center_distance / (dirt_width / 2)
-                    confidence = 1.0 - normalized_distance
+                        center_distance = abs(player_bar_center - dirt_bar_center)
+                        normalized_distance = center_distance / dirt_half_width
+                        confidence = 1.0 - normalized_distance
 
-                    is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
+                        is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
 
-                    if confidence >= Config.MIN_CENTER_CONFIDENCE:
-                        should_click = True
-                        prediction_used = True
-                    elif is_moving_slowly and confidence >= Config.MIN_SLOW_CONFIDENCE:
-                        should_click = True
-                        prediction_used = True
+                        if confidence >= Config.MIN_CENTER_CONFIDENCE:
+                            should_click = True
+                            prediction_used = True
+                        elif is_moving_slowly and confidence >= Config.MIN_SLOW_CONFIDENCE:
+                            should_click = True
+                            prediction_used = True
             
             if not should_click and self.PlayerBar.bar_in_clickable:
                 should_click = True

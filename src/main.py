@@ -508,7 +508,7 @@ if __name__ == "__main__":
                     if pos is None: pass
                 
                     region = json.loads(pos)
-                    if "left" in region and "top" in region and "width" in region and "height" in region:
+                    if "left" in region and "top" in region and "width" in region and "height" in region: 
                         return region
                 except Exception as e:
                     msgbox.alert(f"Failed to load saved position: \n{traceback.format_exc()}", log_level=logging.ERROR)
