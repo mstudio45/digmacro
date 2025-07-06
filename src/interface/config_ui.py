@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from config import Config, settings_table
+from utils.images.screen import scale_x, scale_y
 
 class ConfigUI(QWidget):
     def __init__(self):
@@ -14,7 +15,7 @@ class ConfigUI(QWidget):
         self.start_macro_now = False
 
         self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
-        self.setGeometry(100, 100, 800, 700)
+        self.setGeometry(100, 100, 800 * scale_x, 700 * scale_y)
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)

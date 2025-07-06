@@ -16,6 +16,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 
 ## 📑 Table of Contents
 - [Features](#-features)
+- [TO-DO and Known Issues](/TO-DO.md)
 - [Supported Operating Systems](#-supported-operating-systems)
 - [Quick Start](#-quick-start)
   - [Download and Run](#-1-download-and-run)

@@ -12,12 +12,11 @@ compiled = "__compiled__" in globals()
 def restart_macro():
     if compiled:
         executable_path = sys.executable
-        subprocess.Popen([executable_path, "--skip-selection"], shell=True)
+        os.execv(executable_path, [executable_path, "--skip-selection"])
     else:
         script_path = os.path.abspath(__file__)
-        subprocess.Popen([sys.executable, script_path, "--skip-selection"], shell=True)
-
-    os.kill(os.getpid(), 9)
+        os.execv(sys.executable, [sys.executable, script_path, "--skip-selection"])
+    return
 
 # install requirements #
 check_packages = True

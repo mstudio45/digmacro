@@ -246,7 +246,7 @@ except Exception as e:
     msgbox.alert(f"Failed to get the correct Display Resolution: {traceback.format_exc()}")
     sys.exit(1)
 
-logging.info(f"Screen region (might return larger region, scaled by DPI): {screen_region} | Scale factor: {scale_factor} | Base Resolution: {BASE_RESOLUTION}")
+logging.info(f"\nPhysical Screen region (scaled by DPI):\n    {screen_region} | {scale_x:.2f}x{scale_y:.2f} - {scale_factor}\nBase Resolution:\n    {BASE_RESOLUTION} | 1x1 1")
 
 def resize_image(img_path):
     global scale_factor
