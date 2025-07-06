@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIG Macro</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        img { max-width: 100%; max-height: 100%; }
+    </style>
+</head>
+
+<body class="max-h bg-black">
+    <div class="pywebview-drag-region text-white w-full max-w-2xl shadow-2xl p-6">
+        <header class="flex justify-between items-start mb-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-gray-800 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                        <path d="M2 22v-5l5-5 5 5-5 5z"></path>
+                        <path d="M9.5 14.5 16 8"></path>
+                        <path d="m17 2 5 5-.5.5a3.5 3.5 0 0 1-5 0s0 0 0 0a3.5 3.5 0 0 1 0-5L17 2"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <h1 class="text-xl font-bold">DIG Macro</h1>
+                    <p id="credit" class="text-sm text-gray-400">Made by mstudio45</p>
+                </div>
+            </div>
+
+            <button class="text-gray-500 hover:text-white transition-colors" onclick="pywebview.api.close()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </header>
+
+        <main>
+            <h2 class="text-sm font-medium text-gray-300">1. Start the minigame inside DIG.</h2>
+            <h2 class="text-sm font-medium text-gray-300 mb-2">2. Press 'Continue' and then select the region. Example:</h2>
+            
+            <div class="w-full bg-black border border-gray-600 rounded-lg p-3 flex items-center justify-center" style="height: 8rem;">
+                <img id="example" alt="Example region" class="object-cover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
+            </div>
+        </main>
+
+        <footer class="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
+            <div class="flex items-center justify-end w-full gap-3">
+                <div class="text-right">
+                    <button onclick="pywebview.api.start_region_select()" class="mr-2 bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Continue
+                    </button>
+
+                    <button onclick="pywebview.api.close()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Exit
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function updateImage(src) {
+            document.querySelector("#example").src = src;
+        }
+    </script>
+
+    <script>
+        const resizeWindow = () => {
+            const body = document.body;
+            const height = body.clientHeight;
+            const width = body.clientWidth;
+
+            window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height))
+        };
+
+        window.addEventListener("pywebviewready", () => {
+            resizeWindow();
+
+            pywebview.api.get_session_id().then((id) => {
+                const credits = document.querySelector("#credit")
+                credits.textContent = credits.textContent + " | " + id
+            });
+        });
+    </script>
+</body>
+</html>

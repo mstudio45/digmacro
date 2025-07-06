@@ -1,0 +1,7 @@
+**/__pycache__/
+**/storage/
+**/dist/
+digmacro_venv_*/
+prebuilt/
+storage/
+tests/
