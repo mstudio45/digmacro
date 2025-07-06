@@ -8,3 +8,4 @@
 - [ ] Restart and Start Macro buttons not working properly (fixed in src)
 - [ ] Config UI not resized properly with different display resolutions (fixed in src)
 - [ ] Auto Sell only working in 1080p
+- [ ] Very rare "float division by zero" exception
