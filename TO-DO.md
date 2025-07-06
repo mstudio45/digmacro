@@ -1,5 +1,5 @@
 ### 📝 TO-DO
-- Nothing here...
+- [ ] Shovel re-equip after certain amount of digs
 
 ---
 
