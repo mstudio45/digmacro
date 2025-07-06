@@ -195,7 +195,6 @@ if check_packages:
                 "PyAutoGUI": "pyautogui",
                 "mss": "mss",
                 "screeninfo": "screeninfo",
-                "pyscreenshot": "pyscreenshot",
 
                 # input libs #
                 "pynput": "pynput",
