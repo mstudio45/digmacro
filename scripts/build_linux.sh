@@ -8,5 +8,5 @@ python3 -m nuitka \
   --enable-plugin=tk-inter \
   --include-package=webview --include-package=gi \
   --include-data-dir=assets=assets \
-  --output-dir=dist_linux \
+  --output-dir=dist/linux \
   --follow-imports main.py

@@ -10,5 +10,5 @@ python3 -m nuitka \
   --enable-plugin=pyside6 \
   --enable-plugin=tk-inter \
   --include-data-dir=assets=assets \
-  --output-dir=dist_macos \
+  --output-dir=dist/macos \
   --follow-imports main.py

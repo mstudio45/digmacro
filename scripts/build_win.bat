@@ -9,5 +9,5 @@ nuitka ^
   --enable-plugin=tk-inter ^
   --windows-icon-from-ico=assets/icons/icon.ico ^
   --include-data-dir=assets=assets ^
-  --output-dir=dist_win ^
+  --output-dir=dist/win ^
   --follow-imports main.py
