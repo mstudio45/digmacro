@@ -7,10 +7,10 @@
 + Added user based minigame region selection with a guide
 + Added proper logging system
 + Added configuration GUI and ton of configuration
-+ Added launch scripts to help lower the bar of entry the setup
 + Created standalone binary files compiled with nuitka for each platform for easier user experience
 
 [Improvements]
++ A much more user friendly setup experience 
 + Revamped Macro UI to look better
 + Improved performance (refactored main loop)
 + Adjusted the player bar and dirt part detection
