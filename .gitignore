@@ -2,7 +2,7 @@
 **/storage/
 **/dist_*/
 **/dist/
-digmacro_venv/
+digmacro_venv_*/
 prebuilt/
 storage/
 tests/

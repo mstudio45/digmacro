@@ -3,13 +3,13 @@
 OS="$(uname -s)"
 
 echo "Checking for virtual environment..."
-if [ ! -d "digmacro_venv" ]; then
+if [ ! -d "digmacro_venv_$OS" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv digmacro_venv
+    python3 -m venv digmacro_venv_$OS
 fi
 case "$OS" in
-    Linux*)     . digmacro_venv/bin/activate ;;
-    Darwin*)    source digmacro_venv/bin/activate ;;
+    Linux*)     . digmacro_venv_$OS/bin/activate ;;
+    Darwin*)    source digmacro_venv_$OS/bin/activate ;;
     *)          echo "Unsupported operating system: $OS"; exit 1 ;;
 esac
 
