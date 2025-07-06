@@ -5,9 +5,6 @@
     <i>Current version: 2.0.0 | <a href="/CHANGELOGS.md">Changelogs</a></i>
 </p>
 
-> [!WARNING]
-> **THIS IS A PRE-RELEASE VERSION OF THE NEXT UPDATE. IT IS WORK IN PROGRESS AND IT MAY NOT WORK CORRECTLY**
-
 ## What is This?
 DIG Macro is a tool that automatically plays the minigame in the roblox game [DIG](https://www.roblox.com/games/126244816328678/DIG).
 
