@@ -15,7 +15,7 @@ def restart_macro():
         subprocess.Popen([executable_path, "--skip-selection"], shell=True)
     else:
         script_path = os.path.abspath(__file__)
-        subprocess.Popen([sys.executable, script_path, "--skip-selection"], shell=False)
+        subprocess.Popen([sys.executable, script_path, "--skip-selection"], shell=True)
 
     os.kill(os.getpid(), 9)
 
@@ -223,7 +223,7 @@ if check_packages:
                 "pywin32": "win32gui",
 
                 # input libs #
-                "pyautoit": "autoit"
+                "PyAutoIt": "autoit"
             },
 
             "Linux": {
