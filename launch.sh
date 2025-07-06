@@ -7,6 +7,7 @@ if [ ! -d "digmacro_venv_$OS" ]; then
     echo "Creating virtual environment..."
     python3 -m venv digmacro_venv_$OS
 fi
+
 case "$OS" in
     Linux*)     . digmacro_venv_$OS/bin/activate ;;
     Darwin*)    source digmacro_venv_$OS/bin/activate ;;
