@@ -86,7 +86,7 @@ _If you have improvements or patches for additional (or currently supported) ope
 2. **Run the macro:**
    - **Windows:** Double-click `digmacro_windows.exe`.
    - **Linux:** Double-click `digmacro_linux.bin` or run `./digmacro_linux.bin` in your terminal.
-   - **macOS:** Double-click `digmacro_macos` or run `./digmacro_macos` in your terminal.
+   - **macOS:** Refer to the [macOS section](#-MacOS-Setup) below for help.
 
 #### Source version
 
@@ -98,8 +98,7 @@ _If you have improvements or patches for additional (or currently supported) ope
    - Go into the extracted `digmacro-main` folder.
 4. **Run the macro:**
    - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
-   - **Linux:** Run `sh launch.sh` in your terminal.
-   - **macOS:** Refer to the [macOS section](#-MacOS-Setup) below for help.
+   - **Linux/macOS:** Run `sh launch.sh` in your terminal.
 
 ---
 
