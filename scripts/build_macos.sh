@@ -2,7 +2,7 @@
 cd src
 
 python3 -m nuitka \
-  --onefile \
+  --output-filename=digmacro_macos \
   --standalone \
   --macos-create-app-bundle \
   --macos-app-icon=assets/icons/macos_icon.icns \
