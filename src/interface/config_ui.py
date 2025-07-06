@@ -5,9 +5,60 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox,
     QScrollArea
 )
+import time, pynput, threading
 
 from config import Config, settings_table
 from utils.images.screen import scale_x, scale_y
+
+class QMousePicker(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.picking = False
+        self._pos = (0, 0)
+
+        self.info_label = QLabel("No position picked")
+
+        self.pick_button = QPushButton("Pick Position")
+        self.pick_button.clicked.connect(self.start_picking)
+
+        row_layout = QHBoxLayout()
+
+        row_layout.addWidget(self.info_label)
+        row_layout.addWidget(self.pick_button)
+
+        self.setLayout(row_layout)
+
+    def on_click(self, x, y, button, pressed):
+        if pressed and button == pynput.mouse.Button.left:
+            self.set(x, y)
+            self.picking = False
+            
+            self.mouse_listener.suppress_event()
+            return False
+
+    def start_picking(self):
+        if self.picking: return
+
+        self.picking = True
+        self.info_label.setText("Waiting...")
+
+        def listen_mouse():
+            self.mouse_listener = pynput.mouse.Listener(on_click=self.on_click)
+            self.mouse_listener.start()
+
+            while self.picking: time.sleep(0)
+            self.mouse_listener.stop()
+        
+        thread = threading.Thread(target=listen_mouse, daemon=True)
+        thread.start()
+        
+    def value(self):
+        return f"pos:{self._pos[0]}x{self._pos[1]}"
+
+    def set(self, x, y):
+        if not x or not y: return
+        self._pos = (int(x), int(y))
+        self.info_label.setText(f"X={x}, Y={y}")
 
 class ConfigUI(QWidget):
     def __init__(self):
@@ -15,7 +66,7 @@ class ConfigUI(QWidget):
         self.start_macro_now = False
 
         self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
-        self.setGeometry(100, 100, 800 * scale_x, 700 * scale_y)
+        self.setGeometry(100, 100, 500 * scale_x, 500 * scale_y)
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -82,6 +133,9 @@ class ConfigUI(QWidget):
 
                     widget.addItems(items)
                 
+                elif widget_type == "QMousePicker":
+                    widget = QMousePicker()
+
                 elif widget_type == "QLineEdit":
                     widget = QLineEdit()
                 
@@ -143,6 +197,9 @@ class ConfigUI(QWidget):
                         if index != -1:
                             widget.setCurrentIndex(index)
 
+                    elif isinstance(widget, QMousePicker):
+                        widget.set(*value)
+
     def save_settings(self):
         reply = QMessageBox.question(self, "Confirm Save", "Are you sure you want to save the current settings?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply != QMessageBox.Yes:
@@ -183,6 +240,9 @@ class ConfigUI(QWidget):
                         
                     elif isinstance(widget, QComboBox):
                         new_value = widget.currentText()
+                    
+                    elif isinstance(widget, QMousePicker):
+                        new_value = widget.value()
 
                     if new_value is not None:
                         Config.set(section, key, new_value, save_config=False)

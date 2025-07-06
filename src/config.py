@@ -151,6 +151,10 @@ settings_table = {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
     },
+    "AUTO_SELL_BUTTON_POSITION": {
+        "widget": "QMousePicker",
+        "tooltip": "X and Y position of the 'Sell Inventory' button."
+    },
     "AUTO_SELL_REQUIRED_ITEMS": {
         "widget": "QSpinBox",
         "tooltip": "Number of digs before auto-selling will happen.",
@@ -293,6 +297,7 @@ class ConfigManager:
 
             "AUTO SELL": {
                 "AUTO_SELL": False,
+                "AUTO_SELL_BUTTON_POSITION": (0, 0),
                 "AUTO_SELL_REQUIRED_ITEMS": 15,
                 "AUTO_SELL_BUTTON_CONFIDENCE": 0.75,
                 "AUTO_SELL_AFTER_PATHFINDING_MACRO": False
@@ -417,25 +422,29 @@ class ConfigManager:
                         value = parser.getboolean(section, key)
 
                         self.config[section][key] = parser.getboolean(section, key)
-                        setattr(self, key,  value)
+                        setattr(self, key, value)
 
                     elif isinstance(self.config[section][key], int):
                         value = parser.getint(section, key)
 
                         self.config[section][key] = parser.getint(section, key)
-                        setattr(self, key,  value)
+                        setattr(self, key, value)
 
                     elif isinstance(self.config[section][key], float):
                         value = parser.getfloat(section, key)
 
                         self.config[section][key] = value
-                        setattr(self, key,  value)
+                        setattr(self, key, value)
 
                     else:
                         value = parser.get(section, key)
 
+                        if "pos:" in value:
+                            x, y = value.replace("pos:", "").split("x")
+                            value = (int(x), int(y))
+
                         self.config[section][key] = value
-                        setattr(self, key,  value)
+                        setattr(self, key, value)
 
                 except ValueError:
                     print(f"[ConfigManager.load_config] Warning: Could not parse config value for '[{section}]{key}'. Using default.")
@@ -455,7 +464,14 @@ class ConfigManager:
     def save_config(self):
         parser = configparser.ConfigParser()
         for section, options in self.config.items():
-            parser[section] = {str(k): str(v) for k, v in options.items()}
+            parser[section] = {}
+            
+            for k, v in options.items():
+                val = str(v)
+                if isinstance(v, tuple):
+                    val = f"pos:{v[0]}x{v[1]}"
+                
+                parser[section][str(k)] = val
         
         # save as json #
         write(StaticVariables.pathfinding_macros_filepath, self._format_pathfinding_macros())

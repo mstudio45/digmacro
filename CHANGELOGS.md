@@ -5,6 +5,7 @@
 + Added pathfinding macros
 + Added prediction system
 + Added user based minigame region selection with a guide
++ Added region saving for each different monitor and display resolution into one file
 + Added proper logging system
 + Added configuration GUI and ton of configuration
 + Created standalone binary files compiled with nuitka for each platform for easier user experience

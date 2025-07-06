@@ -443,6 +443,7 @@ if __name__ == "__main__":
     from utils.general.mouse import left_click
     from utils.general.keyboard import press_key
     from utils.images.screenshots import screenshot_cleanup
+    from utils.images.screen import screen_res_str
 
     from utils.roblox.rejoin import can_rejoin, rejoin_dig
     from utils.roblox.window import is_roblox_focused
@@ -457,6 +458,8 @@ if __name__ == "__main__":
             self.cleanup_functions = []
 
             # variables #
+            self.saved_regions = {}
+
             self.total_idle_time = 0
             self.hotkeys = None
 
@@ -506,10 +509,15 @@ if __name__ == "__main__":
                 try:
                     pos = FileHandler.read(StaticVariables.region_filepath)
                     if pos is None: pass
-                
-                    region = json.loads(pos)
-                    if "left" in region and "top" in region and "width" in region and "height" in region: 
-                        return region
+                    self.saved_regions = json.loads(pos)
+
+                    if screen_res_str in self.saved_regions:
+                        region = self.saved_regions[screen_res_str]
+                        if "left" in region and "top" in region and "width" in region and "height" in region:
+                            logging.info(f"Using saved region '{screen_res_str}'.")
+                            return region
+                        else:
+                            region = None
                 except Exception as e:
                     msgbox.alert(f"Failed to load saved position: \n{traceback.format_exc()}", log_level=logging.ERROR)
 
@@ -536,6 +544,7 @@ if __name__ == "__main__":
 
                 logging.info("Region has been set.")
                 Variables.minigame_region = region
+                self.saved_regions[screen_res_str] = region
 
                 # load region select checker ui #
                 self.region_check_ui.start()
@@ -549,11 +558,10 @@ if __name__ == "__main__":
                     return
                 
                 if Config.USE_SAVED_POSITION: 
-                    FileHandler.write(StaticVariables.region_filepath, json.dumps(Variables.minigame_region))
-                    logging.info("Region saved successfully.")
+                    FileHandler.write(StaticVariables.region_filepath, json.dumps(self.saved_regions, indent=4))
+                    logging.info(f"Region saved successfully as {screen_res_str}.")
 
-                logging.info("Region selected successfully.")
-            else: logging.info("Saved region loaded successfully.")
+                logging.info(f"Region '{screen_res_str}' selected successfully.")
 
             # region selected correctly #
             Variables.is_roblox_focused = False
@@ -820,6 +828,10 @@ if __name__ == "__main__":
 
     # load main macro handler #
     macro = MacroHandler()
+
+    if Config.AUTO_SELL == True and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
+        msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.", bypass=True)
+        Config.AUTO_SELL = False
     
     # region #
     macro.setup_finder_thread()

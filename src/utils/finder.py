@@ -33,30 +33,33 @@ class SellUI:
         Variables.is_selling = True
 
         # try to get the button #
-        tryidx = 0
-        button_pos = None
-
-        Mouse.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
-
-        while Variables.is_running == True and tryidx < 5:
-            self.toggle_shop()
-
-            button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, log=True)
-            if button_pos is not None: break
-
-            time.sleep(0.25)
-            tryidx = tryidx + 1
-
-        if not button_pos or not Variables.is_running or tryidx >= 4:
-            logging.debug("Button not found.");
-            Variables.is_selling = False
-            return
-
-        target_x = button_pos["left"] + button_pos["width"] // 2
-        target_y = button_pos["top"]  + button_pos["height"] // 2
+        # tryidx = 0
+        # button_pos = None
+        # 
+        # Mouse.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
+        # 
+        # while Variables.is_running == True and tryidx < 5:
+        #     self.toggle_shop()
+        # 
+        #     button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, log=True)
+        #     if button_pos is not None: break
+        # 
+        #     time.sleep(0.25)
+        #     tryidx = tryidx + 1
+        # 
+        # if not button_pos or not Variables.is_running or tryidx >= 4:
+        #     logging.debug("Button not found.");
+        #     Variables.is_selling = False
+        #     return
+        # 
+        # target_x = button_pos["left"] + button_pos["width"] // 2
+        # target_y = button_pos["top"]  + button_pos["height"] // 2
 
         # sell items #
-        Mouse.move_mouse(target_x, target_y)
+        self.toggle_shop()
+        time.sleep(0.5)
+
+        Mouse.move_mouse(*Config.AUTO_SELL_BUTTON_POSITION)
         time.sleep(0.15)
         Mouse.left_click()
         time.sleep(0.15)

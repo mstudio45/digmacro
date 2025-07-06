@@ -13,11 +13,14 @@ from utils.images.screenshots import take_screenshot
 
 __all__ = [
     "resize_image", "stack_images_with_dividers", "find_image", "write_image",
-    "screen_region", "scale_x", "scale_y", "scale_factor"
+    
+    "screen_region", "screen_res_str",
+    "scale_x", "scale_y", "scale_factor"
 ]
 
 # get the display resolution to support all window sizes #
 BASE_RESOLUTION = (1920, 1080)
+screen_res_str = "0x0 1920x1080"
 scale_x, scale_y, scale_factor = 1.0, 1.0, 1.0
 base_width, base_height = BASE_RESOLUTION
 screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "height": BASE_RESOLUTION[1] }
@@ -236,6 +239,8 @@ try:
         }
         
     # make scale_factor #
+    screen_res_str = f"{screen_region["left"]}x{screen_region["top"]} {screen_region["width"]}x{screen_region["height"]}"
+
     scale_x = screen_region["width"] / base_width
     scale_y = screen_region["height"] / base_height
     scale_factor = min(scale_x, scale_y) # aspect ratio #
