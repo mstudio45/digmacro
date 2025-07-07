@@ -178,87 +178,87 @@ if check_packages:
 
     # python packages #
     if compiled == False:
-        def install_package(pip_name):
+        def install_package(package):
             try: 
-                print(f"[install_package] Installing python package: {pip_name}")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+                if package.version != "all":
+                    pip_spec = f"{package.pip}>={package.version}"
+                else:
+                    pip_spec = package.pip
+                    
+                print(f"[install_package] Installing package: {pip_spec}")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", pip_spec])
             except Exception as e:
-                print(f"[install_package] Failed to install '{pip_name}' requirement: \n{traceback.format_exc()}")
+                print(f"[install_package] Failed to install '{package.pip}' requirement: \n{traceback.format_exc()}")
                 sys.exit(1)
         
         required_packages = {
-            "all": {
-                # finder libs #
-                "opencv-python": "cv2",
-                "numpy": "numpy",
-                "PyAutoGUI": "pyautogui",
-                "mss": "mss",
-                "screeninfo": "screeninfo",
+            "all": [
+                { "pip": "opencv-python",   "import": "cv2",            "version": "all" },
+                { "pip": "numpy",           "import": "numpy",          "version": "all" },
+                { "pip": "PyAutoGUI",       "import": "pyautogui",      "version": "all" },
+                { "pip": "mss",             "import": "mss",            "version": "all" },
+                { "pip": "screeninfo",      "import": "screeninfo",     "version": "all" },
+                { "pip": "pynput",          "import": "pynput",         "version": "1.8.1" },
+                { "pip": "requests",        "import": "requests",       "version": "all" },
+                { "pip": "PySide6",         "import": "PySide6",        "version": "all" },
+                { "pip": "psutil",          "import": "psutil",         "version": "all" },
+                { "pip": "logging",         "import": "logging",        "version": "all" },
+                { "pip": "pillow",          "import": "PIL",            "version": "all" }
+            ],
 
-                # input libs #
-                "pynput": "pynput",
+            "Windows": [
+                { "pip": "pywebview",        "import":  "webview",      "version": "all" },
+                { "pip": "bettercam",        "import":  "bettercam",    "version": "all" },
+                { "pip": "PyGetWindow",      "import":  "pygetwindow",  "version": "all" },
+                { "pip": "pywin32",          "import":  "win32gui",     "version": "all" },
+                { "pip": "PyAutoIt",         "import":  "autoit",       "version": "all" }
+            ],
 
-                # updater libs #
-                "requests": "requests",
+            "Linux": [
+                { "pip": "pywebview[gtk]",   "import": "webview",       "version": "all" },
+            ],
 
-                # ui libs #
-                "PySide6": "PySide6",
-
-                # misc libs #
-                "psutil": "psutil",
-                "logging": "logging",
-                "pillow": "PIL"
-            },
-
-            "Windows": {
-                # ui #
-                "pywebview": "webview",
-
-                # screenshot lib #
-                "bettercam": "bettercam",
-
-                # win32 api #
-                "PyGetWindow": "pygetwindow",
-                "pywin32": "win32gui",
-
-                # input libs #
-                "PyAutoIt": "autoit"
-            },
-
-            "Linux": {
-                "pywebview[gtk]": "webview",
-            },
-
-            "Darwin": {
-                "pywebview": "webview",
-                "PyObjC": "AppKit"
-            }
+            "Darwin": [
+                { "pip": "pywebview",        "import": "webview",       "version": "all" },
+                { "pip": "PyObjC",           "import": "AppKit",        "version": "all" }
+            ]
         }
         check_import_only = ["pywebview[gtk]"]
+        def normalize_version(v): return [int(part) if part.isdigit() else part for part in v.replace("-", ".").split(".")]
+        def check_package_version(installed, required): return normalize_version(installed) >= normalize_version(required)
 
         def check_packages():
             # get installed packages #
             reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
-            installed_packages = [r.decode().split("==")[0] for r in reqs.split()]
+            installed_packages = [r.decode().split("==") for r in reqs.split()]
+
             missing_packages = []
+            relevant_packages = required_packages.get("all", []) + required_packages.get(current_os, [])
+
+            for package in relevant_packages:
+                pip_name = package["pip"]
+                import_name = package["import"]
+                min_version = package["version"]
+
+                # check pip freeze list #
+                if pip_name not in check_import_only:
+                    installed_package = next((item for item in installed_packages if item[0] == pip_name), None)
+                    if installed_package is None:
+                        logging.info(f"Package '{pip_name}' is not installed.")
+                        missing_packages.append(package)
+                        continue
+
+                    if min_version != "all" and not check_package_version(installed_package[1], min_version):
+                        logging.info(f"Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
+                        missing_packages.append(package)
+                        continue
+                
+                # check import #
+                try: importlib.import_module(import_name)
+                except ImportError: 
+                    logging.info(f"Package '{pip_name}' didn't import properly.")
+                    missing_packages.append(package)
             
-            # check all packages #
-            for os, required_obj in required_packages.items():
-                if not (os == "all" or os == current_os): continue
-
-                for pip_name, _package in required_obj.items():
-                    if pip_name in check_import_only or pip_name in installed_packages: continue
-                    if pip_name not in missing_packages: missing_packages.append(pip_name)
-            
-            # check importerrors #
-            for os, required_obj in required_packages.items():
-                if not (os == "all" or os == current_os): continue
-
-                for pip_name, package in required_obj.items():
-                    try: importlib.import_module(package)
-                    except ImportError as e:
-                        if pip_name not in missing_packages: missing_packages.append(pip_name)
-
             # install packages #
             if len(missing_packages) == 0: 
                 print("[check_packages] All required packages are installed.")
@@ -269,10 +269,7 @@ if check_packages:
                 print(f"Missing packages detected, please install them manually: {missing_packages}")
                 sys.exit(1)
 
-            installed_missing_packages = True
-            for pip_name in missing_packages:
-                install_package(pip_name)
-
+            for package in missing_packages: install_package(package)
             print("[check_packages] Done.")
 
         check_packages()

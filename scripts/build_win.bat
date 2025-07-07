@@ -1,13 +1,22 @@
 @echo off
-cd ..
+call digmacro_venv_Windows\Scripts\activate
 cd src
 
-nuitka ^
+py -m nuitka ^
   --onefile ^
+  --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" ^
   --standalone ^
-  --enable-plugin=pyside6 ^
-  --enable-plugin=tk-inter ^
-  --windows-icon-from-ico=assets/icons/icon.ico ^
+  --follow-imports ^
+  --assume-yes-for-downloads ^
+  --company-name="mstudio45" ^
+  --product-name="DIG Macro" ^
+  --file-version="2.0.1" ^
+  --file-description="DIG Macro is a tool that automatically plays the minigame in the roblox game DIG." ^
+  --copyright="© mstudio45 2025 - https://github.com/mstudio45/digmacro" ^
+  --enable-plugin=pyside6,tk-inter ^
+  --nofollow-import-to=cryptography,unittest,test,doctest ^
   --include-data-dir=assets=assets ^
   --output-dir=dist/win ^
-  --follow-imports main.py
+  --output-filename=digmacro_windows ^
+  --windows-icon-from-ico=assets/icons/icon.ico ^
+  main.py
