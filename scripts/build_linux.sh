@@ -18,6 +18,6 @@ python3 -m nuitka \
   --include-data-dir=assets=assets \
   --include-package=webview --include-package=gi \
   --output-dir=dist/linux \
-  --output-filename=digmacro_linux \
+  --output-filename=digmacro_linux.bin \
   --linux-icon=assets/icons/icon.ico \
   main.py
