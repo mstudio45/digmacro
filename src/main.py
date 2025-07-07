@@ -180,15 +180,15 @@ if check_packages:
     if compiled == False:
         def install_package(package):
             try: 
-                if package.version != "all":
-                    pip_spec = f"{package.pip}>={package.version}"
+                if package["version"] != "all":
+                    pip_spec = f"{package["pip"]}>={package["version"]}"
                 else:
-                    pip_spec = package.pip
+                    pip_spec = package["pip"]
                     
                 print(f"[install_package] Installing package: {pip_spec}")
                 subprocess.check_call([sys.executable, "-m", "pip", "install", pip_spec])
             except Exception as e:
-                print(f"[install_package] Failed to install '{package.pip}' requirement: \n{traceback.format_exc()}")
+                print(f"[install_package] Failed to install '{package["pip"]}' requirement: \n{traceback.format_exc()}")
                 sys.exit(1)
         
         required_packages = {
@@ -241,19 +241,19 @@ if check_packages:
                 if pip_name not in check_import_only:
                     installed_package = next((item for item in installed_packages if item[0] == pip_name), None)
                     if installed_package is None:
-                        logging.info(f"Package '{pip_name}' is not installed.")
+                        print(f"Package '{pip_name}' is not installed.")
                         missing_packages.append(package)
                         continue
 
                     if min_version != "all" and not check_package_version(installed_package[1], min_version):
-                        logging.info(f"Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
+                        print(f"Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
                         missing_packages.append(package)
                         continue
                 
                 # check import #
                 try: importlib.import_module(import_name)
                 except ImportError: 
-                    logging.info(f"Package '{pip_name}' didn't import properly.")
+                    print(f"Package '{pip_name}' didn't import properly.")
                     missing_packages.append(package)
             
             # install packages #
