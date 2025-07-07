@@ -17,6 +17,8 @@ import platform; current_os = platform.system()
 
 def is_pos_in_bbox(pos_x, left, width): return left <= pos_x <= (left + width)
 
+DEBUG_SHOW_MASK = False
+
 ## SELL ANYWHERE UI ##
 class SellUI:
     def __init__(self):
@@ -102,9 +104,20 @@ class PlayerBar:
         # edit screenshot #
         # sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
         # abs_sobelx = cv2.convertScaleAbs(sobelx)
-        mask = cv2.Canny(screenshot, 600, 600)
+        min_width_bar = 1
+        
+        if Config.PLAYER_BAR_DETECTION == "Canny":
+            mask = cv2.Canny(screenshot, 600, 600)
+            _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY) 
+        else:
+            min_width_bar = 3
 
-        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY) 
+            sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
+            abs_sobelx = cv2.convertScaleAbs(sobelx)
+
+            _, mask = cv2.threshold(abs_sobelx, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY)
+            
+
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -112,7 +125,7 @@ class PlayerBar:
 
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
-            if w >= 1 and h > 15 and h / w > 5.5:
+            if w >= min_width_bar and h > 15 and h / w > 5.5:
                 fixed_x = region_left + (x + w // 2) - 5
 
                 player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
@@ -172,10 +185,11 @@ class DirtBar:
         if contours:
             largest_contour = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest_contour)
-            if 25 < w >= region_width - 5:
-                self.position = None
-                self.clickable_position = None
-                return
+            
+            #if 25 < w >= region_width - 5:
+            #    self.position = None
+            #    self.clickable_position = None
+            #    return
             
             dirt_bar_absolute_position = (region_left + x, region_top + y, w, h)
 
@@ -218,16 +232,25 @@ class MainHandler:
         self.debug_img = None
 
     def update_state(self, sct):
-        if Variables.is_rejoining == True: return
-        if Variables.is_roblox_focused == False and Variables.is_selecting_region == False: return
-        if Variables.is_selling == True: return
+        if Variables.is_rejoining == True:
+            return
+        
+        if Variables.is_roblox_focused == False and Variables.is_selecting_region == False:
+            return
+        
+        if Variables.is_selling == True:
+            return
         
         # get offsets #
         region_left, region_top, region_width, region_height = Variables.minigame_region.values()
 
         # take screenshots #
         screenshot_np = take_screenshot(Variables.minigame_region, sct)
-        if screenshot_np is None: Variables.is_minigame_active = False; return
+        if screenshot_np is None:
+            # print("Screenshot is None, skipping update state and setting minigame active to False")
+            Variables.is_minigame_active = False;
+            return
+        
         gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2GRAY)
 
         if Variables.is_selecting_region == True:
@@ -246,6 +269,7 @@ class MainHandler:
 
             # create debug image
             self.create_debug_image(screenshot_np, region_left)
+            # print("Debug image created for region selection.")
             return
 
         # find clickable region #
@@ -258,6 +282,7 @@ class MainHandler:
         if self.DirtBar.clickable_position is None:
             Variables.is_minigame_active = False
             self.was_in_zone = False
+            # print("Dirt bar clickable position is None, setting minigame active to False.")
             return
         else: Variables.is_minigame_active = True
 
@@ -271,6 +296,7 @@ class MainHandler:
         if self.PlayerBar.current_position is None:
             Variables.is_minigame_active = False
             self.was_in_zone = False
+            # print("Player bar current position is None, setting minigame active to False.")
             return
         else: Variables.is_minigame_active = True
 
@@ -280,7 +306,8 @@ class MainHandler:
         # self.was_in_zone = in_zone_now
 
         # create debug image
-        if Config.SHOW_DEBUG_IMAGE: self.create_debug_image(screenshot_np, region_left)
+        if Config.SHOW_DEBUG_IMAGE:
+            self.create_debug_image(screenshot_np, region_left)
 
     def handle_click(self):
         if not Variables.is_minigame_active or self.PlayerBar.current_position is None:
@@ -395,8 +422,12 @@ class MainHandler:
             cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), Config.PLAYER_BAR_WIDTH) 
 
         # finally set the debug img #
-        self.debug_img = stack_images_with_dividers([
-            screenshot_np, 
-            # self.DirtBar.mask,
-            # self.PlayerBar.mask
-        ])
+        imageStack = [ screenshot_np ]
+        if DEBUG_SHOW_MASK:
+            if self.PlayerBar.mask is not None:
+                imageStack.append(self.PlayerBar.mask)
+            
+            if self.DirtBar.mask is not None:
+                imageStack.append(self.DirtBar.mask)
+        
+        self.debug_img = stack_images_with_dividers(imageStack)

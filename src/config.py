@@ -92,6 +92,11 @@ settings_table = {
         "max": 150
     },
 
+    "PLAYER_BAR_DETECTION": {
+        "widget": "QComboBox",
+        "tooltip": "Select the algorithm to use for player bar detection.",
+        "items": ["Canny", "Sobel"]
+    },
     "CLICKABLE_WIDTH": {
         "widget": "QDoubleSpinBox",
         "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
@@ -266,6 +271,7 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
+                "PLAYER_BAR_DETECTION": "Sobel" if current_os == "Darwin" else "Canny",
                 "CLICKABLE_WIDTH": 0.125,
                 "PLAYER_BAR_WIDTH": 5,
 

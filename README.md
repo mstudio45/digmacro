@@ -58,18 +58,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 | ------------------------- | --------------- | -------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
 | **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                       | Windows 10, Windows 11                | Best performance and compatibility   |
 | **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.) | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | 🧪 Experimental | macOS Sequoia 15.5+                                                        | Apple M3 16 GB, Sequoia 15.5 (Retina) | Work-in-progress, known issues exist |
-
-### macOS Feature Status
-
-| Feature                      | Status          | Notes                                                                              |
-| ---------------------------- | --------------- | ---------------------------------------------------------------------------------- |
-| Main GUI Support             | ✅ Working      | No issues observed while testing                                                   |
-| Configuration GUI Support    | ✅ Working      | No issues observed while testing                                                   |
-| Region Selection GUI Support | ✅ Working      | No issues observed while testing                                                   |
-| Box Detection                | ✅ Working      | No issues observed while testing                                                   |
-| In Minigame Detection        | ⚠️ Issues exist | Fails to persist detection of being inside a minigame after clicking once or twice |
-| Click Handler                | ⚠️ Issues exist | Due to minigame detection and some other issues, can fail to click sometimes       |
+| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                        | Apple M3 16 GB, Sequoia 15.5 (Retina) | Work-in-progress, known issues exist |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
