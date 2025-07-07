@@ -7,20 +7,20 @@ from utils.general.filehandler import read, write
 current_os = platform.system()
 
 # this shit pmo fr #
-screenshot_packages = []
-mouse_input_packages = []
+default_screenshot_package, screenshot_packages = "", []
+default_mouse_input_package, mouse_input_packages = "", []
 
 if current_os == "Windows":
-    screenshot_packages = ["bettercam", "mss"]
-    mouse_input_packages = ["win32api", "pynput"]
+    default_screenshot_package, screenshot_packages = "bettercam", ["bettercam", "mss"]
+    default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
 
 elif current_os == "Darwin":
-    screenshot_packages = ["mss"]
-    mouse_input_packages = ["Quartz", "pynput"]
+    default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    default_mouse_input_package, mouse_input_packages = "Quartz", ["Quartz", "pynput"]
 
 elif current_os == "Linux":
-    screenshot_packages = ["mss"]
-    mouse_input_packages = ["pynput"]
+    default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
 
 settings_table = {
     "TARGET_FPS": {
@@ -107,23 +107,6 @@ settings_table = {
         "max": 10
     },
 
-    "MIN_CENTER_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Minimum confidence required to click when player bar is reasonably centered.",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        "default": 0.9
-    },
-    "MIN_SLOW_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Minimum confidence required to click when player bar is moving slowly.",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        "default": 0.85
-    },
-
     "PLAYER_BAR_THRESHOLD": {
         "widget": "QSpinBox",
         "tooltip": "The threshold to find the vertical lines inside the region to find the player bar.",
@@ -197,13 +180,21 @@ settings_table = {
         "max": 1.0,
         "step": 0.01
     },
-    
-    "SIDE_CONFIDENCE": {
+    "PREDICTION_CENTER_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
-        "tooltip": "Confidence level for detecting the minigame UI for saving its position (0.0 to 1.0).",
+        "tooltip": "Minimum confidence required to click when player bar is reasonably centered inside the dirt part.",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01
+        "step": 0.01,
+        "default": 0.9
+    },
+    "PREDICTION_SLOW_CONFIDENCE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Minimum confidence required to click when player bar is moving slowly to the center of the dirt part.",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "default": 0.85
     },
 
     "MOUSE_INPUT_PACKAGE": {
@@ -217,15 +208,11 @@ settings_table = {
         "items": screenshot_packages
     },
     
-    "WINDOW_NAME": {
-        "widget": "QLineEdit",
-        "tooltip": "The name of the UI window."
-    },
-    "SHOW_DEBUG": {
+    "SHOW_DEBUG_IMAGE": {
         "widget": "QCheckBox",
         "tooltip": "Displays a debug image on what the macro sees."
     },
-    "DEBUG_FPS": {
+    "DEBUG_IMAGE_FPS": {
         "widget": "QSpinBox",
         "tooltip": "The FPS of the debug image inside the UI window.",
         "min": 1,
@@ -250,8 +237,6 @@ class ConfigManager:
 
         self.config = {}
         self.PathfindingMacros = {}
-
-        self.WINDOW_NAME = "DIG Macro by mstudio45"
         self.MSGBOX_ENABLED = True
 
         self._set_default_config()
@@ -269,6 +254,7 @@ class ConfigManager:
             "ROBLOX": {
                 "AUTO_REJOIN": False,
                 "PRIVATE_SERVER_CODE": "",
+                
                 "AUTO_REJOIN_INACTIVITY_TIMEOUT": 1.5,
                 "AUTO_REJOIN_CONFIDENCE": 0.85,
                 "AUTO_REJOIN_RECONNECT_CONFIDENCE": 0.85
@@ -279,9 +265,6 @@ class ConfigManager:
 
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
-
-                "MIN_CENTER_CONFIDENCE": 0.875,
-                "MIN_SLOW_CONFIDENCE": 0.7,
 
                 "CLICKABLE_WIDTH": 0.125,
                 "PLAYER_BAR_WIDTH": 5,
@@ -305,29 +288,28 @@ class ConfigManager:
 
             "PREDICTION": {
                 "USE_PREDICTION": True,
+
                 "PREDICTION_MAX_TIME_AHEAD": 0.05,
                 "PREDICTION_MIN_VELOCITY": 300,
-                "PREDICTION_CONFIDENCE": 0.8,
-            },
 
-            "IMAGE CONFIDENCE": {
-                "SIDE_CONFIDENCE": 0.75,
+                "PREDICTION_CONFIDENCE": 0.8,
+                "PREDICTION_CENTER_CONFIDENCE": 0.875,
+                "PREDICTION_SLOW_CONFIDENCE": 0.7,
             },
 
             "PACKAGES": {
-                "MOUSE_INPUT_PACKAGE": "Native Calls",
-                "SCREENSHOT_PACKAGE": "bettercam" if current_os == "Windows" else "mss",
+                "MOUSE_INPUT_PACKAGE": default_mouse_input_package,
+                "SCREENSHOT_PACKAGE": default_screenshot_package,
             },
 
-            "DEBUG WINDOW": {
-                "WINDOW_NAME": "DIG Macro by mstudio45",
-                "SHOW_DEBUG": True,
-                "DEBUG_FPS": 240
+            "GUI": {
+                "SHOW_DEBUG_IMAGE": True,
+                "DEBUG_IMAGE_FPS": 240
             },
 
             "DEBUG SCREENSHOTS": {
                 "PREDICTION_SCREENSHOTS": False,
-            },
+            }
         }
 
         self.default_PathfindingMacros = {

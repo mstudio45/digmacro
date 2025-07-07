@@ -280,8 +280,7 @@ class MainHandler:
         # self.was_in_zone = in_zone_now
 
         # create debug image
-        if Config.SHOW_DEBUG:
-            self.create_debug_image(screenshot_np, region_left)
+        if Config.SHOW_DEBUG_IMAGE: self.create_debug_image(screenshot_np, region_left)
 
     def handle_click(self):
         if not Variables.is_minigame_active or self.PlayerBar.current_position is None:
@@ -342,10 +341,10 @@ class MainHandler:
 
                         is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
 
-                        if confidence >= Config.MIN_CENTER_CONFIDENCE:
+                        if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
                             should_click = True
                             prediction_used = True
-                        elif is_moving_slowly and confidence >= Config.MIN_SLOW_CONFIDENCE:
+                        elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
                             should_click = True
                             prediction_used = True
             
@@ -362,7 +361,7 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms
 
-                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and prediction_used:
+                if Config.SHOW_DEBUG_IMAGE and Config.PREDICTION_SCREENSHOTS and prediction_used:
                     write_image(os.path.join(StaticVariables.prediction_screenshots_path, str(Variables.click_count) + ("_pred" if prediction_used else "") + ".png"), self.debug_img)
 
     def create_debug_image(self,

@@ -1,7 +1,7 @@
 import os, shutil
 import logging
 
-def write(filename: str, content: str) -> bool:
+def write(filename: str, content: str):
     try:
         with open(file=filename, mode="w", encoding="utf-8") as f:
             f.write(content)
@@ -17,7 +17,7 @@ def write(filename: str, content: str) -> bool:
         logging.error(f"An unexpected error occurred while writing to '{filename}': {e}")
         return False
 
-def read(filename: str) -> str | None:
+def read(filename: str):
     try:
         with open(file=filename, mode="r", encoding="utf-8") as f:
             content = f.read()
@@ -38,7 +38,27 @@ def read(filename: str) -> str | None:
         return None
 
 # folders #
-def create_folder(folderpath: str) -> bool:
+def get_folders(folderpath: str): # (path, is_empty)
+    try:
+        if not os.path.isdir(folderpath):
+            logging.warning(f"Folder '{folderpath}' does not exist.")
+            return []
+
+        dirs = []
+        for (dirpath, dirnames, filenames) in os.walk(folderpath):
+            dirs.append((dirpath, len(dirnames + filenames) == 0))
+        
+        return dirs
+    
+    except OSError as e:
+        logging.error(f"Failed to create folder '{folderpath}': {str(e)}")
+        return False
+    
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while creating folder '{folderpath}': {str(e)}")
+        return False
+
+def create_folder(folderpath: str):
     try:
         os.makedirs(folderpath, exist_ok=True)
 
@@ -53,7 +73,7 @@ def create_folder(folderpath: str) -> bool:
         logging.error(f"An unexpected error occurred while creating folder '{folderpath}': {str(e)}")
         return False
 
-def is_folder_empty(folderpath: str) -> bool:
+def is_folder_empty(folderpath: str):
     try:
         if not os.path.isdir(folderpath):
             logging.warning(f"Folder '{folderpath}' does not exist.")
@@ -69,7 +89,7 @@ def is_folder_empty(folderpath: str) -> bool:
         logging.error(f"An unexpected error occurred while checking folder '{folderpath}': {e}")
         return False
 
-def try_delete_folder(folderpath: str) -> bool:
+def try_delete_folder(folderpath: str):
     try:
         if os.path.isdir(folderpath):
             shutil.rmtree(folderpath)

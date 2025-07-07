@@ -376,7 +376,6 @@ if __name__ == "__main__":
 
     print("Loading config...")
     Config.load_config() # default_config_loaded
-    Config.WINDOW_NAME = Config.WINDOW_NAME + " | " + Variables.session_id 
 
     from utils.logs import setup_logger;
     print("Loading logger...")
@@ -639,7 +638,7 @@ if __name__ == "__main__":
                 self.update_window_status("Error", f"Failed to start the minigame!", "red")
 
                 logging.info("Equipping shovel...")
-                press_key("+") # equip the shovel #
+                press_key(pynput.keyboard.KeyCode.from_vk(0x31)) # equip the shovel #
                 time.sleep(0.5)
                 return self.start_minigame(equipped=True)
 
@@ -823,8 +822,8 @@ if __name__ == "__main__":
                 except Exception as e: logging.warning(f"Error in cleanup function: {func.__name__}: {str(e)}")
 
             # clear empty files/folders #
-            if FileHandler.is_folder_empty(StaticVariables.prediction_screenshots_path):
-                FileHandler.try_delete_folder(StaticVariables.prediction_screenshots_path)
+            for (folderpath, is_empty) in FileHandler.get_folders(StaticVariables.screenshots_path):
+                if is_empty == True: FileHandler.try_delete_folder(folderpath)
 
     # load main macro handler #
     macro = MacroHandler()

@@ -13,6 +13,7 @@ def setup_logger():
     console_handler.setFormatter(formatter)
     console_handler.setLevel(logging.INFO)
 
+    file_handler = None
     if Config.LOGGING_ENABLED: 
         file_handler = logging.FileHandler(
             filename=os.path.join(StaticVariables.logs_path, Variables.session_id + ".log"),
@@ -28,7 +29,7 @@ def setup_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    logger.addHandler(file_handler)
+    if file_handler: logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
     # loaded #

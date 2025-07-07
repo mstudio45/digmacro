@@ -92,7 +92,7 @@ class WebUI(UIBase):
         webview.start(gui=gui_type)
 
     def update(self):
-        frame_time = 1 / Config.DEBUG_FPS
+        frame_time = 1 / Config.DEBUG_IMAGE_FPS
 
         while not self._stop_event.is_set():
             frame_start = time.perf_counter()

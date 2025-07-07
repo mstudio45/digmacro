@@ -5,12 +5,15 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox,
     QScrollArea
 )
-import time, pynput, threading
+from PySide6.QtCore import Signal
+import time, pynput
 
 from config import Config, settings_table
 from utils.images.screen import scale_x, scale_y
 
 class QMousePicker(QWidget):
+    valueChanged = Signal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.picking = False
@@ -38,31 +41,31 @@ class QMousePicker(QWidget):
 
     def start_picking(self):
         if self.picking: return
-
         self.picking = True
-        self.info_label.setText("Waiting...")
-
-        def listen_mouse():
-            self.mouse_listener = pynput.mouse.Listener(on_click=self.on_click)
-            self.mouse_listener.start()
-
-            while self.picking: time.sleep(0)
-            self.mouse_listener.stop()
         
-        thread = threading.Thread(target=listen_mouse, daemon=True)
-        thread.start()
+        self.mouse_listener = pynput.mouse.Listener(on_click=self.on_click)
+        self.mouse_listener.start()
+
+        self.info_label.setText("Waiting...")
+        while self.picking: time.sleep(0.05)
+
+        self.mouse_listener.stop()
         
     def value(self):
         return f"pos:{self._pos[0]}x{self._pos[1]}"
 
-    def set(self, x, y):
+    def set(self, x=None, y=None):
         if not x or not y: return
+
         self._pos = (int(x), int(y))
         self.info_label.setText(f"X={x}, Y={y}")
+
+        self.valueChanged.emit(self.value())
 
 class ConfigUI(QWidget):
     def __init__(self):
         super().__init__()
+        self.changes_made = False
         self.start_macro_now = False
 
         self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
@@ -75,6 +78,25 @@ class ConfigUI(QWidget):
 
         self.create_ui()
         self.load_current_settings()
+
+    def closeEvent(self, event):
+        if self.changes_made and not self.start_macro_now:
+            reply = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                "You have unsaved changes. Are you sure you want to exit without saving?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+
+            if reply == QMessageBox.No:
+                event.ignore()
+                return
+
+        event.accept()
+
+    def on_change_made(self):
+        self.changes_made = True
 
     def create_ui(self):
         global Config, config_tooltips
@@ -111,17 +133,20 @@ class ConfigUI(QWidget):
                 
                 if widget_type == "QCheckBox":
                     widget = QCheckBox()
+                    widget.stateChanged.connect(self.on_change_made)
                 
                 elif widget_type == "QSpinBox":
                     widget = QSpinBox()
                     widget.setMinimum(settings.get("min", 0))
                     widget.setMaximum(settings.get("max", 100))
+                    widget.valueChanged.connect(self.on_change_made)
                 
                 elif widget_type == "QDoubleSpinBox":
                     widget = QDoubleSpinBox()
                     widget.setMinimum(settings.get("min", 0.0))
                     widget.setMaximum(settings.get("max", 1.0))
                     widget.setSingleStep(settings.get("step", 0.01))
+                    widget.valueChanged.connect(self.on_change_made)
                 
                 elif widget_type == "QComboBox":
                     widget = QComboBox()
@@ -132,15 +157,19 @@ class ConfigUI(QWidget):
                         items = Config.PathfindingMacros.keys()
 
                     widget.addItems(items)
+                    widget.currentTextChanged.connect(self.on_change_made)
                 
                 elif widget_type == "QMousePicker":
                     widget = QMousePicker()
+                    widget.valueChanged.connect(self.on_change_made)
 
                 elif widget_type == "QLineEdit":
                     widget = QLineEdit()
+                    widget.textChanged.connect(self.on_change_made)
                 
                 else:
-                    widget = QLineEdit()  # fallback #
+                    widget = QLineEdit() # fallback #
+                    widget.textChanged.connect(self.on_change_made)
 
                 # add to ui #
                 label.setToolTip(tooltip)
@@ -248,6 +277,7 @@ class ConfigUI(QWidget):
                         Config.set(section, key, new_value, save_config=False)
         
         Config.save_config()
+        self.changes_made = False
         QMessageBox.information(self, "Settings Saved", "Configuration has been saved successfully!")
 
     def load_default_settings(self):

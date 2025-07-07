@@ -5,3 +5,4 @@ digmacro_venv_*/
 prebuilt/
 storage/
 tests/
+.DS_Store
