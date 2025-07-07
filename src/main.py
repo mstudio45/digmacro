@@ -11,11 +11,9 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
 compiled = "__compiled__" in globals()
 def restart_macro():
     if compiled:
-        executable_path = sys.executable
-        os.execv(executable_path, [executable_path, "--skip-selection"])
+        os.execvp(sys.argv[0], ["--skip-selection"])
     else:
-        script_path = os.path.abspath(__file__)
-        os.execv(sys.executable, [sys.executable, script_path, "--skip-selection"])
+        os.execvp(sys.executable, [sys.executable, f'"{os.path.abspath(__file__)}"', "--skip-selection"])
     return
 
 # install requirements #
