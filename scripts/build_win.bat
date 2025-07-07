@@ -12,7 +12,7 @@ py -m nuitka ^
   --product-name="DIG Macro" ^
   --file-version="2.0.1" ^
   --file-description="DIG Macro is a tool that automatically plays the minigame in the roblox game DIG." ^
-  --copyright="© mstudio45 2025 - https://github.com/mstudio45/digmacro" ^
+  --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" ^
   --enable-plugin=pyside6,tk-inter ^
   --nofollow-import-to=cryptography,unittest,test,doctest ^
   --include-data-dir=assets=assets ^
