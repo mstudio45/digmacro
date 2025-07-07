@@ -19,6 +19,10 @@ def restart_macro():
 # install requirements #
 check_packages = True
 installed_missing_packages = False
+def normalize_version(v): 
+    return [int(part) if part.isdigit() else part for part in v.replace("-", ".").split(".")]
+def check_package_version(installed, required): # check if installed version is over or equal the required version #
+    return normalize_version(installed) >= normalize_version(required)
 
 if check_packages:
     print("Checking packages...")
@@ -126,7 +130,6 @@ if check_packages:
                 except Exception as e:
                     print(f"[check_shutil_applications] Failed to install '{missing_application}' requirement: \n{traceback.format_exc()}")
                     sys.exit(1)
-                installed_missing_packages = True
             
             print("[check_shutil_applications] Done.")
 
@@ -168,7 +171,6 @@ if check_packages:
                 except Exception as e:
                     print(f"[check_apt_packages] Failed to install '{missing_package}' requirement: \n{traceback.format_exc()}")
                     sys.exit(1)
-                installed_missing_packages = True
             
             print("[check_apt_packages] Done.")
 
@@ -222,9 +224,6 @@ if check_packages:
             ]
         }
         check_import_only = ["pywebview[gtk]"]
-        def normalize_version(v): return [int(part) if part.isdigit() else part for part in v.replace("-", ".").split(".")]
-        def check_package_version(installed, required): return normalize_version(installed) >= normalize_version(required)
-
         def check_packages():
             # get installed packages #
             reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
@@ -329,7 +328,7 @@ if check_packages:
             os.environ["TCL_LIBRARY"] = tcl_path
             os.environ["TK_LIBRARY"]  = tk_path
         except Exception as e:
-            print(f"[check_special_errors] Failed to properly test tkinter.")
+            print("[check_special_errors] Failed to properly test tkinter.")
 
         print("[check_special_errors] Done.")
 
@@ -366,9 +365,6 @@ if __name__ == "__main__":
     print("Creating logs folder...")
     FileHandler.create_folder(StaticVariables.logs_path)
 
-    print("Creating screenshot folders...")
-    FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
-
     print("Loading config...")
     Config.load_config() # default_config_loaded
 
@@ -377,19 +373,19 @@ if __name__ == "__main__":
     setup_logger()
 
     ## check version ##
-    current_version = "2.0.0"
+    current_version = "2.0.1"
     current_branch = "beta"
 
     try:
         logging.info("Checking current version...")
 
         import requests, json
-        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json")
+        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
         versions = json.loads(req.text)
 
         # check versions #
         if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
-        if versions[current_branch] != current_version:
+        if check_package_version(versions[current_branch], current_version):
             res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}\nDo you want to open the Github repository?")
             if res == "Yes":
                 try:
@@ -401,7 +397,7 @@ if __name__ == "__main__":
         
         logging.debug(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
     except Exception as e:
-        msgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}")
+        msgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}", bypass=True)
 
     run_config = False
 
@@ -626,11 +622,11 @@ if __name__ == "__main__":
             
             if timed_out == True and Variables.is_minigame_active == False:
                 if equipped == True:
-                    self.update_window_status("Error", f"Failed to start the minigame in the second try, waiting...", "red")
+                    self.update_window_status("Error", "Failed to start the minigame in the second try, waiting...", "red")
                     time.sleep(2.5)
                     return
                 
-                self.update_window_status("Error", f"Failed to start the minigame!", "red")
+                self.update_window_status("Error", "Failed to start the minigame!", "red")
 
                 logging.info("Equipping shovel...")
                 press_key(pynput.keyboard.KeyCode.from_vk(0x31)) # equip the shovel #
@@ -639,7 +635,8 @@ if __name__ == "__main__":
 
 
         def main_loop(self, _):
-            sct = mss.mss()
+            print("Creating screenshot folders...")
+            FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
             while Variables.is_running:
                 time.sleep(0.25)
@@ -647,7 +644,7 @@ if __name__ == "__main__":
                 # handle idle_time, and skip if not in idle #
                 if not Variables.is_idle():
                     if Variables.is_minigame_active:
-                        self.update_window_status("Minigame", f"Completing minigame...", "green")
+                        self.update_window_status("Minigame", "Completing minigame...", "green")
                     
                     self.total_idle_time = 0
                 else:
@@ -689,12 +686,12 @@ if __name__ == "__main__":
 
                     self.finder.debug_img = None
                     self.total_idle_time += 0.25
-                    self.update_window_status("Minigame", f"Waiting for minigame...", "yellow")
+                    self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
 
                     # pathfinding handler #
                     was_last_key = False
                     if Config.PATHFINDING == True:
-                        self.update_window_status("Pathfinding", f"Walking to the next point...", "green")
+                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")
                         was_last_key = self.pathfinding.start_walking()
                     
                     # auto sell #

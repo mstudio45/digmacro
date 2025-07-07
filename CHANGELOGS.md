@@ -1,3 +1,21 @@
+# v2.0.1
+```diff
+[New Features]
++ Added 'Minigame Region' category to configuration GUI
+
+[Improvements]
++ Added more information to the builded binaries
++ Added an 'Unsaved Changes' notification to the configuration GUI
++ Refactored certain configuration
++ All empty screenshot folders get deleted on exit
+
+[Fixes]
++ Fixed the macro crashing when LOGGING_ENABLED is False
++ Fixed shovel re-equipping using the wrong key for certain keyboard layouts
++ Fixed 'Start Macro' and 'Restart' buttons not working properly in compiled binaries
++ Fixed Auto Sell button selector in compiled binaries
+```
+
 # v2.0.0
 ```diff
 [New Features]
