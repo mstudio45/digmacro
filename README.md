@@ -120,28 +120,25 @@ open digmacro_macos.app
 
 #### 🔐 Permissions on macOS
 
-> [!WARNING]
-> Since you are giving **Terminal** all of these permissions, it is recommended that you disable them all after ending the macro.
-
 **1. Accessibility Permissions**
 
 > Required for controlling mouse clicks and keyboard input
 > Needed for the automation features to work
 
-**How to grant:** System Preferences → Security & Privacy → Privacy → Accessibility → Add the application (Terminal)
+**How to grant:** System Preferences → Security & Privacy → Privacy → Accessibility → Add the application (digmacro_macos)
 
 **2. Screen Recording Permissions**
 
 > Required for taking screenshots to analyze the game state
 > Used for image recognition and prediction systems
 
-**How to grant:** System Preferences → Security & Privacy → Privacy → Screen Recording → Add the application (Terminal)
+**How to grant:** System Preferences → Security & Privacy → Privacy → Screen Recording → Add the application (digmacro_macos)
 
 **3. Input Monitoring Permissions**
 
 > Required for keyboard and mouse event handling
 
-**How to grant:** System Preferences → Security & Privacy → Privacy → Input Monitoring → Add the application (Terminal)
+**How to grant:** System Preferences → Security & Privacy → Privacy → Input Monitoring → Add the application (digmacro_macos)
 
 ---
 
