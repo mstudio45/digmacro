@@ -1,5 +1,8 @@
 ### 📝 TO-DO
-- [ ] Tool for editing pathfinding macros, make "random" pathfinding macro
+- [ ] Refactor pathfinding system
+    - [ ] Better saving system and format
+    - [ ] Tool for creating pathfinding macros
+    - [ ] "random" movement pattern
 - [ ] Discord Webhook Notifications
 
 ---
