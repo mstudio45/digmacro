@@ -21,12 +21,16 @@ from utils.packages.check_python import check_pip_packages
 from utils.packages.check_shutil import check_shutil_applications
 from utils.packages.versions import check_package_version
 
+if "--only-install" in sys.argv: 
+    check_shutil_applications()
+    check_apt_packages()
+    check_pip_packages()
+    check_special_errors()
+    os.kill(os.getpid(), 9)
+
 if check_shutil_applications() or check_apt_packages() or check_pip_packages() or check_special_errors():
-    if "--only-install" in sys.argv: os.kill(os.getpid(), 9)
     restart_macro()
     sys.exit(0)
-
-if "--only-install" in sys.argv: os.kill(os.getpid(), 9)
 
 # imports #
 import logging, threading
@@ -87,7 +91,7 @@ if __name__ == "__main__":
         
         logging.debug(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
     except Exception as e:
-        msgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}", bypass=True)
+        msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
 
     run_config = False
 

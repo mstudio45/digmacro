@@ -1,12 +1,12 @@
 import os, sys, subprocess, platform, traceback
 from utils.packages.distro_variables import install_pip_package, current_os
-from variables import StaticVariables
+from variables import Variables
 
 def get_python():
     python_ver = platform.python_version()
     valid_python_path, valid_python_exe = "", ""
 
-    paths_result = subprocess.run([StaticVariables.where_cmd, "python"], capture_output=True, text=True, check=True)
+    paths_result = subprocess.run([Variables.where_cmd, "python"], capture_output=True, text=True, check=True)
     paths = [line.strip() for line in paths_result.stdout.split("\n") if line.strip()]
 
     for path in paths:
@@ -21,9 +21,9 @@ def get_python():
     
     return valid_python_exe, valid_python_path
 
-fixed_some_issue = False
+installed_something = False
 def check_special_errors(import_error=False):
-    global fixed_some_issue
+    global installed_something
 
     # check tkinter tcl issues #
     import tkinter as tk
@@ -37,7 +37,8 @@ def check_special_errors(import_error=False):
                 print(f"[check_special_errors] Failed to properly install tkinter: {str(e)}")
                 sys.exit(1)
             else:
-                fixed_some_issue = True
+                installed_something = True
+
                 install_pip_package("tk")
                 return check_special_errors(import_error=True) # restart again
         
@@ -64,10 +65,8 @@ def check_special_errors(import_error=False):
 
         os.environ["TCL_LIBRARY"] = tcl_path
         os.environ["TK_LIBRARY"]  = tk_path
-
-        fixed_some_issue = True
     except Exception as e:
         print(f"[check_special_errors] Failed to properly fix tkinter TCL and TK issue: {traceback.format_exc()}")
 
     print("[check_special_errors] Done.\n")
-    return fixed_some_issue
+    return installed_something
