@@ -30,11 +30,11 @@ for arch in "${ARCS[@]}"; do
 
   cd env/build
 
-  if [ ! -d "macos_$arch" ]; then
-    $CMD_PREFIX python3 -m venv macos_$arch
+  if [ ! -d "Darwin_$arch" ]; then
+    $CMD_PREFIX python3 -m venv Darwin_$arch
   fi
 
-  source "macos_$arch/bin/activate"
+  source "Darwin_$arch/bin/activate"
   
   cd ../..
 
