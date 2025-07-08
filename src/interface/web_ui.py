@@ -144,7 +144,7 @@ class GuideUI(UIBase):
         logging.info("Loading guide image...")
 
         example_img = cv2.imread(StaticVariables.region_example_imgpath)
-        self.window.evaluate_js(f'updateImage("{image_to_base64(example_img)}", "0.00")')
+        self.window.evaluate_js(f'updateImage("{image_to_base64(example_img)}")')
 
 class RegionCheckUI(UIBase):
     def __init__(self, finder):
