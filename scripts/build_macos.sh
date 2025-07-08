@@ -15,6 +15,7 @@ python3 -m nuitka \
   --nofollow-import-to=cryptography,unittest,test,doctest \
   --include-data-dir=assets=assets \
   --output-dir=dist/macos \
+  --macos-target-arch=universal2 \
   --output-filename=digmacro_macos \
   --macos-create-app-bundle \
   --macos-app-icon=assets/icons/macos_icon.icns \
