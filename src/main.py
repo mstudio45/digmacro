@@ -25,6 +25,8 @@ if check_shutil_applications() or check_apt_packages() or check_pip_packages() o
     restart_macro()
     sys.exit(0)
 
+if "--only-install" in sys.argv: os.kill(os.getpid(), 9)
+
 # imports #
 import logging, threading
 import pyautogui, pynput, mss
