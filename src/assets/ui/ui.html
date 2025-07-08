@@ -101,6 +101,11 @@
             if (img == undefined) img = document.querySelector('#debugimg');
             img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
         }
+
+        function changeImageSize(size) {
+            if (img == undefined) img = document.querySelector('#debugimg');
+            img.parentElement.style.height = size.toString() + "rem"
+        }
     </script>
     
     <script> // Status Handler //
@@ -139,6 +144,9 @@
                 const credits = document.querySelector("#credit")
                 credits.textContent = credits.textContent + " | " + id
             });
+
+            const resizeObserver = new ResizeObserver(entries => resizeWindow())
+            resizeObserver.observe(document.body)
         });
     </script>
 </body>

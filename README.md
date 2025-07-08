@@ -54,11 +54,11 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-| Operating System          | Support Status  | Supported Versions                                                         | Tested On                             | Notes                                |
-| ------------------------- | --------------- | -------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                       | Windows 10, Windows 11                | Best performance and compatibility   |
-| **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.) | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                        | Apple M3 16 GB, Sequoia 15.5 (Retina) | Work-in-progress, known issues exist |
+| Operating System          | Support Status  | Supported Versions                                                            | Tested On                             | Notes                                |
+| ------------------------- | --------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
+| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                          | Windows 10, Windows 11                | Best performance and compatibility   |
+| **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
+| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                           | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works bets with external monitors    |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 

@@ -34,7 +34,8 @@ settings_table = {
         "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
         "min": 0.0,
         "max": 3.0,
-        "step": 0.1
+        "step": 0.1,
+        "enabled": current_os == "Darwin"
     },
     "LOGGING_ENABLED": {
         "widget": "QCheckBox",
@@ -74,7 +75,6 @@ settings_table = {
         "max": 1.0,
         "step": 0.01
     },
-
     
     "USE_SAVED_POSITION": {
         "widget": "QCheckBox",
@@ -94,16 +94,25 @@ settings_table = {
 
     "PLAYER_BAR_DETECTION": {
         "widget": "QComboBox",
-        "tooltip": "Select the algorithm to use for player bar detection.",
-        "items": ["Canny", "Sobel"]
-    },
-    "CLICKABLE_WIDTH": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        "default": 0.1
+        "tooltip": """
+Choose how to detect the player bar:
+
+    Canny:
+        - Very accurate in most cases.
+        - Might not work well on super high-resolution screens (like Retina on Mac).
+        [ Best for normal screenshots without too much detail. ]
+
+    Canny + Blur:
+        - Not as sharp, but removes background clutter.
+        - Good for screenshots with lots of detail or noise.
+        [ Best for messy or very detailed screenshots (like 4K or Retina). ]
+
+    Sobel:
+        - Works better on tricky screen types (like Retina).
+        - Can confuse other icons (like cooldowns) with the player bar.
+        [ Best when the other methods don't work. ]
+""",
+        "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
     },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
@@ -111,16 +120,24 @@ settings_table = {
         "min": 2,
         "max": 10
     },
-
     "PLAYER_BAR_THRESHOLD": {
         "widget": "QSpinBox",
         "tooltip": "The threshold to find the vertical lines inside the region to find the player bar.",
         "min": 100,
         "max": 255
     },
+
+    "DIRT_CLICKABLE_WIDTH": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "default": 0.1
+    },
     "DIRT_SATURATION_THRESHOLD": {
         "widget": "QSpinBox",
-        "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
+        "tooltip": "The saturation threshold to find the location of the 'dirt' part. Lower it to find darker materials or make it higher if it detects the night vision goggles.",
         "min": 15,
         "max": 50
     },
@@ -213,9 +230,13 @@ settings_table = {
         "items": screenshot_packages
     },
     
-    "SHOW_DEBUG_IMAGE": {
+    "SHOW_COMPUTER_VISION": {
         "widget": "QCheckBox",
-        "tooltip": "Displays a debug image on what the macro sees."
+        "tooltip": "Displays an image with all of the highlighted information that the computer has."
+    },
+    "SHOW_DEBUG_MASKS": {
+        "widget": "QCheckBox",
+        "tooltip": "Displays all of the image masks on what the macro sees."
     },
     "DEBUG_IMAGE_FPS": {
         "widget": "QSpinBox",
@@ -272,10 +293,10 @@ class ConfigManager:
                 "MIN_CLICK_INTERVAL": 50,
 
                 "PLAYER_BAR_DETECTION": "Sobel" if current_os == "Darwin" else "Canny",
-                "CLICKABLE_WIDTH": 0.125,
                 "PLAYER_BAR_WIDTH": 5,
-
                 "PLAYER_BAR_THRESHOLD": 165 if current_os == "Darwin" else 200,
+
+                "DIRT_CLICKABLE_WIDTH": 0.125,
                 "DIRT_SATURATION_THRESHOLD": 22 if current_os == "Darwin" else 50,
             },
 
@@ -309,8 +330,9 @@ class ConfigManager:
             },
 
             "GUI": {
-                "SHOW_DEBUG_IMAGE": True,
-                "DEBUG_IMAGE_FPS": 240
+                "SHOW_COMPUTER_VISION": True,
+                "SHOW_DEBUG_MASKS": False,
+                "DEBUG_IMAGE_FPS": 120
             },
 
             "DEBUG SCREENSHOTS": {

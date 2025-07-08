@@ -92,6 +92,7 @@ class WebUI(UIBase):
         webview.start(gui=gui_type)
 
     def update(self):
+        if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
         frame_time = 1 / Config.DEBUG_IMAGE_FPS
 
         while not self._stop_event.is_set():

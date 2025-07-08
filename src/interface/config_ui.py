@@ -38,20 +38,19 @@ class QMousePicker(QWidget):
         if pressed and button == pynput.mouse.Button.left:
             self.set(x, y)
             self.picking = False
-            
-            self.mouse_listener.suppress_event()
+
             return False
 
     def start_picking(self):
         if self.picking: return
+        self.info_label.setText("Waiting...")
         self.picking = True
         
         self.mouse_listener = pynput.mouse.Listener(on_click=self.on_click)
         self.mouse_listener.start()
 
-        self.info_label.setText("Waiting...")
         while self.picking: time.sleep(0.05)
-
+        
         self.mouse_listener.stop()
         
     def value(self):
@@ -177,15 +176,16 @@ class ConfigUI(QWidget):
                 widget = None
                 widget_type = settings["widget"]
                 tooltip = settings.get("tooltip", settings_table["default"].get("tooltip", ""))
+                is_enabled = settings.get("enabled", True)
                 
                 if widget_type == "QCheckBox":
                     widget = QCheckBox()
-
+  
                 elif widget_type == "QSpinBox":
                     widget = QSpinBox()
                     widget.setMinimum(settings.get("min", 0))
                     widget.setMaximum(settings.get("max", 100))
-
+    
                 elif widget_type == "QDoubleSpinBox":
                     widget = QDoubleSpinBox()
                     widget.setMinimum(settings.get("min", 0.0))
@@ -210,7 +210,9 @@ class ConfigUI(QWidget):
                  
                 else:
                     widget = QLineEdit() # fallback #
-                   
+                
+                widget.setEnabled(is_enabled)
+
                 # add to ui #
                 label.setToolTip(tooltip)
                 widget.setToolTip(tooltip)

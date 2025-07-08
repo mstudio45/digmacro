@@ -2,14 +2,17 @@
 ```diff
 [New Features]
 + Added 'Minigame Region' category to configuration GUI
++ Added two algorithms for Player Bar detection
 
 [Improvements]
-+ Added more information to the builded binaries
++ Added more information to the builded binaries properties
 + Added an 'Unsaved Changes' notification to the configuration GUI
-+ Refactored certain configuration
++ Refactored certain configuration names and tooltips (you might need to change your config a bit)
 + All empty screenshot folders get deleted on exit
 
 [Fixes]
++ Fixed the macro not working properly on macOS Retina displays
++ Fixed Linux crashing if they don't have required packages installed
 + Fixed the macro crashing when LOGGING_ENABLED is False
 + Fixed shovel re-equipping using the wrong key for certain keyboard layouts
 + Fixed 'Start Macro' and 'Restart' buttons not working properly in compiled binaries

@@ -269,12 +269,18 @@ def resize_image(img_path):
         msgbox.alert(f"Failed to resize the image '{str(img_path)}': \n{traceback.format_exc()}")
         sys.exit(1)
 
+black_pixel = np.zeros((1, 1, 3), dtype=np.uint8)
 def stack_images_with_dividers(images, margin_thickness=2):
     lenght_images = len(images)
     if lenght_images == 0: return None
     if lenght_images == 1: return images[0]
 
     try:
+        idx = 0
+        for image in images:
+            if image is None: images[idx] = black_pixel.copy()
+            idx = idx + 1
+        
         max_width = max(img.shape[1] for img in images)
         max_height = max(img.shape[0] for img in images)
 
