@@ -9,4 +9,4 @@
 ---
 
 ### 🚩 Known Issues
-- Nothing here...
+- [ ] Region Selector is not overlaying the whole screen

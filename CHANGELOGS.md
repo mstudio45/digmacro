@@ -1,6 +1,7 @@
 # v2.0.1
 ```diff
 [New Features]
++ Added standalone file for Intel CPU MacBooks
 + Added 'Minigame Region' category to configuration GUI
 + Added two algorithms for Player Bar detection
 + Added FPS Counter to UI for computer vision (if it is enabled)
