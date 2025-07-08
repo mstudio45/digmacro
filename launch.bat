@@ -1,12 +1,26 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo Checking for virtual environment...
-if not exist "digmacro_venv_Windows" (
-    echo Creating virtual environment...
-    py -m venv digmacro_venv_Windows
+if not exist "env" (
+    mkdir env
 )
-call digmacro_venv_Windows\Scripts\activate
+
+cd env
+
+if not exist "dev" (
+    mkdir dev
+)
+
+cd dev
+
+if not exist "Windows" (
+    echo Creating virtual environment...
+    py -m venv Windows
+)
+call Windows\Scripts\activate
+
+cd ..
+cd ..
 
 echo Starting the src version...
 py src/main.py

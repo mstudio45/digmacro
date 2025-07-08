@@ -3,9 +3,17 @@ source digmacro_venv_Darwin/bin/activate
 
 ARCS=("x86_64" "arm64")
 
-if [ ! -d "dist" ]; then
-  mkdir dist
+if [ ! -d "env" ]; then
+  mkdir env
 fi
+
+cd env
+
+if [ ! -d "build" ]; then
+  mkdir build
+fi
+
+cd ..
 
 if [ ! -d "output" ]; then
   mkdir output
@@ -22,7 +30,7 @@ for arch in "${ARCS[@]}"; do
     CMD_PREFIX=""
   fi
 
-  cd dist
+  cd env/build
 
   if [ ! -d "macos_$arch" ]; then
     $CMD_PREFIX python3 -m venv macos_$arch
@@ -30,7 +38,7 @@ for arch in "${ARCS[@]}"; do
 
   source "macos_$arch/bin/activate"
   
-  cd ..
+  cd ../..
 
   $CMD_PREFIX python3 src/main.py --only-install
 
@@ -62,40 +70,38 @@ for arch in "${ARCS[@]}"; do
     --macos-app-protected-resource=NSScreenCaptureUsageDescription:"DIG Macro needs Screen Recording access to take screenshots for computer vision (opencv)." \
     --macos-app-protected-resource=NSInputMonitoringUsageDescription:"DIG Macro needs Input Monitoring access to monitor keyboard and mouse." \
     main.py
+
+  cd dist
+  cd macos
+
+  if [ ! -d "digmacro_macos$arch.app" ]; then
+    # then check for main.app in the current directory
+    if [ ! -d "main.app" ]; then
+      echo "Error: digmacro_macos$arch.app or main.app not found in dist/macos"
+      exit 1
+    else
+      mv main.app digmacro_macos$arch.app
+    fi
+  fi
+
+  PLIST="digmacro_macos$arch.app/Contents/Info.plist"
+  if ! /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"; then
+      /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+  fi
+
+  codesign --force --deep --sign - digmacro_macos$arch.app
+  ditto -c -k --sequesterRsrc --keepParent digmacro_macos$arch.app digmacro_macos$arch.zip
+
+  mv digmacro_macos$arch.zip ../../../output/digmacro_macos_$arch.zip
+  echo "Built digmacro_macos_$arch.zip successfully."
   
-    cd dist
-    cd macos
+  cd ../../..
 
-    if [ ! -d "digmacro_macos$arch.app" ]; then
-      # then check for main.app in the current directory
-      if [ ! -d "main.app" ]; then
-        echo "Error: digmacro_macos$arch.app or main.app not found in dist/macos"
-        exit 1
-      else
-        mv main.app digmacro_macos$arch.app
-      fi
-    fi
+  deactivate
 
-    PLIST="digmacro_macos$arch.app/Contents/Info.plist"
-    if ! /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"; then
-        /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
-    fi
-
-    codesign --force --deep --sign - digmacro_macos$arch.app
-    ditto -c -k --sequesterRsrc --keepParent digmacro_macos$arch.app digmacro_macos$arch.zip
-
-    mv digmacro_macos$arch.zip ../../../output/digmacro_macos_$arch.zip
-    echo "Built digmacro_macos_$arch.zip successfully."
-    
-    cd ..
-    cd ..
-    cd ..
-
-    deactivate
-
-    echo "================================================="
-    echo "Build for architecture $arch completed."
-    echo "================================================="
+  echo "================================================="
+  echo "Build for architecture $arch completed."
+  echo "================================================="
 done
 
 echo "================================================="

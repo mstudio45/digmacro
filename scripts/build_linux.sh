@@ -1,5 +1,10 @@
 #!/bin/bash
-. digmacro_venv_Linux/bin/activate
+. env/dev/Linux/bin/activate
+
+if [ ! -d "output" ]; then
+  mkdir output
+fi
+
 cd src
 
 python3 -m nuitka \
@@ -20,3 +25,5 @@ python3 -m nuitka \
   --output-dir=dist/linux \
   --output-filename=digmacro_linux.bin \
   main.py
+
+mv dist/linux/digmacro_linux.bin ../../output/digmacro_linux.bin

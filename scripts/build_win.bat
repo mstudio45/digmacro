@@ -1,6 +1,17 @@
 @echo off
-call digmacro_venv_Windows\Scripts\activate
+call env\dev\Windows\Scripts\activate
+
+if not exist "output" (
+    mkdir output
+)
+
 cd src
+
+py -m nuitka --version >nul 2>&1
+if errorlevel 1 (
+  echo Installing nuitka...
+  pip install nuitka
+)
 
 py -m nuitka ^
   --onefile ^
@@ -20,3 +31,5 @@ py -m nuitka ^
   --output-filename=digmacro_windows ^
   --windows-icon-from-ico=assets/icons/icon.ico ^
   main.py
+
+move dist\win\digmacro_windows.exe ..\output\
