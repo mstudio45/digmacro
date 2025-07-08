@@ -80,11 +80,11 @@ _If you have improvements or patches for additional (or currently supported) ope
 #### Source version
 
 1. **Download the latest version:**
-   - [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
+   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
 2. **Extract the ZIP File:**
    - Right-click the downloaded file and choose "Extract Here" or "Extract All".
 3. **Open the Folder:**
-   - Go into the extracted `digmacro-dev` folder.
+   - Go into the extracted `digmacro-[main/dev]` folder.
 4. **Run the macro:**
    - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
    - **Linux/macOS:** Run `sh launch.sh` in your terminal.
