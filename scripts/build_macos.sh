@@ -83,8 +83,10 @@ for arch in "${ARCS[@]}"; do
   fi
 
   PLIST="digmacro_macos$arch.app/Contents/Info.plist"
-  if ! /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"; then
+  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
       /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+  else
+      /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
   fi
 
   codesign --force --deep --sign - digmacro_macos$arch.app
