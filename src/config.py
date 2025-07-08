@@ -102,14 +102,14 @@ Choose how to detect the player bar:
         - Might not work well on super high-resolution screens (like Retina on Mac).
         [ Best for normal screenshots without too much detail. ]
 
-    Canny + Blur:
-        - Not as sharp, but removes background clutter.
+    Canny + GaussianBlur:
+        - Works the same as Canny, but removes background clutter.
         - Good for screenshots with lots of detail or noise.
         [ Best for messy or very detailed screenshots (like 4K or Retina). ]
 
     Sobel:
         - Works better on tricky screen types (like Retina).
-        - Can confuse other icons (like cooldowns) with the player bar.
+        - Can confuse the cooldown icon with the player bar.
         [ Best when the other methods don't work. ]
 """,
         "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
