@@ -24,7 +24,7 @@ def get_python():
 installed_something = False
 def check_special_errors(import_error=False):
     global installed_something
-    print("[check_special_errors] Checking for errors...\n")
+    print("[check_special_errors] Checking for errors...")
 
     # check tkinter tcl issues #
     import tkinter as tk
