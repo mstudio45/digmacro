@@ -7,7 +7,7 @@
 + Added FPS Counter to UI for computer vision (if it is enabled)
 
 [Improvements]
-+ macOS will no longer lock the FPS at 10 whenthe window is out of focus (except on Sierra)
++ macOS will no longer lock the FPS at 10 when the window is out of focus (except on Sierra)
 + Added more information to the builded binaries properties
 + Added an 'Unsaved Changes' notification to the configuration GUI
 + Refactored certain configuration names and tooltips (you might need to change your config a bit)
