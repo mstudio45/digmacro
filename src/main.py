@@ -91,8 +91,8 @@ if __name__ == "__main__":
     if "--skip-selection" in sys.argv:
         logging.info("Skipping config/start selection.")
     else:
-        res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
-        if res == "Edit the configuration":
+        res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Edit selected regions", "Exit"))
+        if res == "Edit the configuration" or res == "Edit selected regions":
             # config ui #
             logging.info("Loading Config GUI...")
             if current_os == "Linux":
@@ -110,7 +110,7 @@ if __name__ == "__main__":
             else: 
                 os.kill(os.getpid(), 9)
         
-        elif res == "Exit": os.kill(os.getpid(), 9)
+        elif res == "Exit" or res == "": os.kill(os.getpid(), 9)
         else: logging.info("Starting the macro...")
 
     # main loader #
