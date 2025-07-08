@@ -1,5 +1,4 @@
-import csv, os, sys, glob, subprocess, platform, traceback
-import utils.general.filehandler as FileHandler
+import csv, sys, subprocess, platform, traceback
 
 __all__ = [
     "install_pip_package", 
@@ -7,32 +6,6 @@ __all__ = [
 ]
 
 current_os = platform.system()
-machine = platform.machine()
-
-# install pip handler #
-def get_platform_tag():
-    if current_os == "Linux":
-        if machine == "x86_64":
-            return "manylinux2014_x86_64"
-        elif machine == "aarch64":
-            return "manylinux2014_aarch64"
-    elif current_os == "Windows":
-        if machine in ("AMD64", "x86_64"):
-            return "win_amd64"
-        elif machine == "ARM64":
-            return "win_arm64"
-    elif current_os == "Darwin":
-        if machine == "x86_64":
-            return "macosx_10_9_x86_64"
-        elif machine == "arm64":
-            return "macosx_11_0_arm64"
-
-    raise f"Unsupported platform: {current_os} {machine}"
-
-platform_tag = get_platform_tag()
-if "Unsupported" in platform_tag:
-    print(platform_tag)
-    sys.exit(1)
 
 def install_pip_package(package):
     try: 
@@ -42,37 +15,11 @@ def install_pip_package(package):
             pip_spec = package["pip"]
             
         print(f"[install_pip_package] Installing package: {pip_spec}")
-        folder_path = f".pip_temp/{package["pip"]}"
-        if not FileHandler.create_folder(folder_path):
-            raise RuntimeError(f"Failed to create temp folder for {pip_spec}")
-
         subprocess.check_call([
             sys.executable, "-m", "pip", "install",
             "--force-reinstall", "--no-cache-dir",
-
-            "--only-binary=:all:",
-            "--platform", platform_tag,
-            "--implementation", "cp",
-            "--target", os.path.abspath(folder_path),
-
             pip_spec
         ])
-
-        wheel_files = glob.glob(os.path.join(folder_path, "*.whl"))
-    
-        if not wheel_files:
-            FileHandler.try_delete_folder(folder_path)
-            raise RuntimeError(f"No wheel files found after downloading {pip_spec}")
-        
-        # Step 3: Install the downloaded wheel file(s)
-        for wheel_file in wheel_files:
-            subprocess.check_call([
-                sys.executable, "-m", "pip", "install",
-                "--force-reinstall", "--no-cache-dir",
-                wheel_file
-            ])
-        
-        FileHandler.try_delete_folder(folder_path)
     except Exception as e:
         print(f"[install_pip_package] Failed to install '{package["pip"]}' requirement: \n{traceback.format_exc()}")
         sys.exit(1)
