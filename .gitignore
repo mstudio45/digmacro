@@ -6,4 +6,5 @@ prebuilt/
 storage/
 tests/
 .DS_Store
+output/
 nuitka-crash-report.xml
