@@ -32,7 +32,7 @@ required_packages = {
 
     "Darwin": [
         { "pip": "pywebview",        "import": "webview",       "version": "all" },
-        { "pip": "PyObjC",           "import": "AppKit",        "version": "all" }
+        { "pip": "pyobjc",           "import": "AppKit",        "version": "all" }
     ]
 }
 check_import_only = ["pywebview[gtk]"]
