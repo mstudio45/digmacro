@@ -2,13 +2,10 @@ import csv, sys, subprocess, platform, traceback
 
 __all__ = [
     "install_pip_package", 
-    "compiled", "current_os", 
-    
-    "distro_id", "distro_name", "distro_key"
+    "current_os", "distro_id", "distro_name", "distro_key"
 ]
 
 current_os = platform.system()
-compiled = "__compiled__" in globals()
 
 # install pip handler #
 def install_pip_package(package):

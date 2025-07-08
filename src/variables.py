@@ -40,6 +40,7 @@ class Variables:
 
     # cmds #
     unix_macos_open_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
+    where_cmd = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
 
     # functions #
     def sleep(duration):

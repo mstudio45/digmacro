@@ -1,5 +1,25 @@
 import os, sys, subprocess, platform, traceback
 from utils.packages.distro_variables import install_pip_package, current_os
+from variables import StaticVariables
+
+def get_python():
+    python_ver = platform.python_version()
+    valid_python_path, valid_python_exe = "", ""
+
+    paths_result = subprocess.run([StaticVariables.where_cmd, "python"], capture_output=True, text=True, check=True)
+    paths = [line.strip() for line in paths_result.stdout.split("\n") if line.strip()]
+
+    for path in paths:
+        if path == sys.executable: continue
+
+        version_result = subprocess.run([path, "--version"], capture_output=True, text=True)
+        version_output = version_result.stdout.strip() or version_result.stderr.strip()
+
+        if version_output.endswith(python_ver):
+            valid_python_exe, valid_python_path = path, os.path.dirname(path)
+            break
+    
+    return valid_python_exe, valid_python_path
 
 fixed_some_issue = False
 def check_special_errors(import_error=False):
@@ -26,22 +46,7 @@ def check_special_errors(import_error=False):
             print("[check_special_errors] " + err_)
             sys.exit(1)
 
-        python_ver = platform.python_version()
-        valid_python_path, valid_python_exe = "", ""
-
-        paths_result = subprocess.run(["where", "python"], capture_output=True, text=True, check=True)
-        paths = [line.strip() for line in paths_result.stdout.split("\n") if line.strip()]
-
-        for path in paths:
-            if path == sys.executable: continue
-
-            version_result = subprocess.run([path, "--version"], capture_output=True, text=True)
-            version_output = version_result.stdout.strip() or version_result.stderr.strip()
-
-            if version_output.endswith(python_ver):
-                valid_python_exe, valid_python_path = path, os.path.dirname(path)
-                break
-        
+        valid_python_exe, valid_python_path = get_python()
         if valid_python_path == "" or valid_python_exe == "":
             print(f"[check_special_errors] Failed to find the valid python path. {err_}")
             sys.exit(1)

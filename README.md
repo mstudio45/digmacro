@@ -58,7 +58,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 | ------------------------- | --------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
 | **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                          | Windows 10, Windows 11                | Best performance and compatibility   |
 | **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                           | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works bets with external monitors    |
+| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                           | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works better with external monitors  |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
@@ -214,7 +214,7 @@ The macro can move your character in different patterns (like a square, line, et
     3) changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS)
     4) changing your screen resolution
 - **Running from source with macOS is not working well:**
-  - This may be due to using Python from Homebrew, please uninstall python from homebrew and install it from the official site for the best experience running from source.
+  - This may be due to using Python from Homebrew, please uninstall Python from homebrew and install it from the official site for the best experience running from source.
 - **Need help?**
   - Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.
 

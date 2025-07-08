@@ -41,14 +41,20 @@ if current_os not in required_packages:
     def check_pip_packages(): 
         print("[check_pip_packages] There are no packages to install for this OS.")
         return False
+
 else:
-    freeze_list = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
-    installed_packages = [r.decode().split("==") for r in freeze_list.split()]
-
-    # get relevant packages #
-    relevant_packages = required_packages.get("all", []) + required_packages.get(current_os, [])
-
     def check_pip_packages():
+        compiled = "__compiled__" in globals()
+        if compiled: 
+            print("[check_pip_packages] Compiled mode, skipping...")
+            return False
+
+        freeze_list = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
+        installed_packages = [r.decode().split("==") for r in freeze_list.split()]
+
+        # get relevant packages #
+        relevant_packages = required_packages.get("all", []) + required_packages.get(current_os, [])
+
         print(f"[check_pip_packages] Checking missing packages (packages['all'] + packages['{current_os}'])...")
 
         # get missing packages #
@@ -83,10 +89,7 @@ else:
             return False
 
         print(f"[check_pip_packages] Missing packages detected: {missing_packages}")
-        if compiled:
-            print(f"[check_pip_packages] Missing packages detected, please install them manually: {missing_packages}")
-            sys.exit(1)
-
         for package in missing_packages: install_pip_package(package)
+        
         print("[check_pip_packages] Done.\n")
         return True
