@@ -22,6 +22,7 @@ from utils.packages.check_shutil import check_shutil_applications
 from utils.packages.versions import check_package_version
 
 if check_shutil_applications() or check_apt_packages() or check_pip_packages() or check_special_errors():
+    if "--only-install" in sys.argv: os.kill(os.getpid(), 9)
     restart_macro()
     sys.exit(0)
 

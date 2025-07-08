@@ -6,3 +6,4 @@ prebuilt/
 storage/
 tests/
 .DS_Store
+nuitka-crash-report.xml
