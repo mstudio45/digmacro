@@ -30,6 +30,28 @@ python3 -m nuitka \
 cd dist
 cd macos
 
+if [ ! -d "digmacro_macos.app" ]; then
+  # then check for main.app in the current directory
+  if [ ! -d "main.app" ]; then
+    echo "Error: digmacro_macos.app or main.app not found in dist/macos"
+    exit 1
+  else
+    mv main.app digmacro_macos.app
+  fi
+fi
+
+if [ -d "digmacro_macos.zip" ]; then
+  echo "Removing existing digmacro_macos.zip"
+  rm -rf digmacro_macos.zip
+fi
+
+
+PLIST="digmacro_macos.app/Contents/Info.plist"
+if ! /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"; then
+    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+fi
+
+
 codesign --force --deep --sign - digmacro_macos.app
 ditto -c -k --sequesterRsrc --keepParent digmacro_macos.app digmacro_macos.zip
 
