@@ -53,8 +53,6 @@ def install_pip_package(package):
             "--only-binary=:all:",
             "--platform", platform_tag,
             "--implementation", "cp",
-            "--python-version", f"{sys.version_info.major}{sys.version_info.minor}",
-            "--abi", f"cp{sys.version_info.major}{sys.version_info.minor}",
             "--target", os.path.abspath(folder_path),
 
             pip_spec
