@@ -208,7 +208,11 @@ The macro can move your character in different patterns (like a square, line, et
 ## 🔧 Troubleshooting
 
 - **Macro is missing clicks or not working well:**
-  - The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) or your screen resolution if you have issues.
+  - The macro's speed depends on your computer and Roblox's performance. If you have issues, you can try anything from this list:
+    1) lowering your in-game graphics and enabling "Low Graphics" inside DIG settings
+    2) closing background applications (having only the macro and Roblox opened)
+    3) changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS)
+    4) changing your screen resolution
 - **Running from source with macOS is not working well:**
   - This may be due to using Python from Homebrew, please uninstall python from homebrew and install it from the official site for the best experience running from source.
 - **Need help?**

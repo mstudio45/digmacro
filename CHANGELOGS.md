@@ -3,6 +3,7 @@
 [New Features]
 + Added 'Minigame Region' category to configuration GUI
 + Added two algorithms for Player Bar detection
++ Added FPS Counter to UI for computer vision (if it is enabled)
 
 [Improvements]
 + Added more information to the builded binaries properties
