@@ -117,13 +117,17 @@ if __name__ == "__main__":
     logging.info("Importing libraries...")
     from utils.finder import MainHandler, SellUI
     from utils.pathfinding import PathfingingHandler
+
     from utils.general.mouse import left_click
     from utils.general.keyboard import press_key
+
     from utils.images.screenshots import screenshot_cleanup
     from utils.images.screen import screen_res_str
 
     from utils.roblox.rejoin import can_rejoin, rejoin_dig
     from utils.roblox.window import is_roblox_focused
+
+    from utils.general.fps_counter import FPSCounter
 
     import interface.web_ui as WebUI
     from interface.region_selection import RegionSelector
@@ -416,6 +420,7 @@ if __name__ == "__main__":
 
                     frame_time = 1 / Config.TARGET_FPS
                     sct = mss.mss()
+                    fps_counter = FPSCounter()
 
                     while not self._stop_event.is_set():
                         frame_start = time.perf_counter()
@@ -424,9 +429,12 @@ if __name__ == "__main__":
                         finder.update_state(sct)
                         finder.handle_click()
                         
+                        fps_counter.accumulate_frame_time(frame_start)
+                        finder.current_fps = fps_counter.get_fps()
+
                         elapsed = time.perf_counter() - frame_start
                         sleep_time = max(0, frame_time - elapsed)
-                        
+
                         if sleep_time > 0: time.sleep(sleep_time)
 
                     logging.info("Finder loop stopped successfully.")

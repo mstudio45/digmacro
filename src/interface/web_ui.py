@@ -92,23 +92,27 @@ class WebUI(UIBase):
         webview.start(gui=gui_type)
 
     def update(self):
-        if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
-        frame_time = 1 / Config.DEBUG_IMAGE_FPS
+        if not Config.SHOW_COMPUTER_VISION:
+            self.window.evaluate_js("removeComputerVision()")
+            self._stop_event.wait()
+        else:
+            if Config.SHOW_DEBUG_MASKS: 
+                self.window.evaluate_js("changeImageSize(14)")
 
-        while not self._stop_event.is_set():
-            frame_start = time.perf_counter()
-            
-            try:
-                if self.finder.debug_img is not None:
-                    self.window.evaluate_js(f'updateImage("{image_to_base64(self.finder.debug_img)}")')
-                else:
-                    self.window.evaluate_js("clearImage()")
-            except Exception as e: pass
-            
-            elapsed = time.perf_counter() - frame_start
-            sleep_time = max(0, frame_time - elapsed)
-            
-            if sleep_time > 0: time.sleep(sleep_time)
+            frame_time = 1 / Config.DEBUG_IMAGE_FPS
+            while not self._stop_event.is_set():
+                frame_start = time.perf_counter()
+                
+                try:
+                    if self.finder.debug_img is not None:
+                        self.window.evaluate_js(f'updateImage("{image_to_base64(self.finder.debug_img)}", "{self.finder.current_fps:.2f}")')
+                    else:
+                        self.window.evaluate_js("clearImage()")
+                except Exception as e: pass
+                
+                elapsed = time.perf_counter() - frame_start
+                sleep_time = max(0, frame_time - elapsed)
+                if sleep_time > 0: time.sleep(sleep_time)
         
         self.close()
 

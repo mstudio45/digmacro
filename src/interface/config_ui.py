@@ -364,5 +364,6 @@ class ConfigUI(QWidget):
 
         Config.reset_to_defaults()
         self.load_current_settings()
+        self.changes_made = False
 
         QMessageBox.information(self, "Defaults Loaded", "Configuration has been reset to default values!")

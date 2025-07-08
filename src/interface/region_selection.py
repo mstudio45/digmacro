@@ -9,7 +9,6 @@ if current_os == "Darwin":
     from Foundation import * # type: ignore
     from AppKit import * # type: ignore
     from Quartz import * # type: ignore
-    from PyObjCTools import AppHelper # type: ignore
 
     selected_rect = None
 

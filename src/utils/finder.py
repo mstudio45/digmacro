@@ -214,6 +214,8 @@ class DirtBar:
 ## MAIN HANDLER FOR CLICKS ##
 class MainHandler:
     def __init__(self):
+        self.current_fps = 0.0
+
         # initliaze classes #
         self.PlayerBar = PlayerBar()
         self.DirtBar = DirtBar()
