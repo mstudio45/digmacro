@@ -22,7 +22,7 @@ def install_pip_package(package):
         sys.exit(1)
 
 if current_os != "Linux":
-    distro_id, distro_name = current_os, current_os, "all"
+    distro_id, distro_name, distro_key = current_os, current_os, "all"
 else:
     __all__ = __all__ + ["get_linux_app_install_cmd", "get_linux_installed_packages"]
     def get_distro(): # https://majornetwork.net/2019/11/get-linux-distribution-name-and-version-with-python/ #
