@@ -4,7 +4,7 @@ import logging, platform
 current_os = platform.system()
 __all__ = ["take_screenshot", "cleanup"]
 
-if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam (Windows)":
+if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
     import bettercam # type: ignore
     camera = bettercam.create(output_idx=0, output_color="BGRA")
 
