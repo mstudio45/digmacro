@@ -1,4 +1,5 @@
 #!/bin/bash
+
 ARCS=("x86_64" "arm64")
 
 if [ ! -d "env" ]; then
