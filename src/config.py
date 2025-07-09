@@ -127,6 +127,11 @@ Choose how to detect the player bar:
         "max": 255
     },
 
+    "DIRT_DETECTION": {
+        "widget": "QComboBox",
+        "tooltip": "Choose how to detect the dirt part.",
+        "items": ["Kernels", "Kernels + GaussianBlur"]
+    },
     "DIRT_CLICKABLE_WIDTH": {
         "widget": "QDoubleSpinBox",
         "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
@@ -296,6 +301,7 @@ class ConfigManager:
                 "PLAYER_BAR_WIDTH": 5,
                 "PLAYER_BAR_THRESHOLD": 165 if current_os == "Darwin" else 200,
 
+                "DIRT_DETECTION": "Kernels",
                 "DIRT_CLICKABLE_WIDTH": 0.125,
                 "DIRT_SATURATION_THRESHOLD": 22 if current_os == "Darwin" else 50,
             },

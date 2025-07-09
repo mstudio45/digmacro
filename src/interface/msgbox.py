@@ -49,7 +49,7 @@ if current_os == "Darwin":
 
         return None
 else:
-    import tkinter as tk
+    import tkinter as tk, threading
     from tkinter import ttk, messagebox
 
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
@@ -59,6 +59,10 @@ else:
         if Config.MSGBOX_ENABLED or bypass:
             root = tk.Tk()
             root.withdraw()
+
+            if current_os == "Linux": root.wait_visibility(root)
+            else: root.overrideredirect(True)
+            root.wm_attributes("-topmost", True)
 
             if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
                 messagebox.showerror(title=title + " - Message", message=message, parent=root)
@@ -72,6 +76,11 @@ else:
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         # create dialog #
         dialog = tk.Tk()
+
+        if current_os == "Linux": dialog.wait_visibility(dialog)
+        else: dialog.overrideredirect(True)
+        dialog.wm_attributes("-topmost", True)
+
         result = tk.StringVar()
 
         dialog.title(title)

@@ -163,7 +163,8 @@ class DirtBar:
         self.position = None
         self.clickable_position = None
         
-        self.kernel = np.ones((5, 15), np.uint8)
+        self.vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
+        self.horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
         self.mask = None
 
     def find_dirt(self, 
@@ -173,8 +174,12 @@ class DirtBar:
         dirt_bar_absolute_position = None
 
         # edit screenshot #
+        if Config.DIRT_DETECTION == "Kernels + GaussianBlur":
+            screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0)
+
         _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.horizontal_kernel)
         mask = cv2.bitwise_not(mask)
 
         self.mask = mask
@@ -189,6 +194,7 @@ class DirtBar:
             #     self.position = None
             #     self.clickable_position = None
             #     return
+            # this thing hates macOS (so real)
             
             dirt_bar_absolute_position = (region_left + x, region_top + y, w, h)
 
@@ -321,57 +327,57 @@ class MainHandler:
             current_time_ms >= self.click_cooldown
             and not Mouse.clicking_lock.locked()
         ):
-            if Config.USE_PREDICTION:
-                predicted_player_bar = self.PlayerBar.predicted_position
-                current_velocity = self.PlayerBar.current_velocity
-
-                if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
-                    player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
-
-                    if player_bar_to_clickable: # check if player bar is going towards clickable part #
-                        distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
-
-                        if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
-                            confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
-
-                            if confidence >= Config.PREDICTION_CONFIDENCE:
-                                distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
-                                arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
-
-                                if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
-                                    should_click, prediction_used, click_delay = True, True, arrival_in_ms
-            
-                if not should_click:
-                    dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
-                    dirt_half_width = min(0, dirt_width / 2)
-                    if dirt_half_width != 0:
-                        dirt_bar_center = dirt_left + dirt_half_width
-
-                        # Compute player bar center correctly
-                        player_bar_center = self.PlayerBar.current_position
-
-                        center_distance = abs(player_bar_center - dirt_bar_center)
-                        normalized_distance = center_distance / dirt_half_width
-                        confidence = 1.0 - normalized_distance
-
-                        is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
-
-                        if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
-                            should_click = True
-                            prediction_used = True
-                        elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
-                            should_click = True
-                            prediction_used = True
-            
-            if not should_click and self.PlayerBar.bar_in_clickable:
+            if self.PlayerBar.bar_in_clickable:
                 should_click = True
+            else:
+                if Config.USE_PREDICTION:
+                    predicted_player_bar = self.PlayerBar.predicted_position
+                    current_velocity = self.PlayerBar.current_velocity
 
+                    if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
+                        player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
+
+                        if player_bar_to_clickable: # check if player bar is going towards clickable part #
+                            distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
+
+                            if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
+                                confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
+
+                                if confidence >= Config.PREDICTION_CONFIDENCE:
+                                    distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
+                                    arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
+
+                                    if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
+                                        should_click, prediction_used, click_delay = True, True, arrival_in_ms
+                
+                    if not should_click:
+                        dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
+                        dirt_half_width = min(0, dirt_width / 2)
+                        if dirt_half_width != 0:
+                            dirt_bar_center = dirt_left + dirt_half_width
+
+                            # Compute player bar center correctly
+                            player_bar_center = self.PlayerBar.current_position
+
+                            center_distance = abs(player_bar_center - dirt_bar_center)
+                            normalized_distance = center_distance / dirt_half_width
+                            confidence = 1.0 - normalized_distance
+
+                            is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
+
+                            if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
+                                should_click = True
+                                prediction_used = True
+                            elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
+                                should_click = True
+                                prediction_used = True
+                
             # do the click #
             if should_click:
                 Mouse.clicking_lock.acquire()
                 threading.Thread(target=Mouse.left_click_lock, args=(click_delay,)).start()
 
-                self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL + click_delay
+                self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL # + click_delay
 
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms

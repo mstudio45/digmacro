@@ -136,16 +136,12 @@ else:
             self.root.geometry(f"{screen_region["width"]}x{screen_region["height"]}+{screen_region["left"]}+{screen_region["top"]}")
             
             # add bg #
-            if current_os == "Linux":
-                self.root.wait_visibility(self.root)
-                self.root.wm_attributes("-alpha", 0.3) 
-                self.root.configure(bg="black")
-                self.root.wm_attributes("-topmost", True)
-            else:
-                self.root.overrideredirect(True)
-                self.root.attributes("-alpha", 0.3) 
-                self.root.configure(bg="black")
-                self.root.attributes("-topmost", True)
+            if current_os == "Linux": self.root.wait_visibility(self.root)
+            else: self.root.overrideredirect(True)
+            
+            self.root.wm_attributes("-alpha", 0.3) 
+            self.root.configure(bg="black")
+            self.root.wm_attributes("-topmost", True)
                 
             # make canvas #
             self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0, bg="black")

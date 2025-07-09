@@ -1,3 +1,15 @@
+# v2.0.2
+```diff
+[New Features]
++ Added DIRT_DETECTION configuration
+
+[Improvements]
++ Message Boxes are top most (only on Linux and Windows)
+
+[Fixes]
++ Fixed version checker
+```
+
 # v2.0.1
 ```diff
 [New Features]

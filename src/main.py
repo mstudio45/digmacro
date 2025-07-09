@@ -69,8 +69,8 @@ if __name__ == "__main__":
     setup_logger()
 
     ## check version ##
-    current_version = "2.0.1"
-    current_branch = "beta"
+    current_version = "2.0.2"
+    current_branch = "main"
 
     try:
         logging.info("Checking current version...")
@@ -81,8 +81,12 @@ if __name__ == "__main__":
 
         # check versions #
         if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
-        if check_package_version(versions[current_branch], current_version, check_if_equal=False):
-            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}\nDo you want to open the Github repository?")
+        latest_branch_version = versions[current_branch]
+        is_outdated = check_package_version(latest_branch_version, current_version, check_if_equal=False)
+
+        logging.info(f"Running on '{current_branch}' - {current_version} | Latest '{current_branch}' version: {latest_branch_version} | {latest_branch_version} > {current_version} = {is_outdated}")
+        if is_outdated:
+            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
             if res == "Yes":
                 try:
                     if current_os == "Windows":
@@ -90,8 +94,6 @@ if __name__ == "__main__":
                     else:
                         subprocess.run([Variables.unix_macos_open_cmd, "https://github.com/mstudio45/digmacro"])
                 except Exception as e: logging.error(f"Failed to open link: {e}")
-        
-        logging.debug(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
 
