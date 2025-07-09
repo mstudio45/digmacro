@@ -21,13 +21,13 @@ def setup_logger():
             mode="a"
         )
         file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.NOTSET)
     
     # logger #
     logging.root.handlers.clear()
 
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.NOTSET)
 
     if file_handler: logger.addHandler(file_handler)
     logger.addHandler(console_handler)

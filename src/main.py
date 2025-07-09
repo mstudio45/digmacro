@@ -115,14 +115,35 @@ if __name__ == "__main__":
             config_ui = ConfigUI()
             config_ui.show()
             q_app.exec()
-
-            if config_ui.start_macro_now == True:
-                restart_macro()
-            else: 
-                os.kill(os.getpid(), 9)
+            
+            # exit or restart #
+            if config_ui.start_macro_now == True: restart_macro()
+            else:                                 os.kill(os.getpid(), 9)
         
         elif res == "Exit" or res == "": os.kill(os.getpid(), 9)
         else: logging.info("Starting the macro...")
+
+    # log opencv info #
+    import cv2
+
+    logging.debug(cv2.getBuildInformation())
+    logging.info("Optimizing opencv...")
+
+    try:
+        logging.info(f"===============================\nOptimized: {cv2.useOptimized()}\nThreads: {cv2.getNumThreads()}\nCPUs: {cv2.getNumberOfCPUs()}")
+
+        cv2.setUseOptimized(True)
+        cv2.setNumThreads(cv2.getNumberOfCPUs())
+
+        logging.info(f"===============================\nOptimized: {cv2.useOptimized()}\nThreads: {cv2.getNumThreads()}\nCPUs: {cv2.getNumberOfCPUs()}")
+    except Exception as e: logging.critical(f"Failed to optimize opencv (#1): {str(e)}")
+
+    try:
+        logging.info("Enabling OpenCL...")
+        cv2.ocl.setUseOpenCL(True)
+    except Exception as e: logging.critical(f"Failed to optimize opencv (#2): {str(e)}")
+
+    logging.info("===============================")
 
     # main loader #
     logging.info("Importing libraries...")

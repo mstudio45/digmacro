@@ -1,6 +1,5 @@
 import os, time, threading, logging, platform
 import cv2
-import numpy as np
 
 # file imports #
 from variables import Variables, StaticVariables
@@ -237,7 +236,7 @@ class MainHandler:
 
         # debug images #
         self.debug_img = None
-
+    
     def update_state(self, sct):
         if Variables.is_rejoining == True: return
         if Variables.is_roblox_focused == False and Variables.is_selecting_region == False: return
