@@ -58,7 +58,7 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 | ------------------------- | --------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
 | **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                          | Windows 10, Windows 11                | Best performance and compatibility   |
 | **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | ✅ Full Support | macOS Sequoia 15.5+                                                           | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works better with external monitors  |
+| **macOS**                 | ✅ Full Support | macOS Sierra 10.12.6+, Apple Silicon + Intel CPUs                             | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works better with external monitors  |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
