@@ -28,7 +28,7 @@ settings_table = {
         "widget": "QSpinBox",
         "tooltip": "Target Frames Per Second for the macro.",
         "min": 1,
-        "max": 480
+        "max": 1000
     },
     "MACOS_DISPLAY_SCALE_OVERRIDE": {
         "widget": "QDoubleSpinBox",

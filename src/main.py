@@ -448,7 +448,7 @@ if __name__ == "__main__":
 
                     while not self._stop_event.is_set():
                         frame_start = time.perf_counter()
-                        
+           
                         # update state and click #
                         finder.update_state(sct)
                         finder.handle_click()
@@ -458,7 +458,7 @@ if __name__ == "__main__":
 
                         elapsed = time.perf_counter() - frame_start
                         sleep_time = max(0, frame_time - elapsed)
-
+ 
                         if sleep_time > 0: time.sleep(sleep_time)
 
                     logging.info("Finder loop stopped successfully.")
