@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
         # check versions #
         if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
-        if check_package_version(versions[current_branch], current_version):
+        if check_package_version(versions[current_branch], current_version, check_if_equal=False):
             res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}\nDo you want to open the Github repository?")
             if res == "Yes":
                 try:
