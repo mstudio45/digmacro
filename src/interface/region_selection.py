@@ -1,4 +1,5 @@
 import platform
+from utils.images.screen import screen_region
 from variables import Variables
 
 current_os = platform.system()
@@ -132,9 +133,7 @@ else:
             self.root = tk.Tk()
             
             # overlay over the screen (fullscren borderless) #
-            screen_width = self.root.winfo_screenwidth()
-            screen_height = self.root.winfo_screenheight()
-            self.root.geometry(f"{screen_width}x{screen_height}+0+0")
+            self.root.geometry(f"{screen_region["width"]}x{screen_region["height"]}+{screen_region["left"]}+{screen_region["top"]}")
             
             # add bg #
             if current_os == "Linux":

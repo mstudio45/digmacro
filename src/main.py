@@ -7,11 +7,11 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
     sys.exit(0)
 
 compiled = "__compiled__" in globals()
-def restart_macro():
+def restart_macro(args=["--skip-selection"]):
     if compiled:
-        os.execvp(sys.argv[0], ["--skip-selection"])
+        os.execvp(sys.argv[0], args)
     else:
-        os.execvp(sys.executable, [sys.executable, os.path.abspath(__file__), "--skip-selection"])
+        os.execvp(sys.executable, [sys.executable, os.path.abspath(__file__)] + args)
     return
 
 # install requirements #
@@ -21,16 +21,18 @@ from utils.packages.check_python import check_pip_packages
 from utils.packages.check_shutil import check_shutil_applications
 from utils.packages.versions import check_package_version
 
-if "--only-install" in sys.argv: 
-    check_shutil_applications()
-    check_apt_packages()
-    check_pip_packages()
-    check_special_errors()
-    os.kill(os.getpid(), 9)
+if "--skip-install" not in sys.argv:
+    if "--only-install" in sys.argv: 
+        check_shutil_applications()
+        check_apt_packages()
+        check_pip_packages()
+        os.kill(os.getpid(), 9)
 
-if check_shutil_applications() or check_apt_packages() or check_pip_packages() or check_special_errors():
-    restart_macro()
-    sys.exit(0)
+    if check_shutil_applications() or check_apt_packages() or check_pip_packages():
+        restart_macro(["--skip-install"])
+        sys.exit(0)
+
+check_special_errors() # still required to run, fixes for tkinter on windows #
 
 # imports #
 import logging, threading
@@ -215,10 +217,11 @@ if __name__ == "__main__":
                 # load guide #
                 logging.info("Showing guide...")
 
-                self.guide_ui.start()
-                if not Variables.is_running or self.guide_ui.is_running == False:
-                    self.exit_macro()
-                    return
+                if "--skip-guide-ui" not in sys.argv:
+                    self.guide_ui.start()
+                    if not Variables.is_running or self.guide_ui.is_running == False:
+                        self.exit_macro()
+                        return
 
                 # start region select #
                 logging.info("Starting region selection...")
@@ -236,7 +239,7 @@ if __name__ == "__main__":
                 self.region_check_ui.start()
                 if self.region_check_ui.restart_macro:
                     self.exit_macro()
-                    restart_macro()
+                    restart_macro(["--skip-selection", "--skip-guide-ui", "--skip-install"])
                     return
                 
                 if self.region_check_ui.is_okay == False:
