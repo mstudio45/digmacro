@@ -31,4 +31,4 @@ python3 -m nuitka \
   --output-filename=digmacro_linux.bin \
   main.py
 
-mv dist/linux/digmacro_linux.bin ../../output/digmacro_linux.bin
+mv dist/linux/digmacro_linux.bin ../../../output/digmacro_linux.bin
