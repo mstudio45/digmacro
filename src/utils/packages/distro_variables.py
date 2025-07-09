@@ -6,6 +6,20 @@ __all__ = [
 ]
 
 current_os = platform.system()
+current_arch = platform.machine()
+
+is_on_rosetta = False
+if current_os == "Darwin":
+    try:
+        result = subprocess.run(["sysctl", "-n", "sysctl.proc_translated"], 
+                                capture_output=True, text=True)
+        is_on_rosetta = result.stdout.strip() == "1"
+    except:
+        is_on_rosetta = False
+    
+    if is_on_rosetta:
+        print("[install_pip_package] Detected running under Rosetta on ARM macOS, using x86_64 architecture for package installations.")
+    
 
 def install_pip_package(package):
     try: 
@@ -13,13 +27,19 @@ def install_pip_package(package):
             pip_spec = f"{package["pip"]}>={package["version"]}"
         else:
             pip_spec = package["pip"]
-            
+
         print(f"[install_pip_package] Installing package: {pip_spec}")
-        subprocess.check_call([
+        command = [
             sys.executable, "-m", "pip", "install",
             "--force-reinstall", "--no-cache-dir",
             pip_spec
-        ])
+        ]
+
+        if current_os == "Darwin" and is_on_rosetta:
+            command.insert(0, "arch")
+            command.insert(1, "-x86_64")
+
+        subprocess.check_call(command)
     except Exception as e:
         print(f"[install_pip_package] Failed to install '{package["pip"]}' requirement: \n{traceback.format_exc()}")
         sys.exit(1)

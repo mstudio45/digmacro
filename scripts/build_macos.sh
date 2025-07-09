@@ -95,6 +95,8 @@ for arch in "${ARCS[@]}"; do
   mv digmacro_macos$arch.zip ../../../output/digmacro_macos_$arch.zip
   echo "Built digmacro_macos_$arch.zip successfully."
   
+  rm -rf digmacro_macos$arch.app
+
   cd ../../..
 
   deactivate
