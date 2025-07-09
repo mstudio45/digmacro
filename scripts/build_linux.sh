@@ -7,6 +7,11 @@ fi
 
 cd src
 
+if ! python3 -m nuitka --version >/dev/null 2>&1; then
+  echo "Installing nuitka..."
+  python3 -m pip install nuitka
+fi
+
 python3 -m nuitka \
   --onefile \
   --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" \
