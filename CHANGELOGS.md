@@ -1,3 +1,27 @@
+# v2.0.1
+```diff
+[New Features]
++ Added standalone file for Intel CPU MacBooks
++ Added 'Minigame Region' category to configuration GUI
++ Added two algorithms for Player Bar detection
++ Added FPS Counter to UI for computer vision (if it is enabled)
+
+[Improvements]
++ macOS will no longer lock the FPS at 10 when the window is out of focus (except on Sierra)
++ Added more information to the builded binaries properties
++ Added an 'Unsaved Changes' notification to the configuration GUI
++ Refactored certain configuration names and tooltips (you might need to change your config a bit)
++ All empty screenshot folders get deleted on exit
+
+[Fixes]
++ Fixed the macro not working properly on macOS Retina displays
++ Fixed Linux crashing if they don't have required packages installed
++ Fixed the macro crashing when LOGGING_ENABLED is False
++ Fixed shovel re-equipping using the wrong key for certain keyboard layouts
++ Fixed 'Start Macro' and 'Restart' buttons not working properly in compiled binaries
++ Fixed Auto Sell button selector in compiled binaries
+```
+
 # v2.0.0
 ```diff
 [New Features]

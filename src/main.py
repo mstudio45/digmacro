@@ -1,7 +1,5 @@
 # imports #
-import os, sys, csv, time, traceback
-import shutil, subprocess, importlib
-import platform
+import os, sys, time, traceback, subprocess, platform
 
 current_os = platform.system() # Linux, Windows, Darwin
 if current_os not in ["Linux", "Darwin", "Windows"]:
@@ -9,343 +7,35 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
     sys.exit(0)
 
 compiled = "__compiled__" in globals()
-def restart_macro():
+def restart_macro(args=["--skip-selection"]):
     if compiled:
-        executable_path = sys.executable
-        os.execv(executable_path, [executable_path, "--skip-selection"])
+        os.execvp(sys.argv[0], args)
     else:
-        script_path = os.path.abspath(__file__)
-        os.execv(sys.executable, [sys.executable, script_path, "--skip-selection"])
+        os.execvp(sys.executable, [sys.executable, os.path.abspath(__file__)] + args)
     return
 
 # install requirements #
-check_packages = True
-installed_missing_packages = False
+from utils.packages.check_apt import check_apt_packages
+from utils.packages.check_errors import check_special_errors
+from utils.packages.check_python import check_pip_packages
+from utils.packages.check_shutil import check_shutil_applications
+from utils.packages.versions import check_package_version
 
-if check_packages:
-    print("Checking packages...")
-    # util functions #
-    def get_distro(): # https://majornetwork.net/2019/11/get-linux-distribution-name-and-version-with-python/ #
-        if current_os != "Linux": return "", ""
+if "--skip-install" not in sys.argv:
+    if "--only-install" in sys.argv: 
+        check_shutil_applications()
+        check_apt_packages()
+        check_pip_packages()
+        os.kill(os.getpid(), 9)
 
-        RELEASE_DATA = {}
-        
-        with open("/etc/os-release") as f:
-            reader = csv.reader(f, delimiter="=")
-            for row in reader:
-                if row: RELEASE_DATA[row[0]] = row[1]
+    if check_shutil_applications() or check_apt_packages() or check_pip_packages():
+        restart_macro(["--skip-install"])
+        sys.exit(0)
 
-        return RELEASE_DATA["ID"].lower(), RELEASE_DATA["NAME"]
-
-    def get_linux_app_install_cmd(package_name):
-        if distro_id in ["debian", "ubuntu", "raspbian", "linuxmint", "pop", "elementary", "zorin"]:
-            return ["sudo", "apt-get", "install", "-y", package_name]
-        elif distro_id in ["fedora"]:
-            return ["sudo", "dnf", "install", "-y", package_name]
-        elif distro_id in ["centos", "rhel", "redhat", "rocky", "almalinux", "oracle"]:
-            return ["sudo", "yum", "install", "-y", package_name]
-        elif distro_id in ["arch", "manjaro", "endeavouros", "garuda"]:
-            return ["sudo", "pacman", "-S", "--noconfirm", package_name]
-        elif distro_id in ["opensuse", "suse", "opensuse-leap", "opensuse-tumbleweed"]:
-            return ["sudo", "zypper", "install", "-y", package_name]
-        else:
-            return f"Package install command not recognized for distro: {distro_name}"
-
-    def get_linux_installed_packages():
-        if distro_id in ["debian", "ubuntu", "raspbian", "linuxmint", "pop", "elementary", "zorin"]:
-            cmd = ["dpkg-query", "-W", "-f=${Package}\n"]
-        elif distro_id in ["fedora"]:
-            cmd = ["dnf", "list", "installed"]
-        elif distro_id in ["centos", "rhel", "redhat", "rocky", "almalinux", "oracle"]:
-            cmd = ["yum", "list", "installed"]
-        elif distro_id in ["arch", "manjaro", "endeavouros", "garuda"]:
-            cmd = ["pacman", "-Qq"]
-        elif distro_id in ["opensuse", "suse", "opensuse-leap", "opensuse-tumbleweed"]:
-            cmd = ["zypper", "se", "-i"]
-        else:
-            return f"Unsupported distro for listing installed packages: {distro_name} ({distro_id})"
-        
-        try:
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-            output = result.stdout.strip()
-            packages = []
-
-            if distro_id in ["debian", "ubuntu", "raspbian", "linuxmint", "pop", "elementary", "zorin"]:
-                packages = output.split("\n")
-
-            elif distro_id in ["fedora", "centos", "rhel", "redhat", "rocky", "almalinux", "oracle"]:
-                lines = output.split("\n")
-                packages = [line.split()[0] for line in lines if line and not line.startswith("Installed Packages")]
-
-            elif distro_id in ["arch", "manjaro", "endeavouros", "garuda"]:
-                packages = output.split("\n")
-
-            elif distro_id in ["opensuse", "suse", "opensuse-leap", "opensuse-tumbleweed"]:
-                lines = output.split("\n")
-                for line in lines:
-                    parts = line.split("|")
-                    if len(parts) > 1 and parts[0].strip() == "i":
-                        packages.append(parts[1].strip())
-
-            return packages
-
-        except Exception as e:
-            print(f"Failed to list installed packages: {e}")
-            return []
-        
-    # variables #
-    distro_id, distro_name = get_distro()
-
-    # command packages #
-    shutil_applications = {
-        "Linux": [
-            "xdotool",
-            "pkg-config"
-        ]
-    }
-    def check_shutil_applications():
-        if current_os not in shutil_applications: return
-
-        missing_applications = []
-        for cmd in shutil_applications[current_os]:
-            if shutil.which(cmd) is not None: continue
-            missing_applications.append(cmd)
-
-        if len(missing_applications) == 0: 
-            print("[check_shutil_applications] All required applications are installed.")
-            return
-
-        if current_os == "Linux":
-            for missing_application in missing_applications:
-                install_cmd = get_linux_app_install_cmd(missing_application)
-                if isinstance(install_cmd, str):
-                    print(install_cmd)
-                    sys.exit(1)
-
-                try: 
-                    print(f"[check_shutil_applications] Installing application: {missing_application} using {install_cmd}")
-                    subprocess.check_call(install_cmd)
-                except Exception as e:
-                    print(f"[check_shutil_applications] Failed to install '{missing_application}' requirement: \n{traceback.format_exc()}")
-                    sys.exit(1)
-                installed_missing_packages = True
-            
-            print("[check_shutil_applications] Done.")
-
-    check_shutil_applications()
-
-    # apt packages #
-    apt_packages = {
-        "Linux": {
-            "gcc"
-        }
-    }
-    def check_apt_packages():
-        if current_os not in apt_packages: return
-
-        installed_packages = get_linux_installed_packages()
-        if isinstance(installed_packages, str):
-            print(installed_packages)
-            sys.exit(1)
-
-        missing_packages = []
-        for package in apt_packages[current_os]:
-            if package in installed_packages: continue
-            missing_packages.append(package)
-
-        if len(missing_packages) == 0: 
-            print("[check_apt_packages] All required system packages are installed.")
-            return
-        
-        if current_os == "Linux":
-            for missing_package in missing_packages:
-                install_cmd = get_linux_app_install_cmd(missing_package)
-                if isinstance(install_cmd, str):
-                    print(install_cmd)
-                    sys.exit(1)
-
-                try:
-                    print(f"[check_apt_packages] Installing system package: {missing_package} using {install_cmd}")
-                    subprocess.check_call(install_cmd)
-                except Exception as e:
-                    print(f"[check_apt_packages] Failed to install '{missing_package}' requirement: \n{traceback.format_exc()}")
-                    sys.exit(1)
-                installed_missing_packages = True
-            
-            print("[check_apt_packages] Done.")
-
-    check_apt_packages()
-
-    # python packages #
-    if compiled == False:
-        def install_package(pip_name):
-            try: 
-                print(f"[install_package] Installing python package: {pip_name}")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
-            except Exception as e:
-                print(f"[install_package] Failed to install '{pip_name}' requirement: \n{traceback.format_exc()}")
-                sys.exit(1)
-        
-        required_packages = {
-            "all": {
-                # finder libs #
-                "opencv-python": "cv2",
-                "numpy": "numpy",
-                "PyAutoGUI": "pyautogui",
-                "mss": "mss",
-                "screeninfo": "screeninfo",
-
-                # input libs #
-                "pynput": "pynput",
-
-                # updater libs #
-                "requests": "requests",
-
-                # ui libs #
-                "PySide6": "PySide6",
-
-                # misc libs #
-                "psutil": "psutil",
-                "logging": "logging",
-                "pillow": "PIL"
-            },
-
-            "Windows": {
-                # ui #
-                "pywebview": "webview",
-
-                # screenshot lib #
-                "bettercam": "bettercam",
-
-                # win32 api #
-                "PyGetWindow": "pygetwindow",
-                "pywin32": "win32gui",
-
-                # input libs #
-                "PyAutoIt": "autoit"
-            },
-
-            "Linux": {
-                "pywebview[gtk]": "webview",
-            },
-
-            "Darwin": {
-                "pywebview": "webview",
-                "PyObjC": "AppKit"
-            }
-        }
-        check_import_only = ["pywebview[gtk]"]
-
-        def check_packages():
-            # get installed packages #
-            reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
-            installed_packages = [r.decode().split("==")[0] for r in reqs.split()]
-            missing_packages = []
-            
-            # check all packages #
-            for os, required_obj in required_packages.items():
-                if not (os == "all" or os == current_os): continue
-
-                for pip_name, _package in required_obj.items():
-                    if pip_name in check_import_only or pip_name in installed_packages: continue
-                    if pip_name not in missing_packages: missing_packages.append(pip_name)
-            
-            # check importerrors #
-            for os, required_obj in required_packages.items():
-                if not (os == "all" or os == current_os): continue
-
-                for pip_name, package in required_obj.items():
-                    try: importlib.import_module(package)
-                    except ImportError as e:
-                        if pip_name not in missing_packages: missing_packages.append(pip_name)
-
-            # install packages #
-            if len(missing_packages) == 0: 
-                print("[check_packages] All required packages are installed.")
-                return
-
-            print(f"Missing packages detected: {missing_packages}")
-            if compiled:
-                print(f"Missing packages detected, please install them manually: {missing_packages}")
-                sys.exit(1)
-
-            installed_missing_packages = True
-            for pip_name in missing_packages:
-                install_package(pip_name)
-
-            print("[check_packages] Done.")
-
-        check_packages()
-
-    # special errors #
-    def check_special_errors(import_error=False):
-        # check tkinter tcl issues #
-        import tkinter as tk
-        try:
-            root = tk.Tk()
-            root.withdraw()
-            root.destroy()
-        except (tk.TclError, ImportError) as e:
-            if isinstance(e, ImportError):
-                if import_error == True:
-                    print(f"[check_special_errors] Failed to properly install tkinter: {str(e)}")
-                    sys.exit(1)
-                else:
-                    installed_missing_packages = True
-                    install_package("tk")
-                    return check_special_errors(import_error=True) # restart again
-            
-            err_ = "Please setup the 'TCL_LIBRARY' and 'TK_LIBRARY' env variables manually and try again."
-            if current_os != "Windows":
-                print(err_)
-                sys.exit(1)
-
-            python_ver = platform.python_version()
-            valid_python_path, valid_python_exe = "", ""
-
-            paths_result = subprocess.run(["where", "python"], capture_output=True, text=True, check=True)
-            paths = [line.strip() for line in paths_result.stdout.split("\n") if line.strip()]
-
-            for path in paths:
-                if path == sys.executable: continue
-
-                version_result = subprocess.run([path, "--version"], capture_output=True, text=True)
-                version_output = version_result.stdout.strip() or version_result.stderr.strip()
-
-                if version_output.endswith(python_ver):
-                    valid_python_exe, valid_python_path = path, os.path.dirname(path)
-                    break
-            
-            if valid_python_path == "" or valid_python_exe == "":
-                print(f"[check_special_errors] Failed to find the valid python path. {err_}")
-                sys.exit(1)
-
-            # get tcl version from exe #
-            tcl_version_result = subprocess.run([valid_python_exe, "-c", "import tkinter; print(tkinter.TclVersion)"], capture_output=True, text=True)
-            tcl_version_output = tcl_version_result.stdout.strip() or tcl_version_result.stderr.strip()
-
-            tcl_path = os.path.join(valid_python_path, "tcl", "tcl" + str(tcl_version_output))
-            tk_path = os.path.join(valid_python_path, "tcl", "tk" + str(tcl_version_output))
-
-            if os.path.isdir(tcl_path) == False or os.path.isdir(tk_path) == False:
-                print(f"[check_special_errors] Failed to find the valid tcl/tk path. {err_}")
-                sys.exit(1)
-
-            os.environ["TCL_LIBRARY"] = tcl_path
-            os.environ["TK_LIBRARY"]  = tk_path
-        except Exception as e:
-            print(f"[check_special_errors] Failed to properly test tkinter.")
-
-        print("[check_special_errors] Done.")
-
-    check_special_errors()
-
-    print("------------------ INSTALLED --------------------")
-    if installed_missing_packages == True: restart_macro()
+check_special_errors() # still required to run, fixes for tkinter on windows #
 
 # imports #
-import logging
-import threading
+import logging, threading
 import pyautogui, pynput, mss
 
 from PySide6.QtWidgets import QApplication
@@ -371,31 +61,27 @@ if __name__ == "__main__":
     print("Creating logs folder...")
     FileHandler.create_folder(StaticVariables.logs_path)
 
-    print("Creating screenshot folders...")
-    FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
-
     print("Loading config...")
     Config.load_config() # default_config_loaded
-    Config.WINDOW_NAME = Config.WINDOW_NAME + " | " + Variables.session_id 
 
     from utils.logs import setup_logger;
     print("Loading logger...")
     setup_logger()
 
     ## check version ##
-    current_version = "2.0.0"
+    current_version = "2.0.1"
     current_branch = "beta"
 
     try:
         logging.info("Checking current version...")
 
         import requests, json
-        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json")
+        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
         versions = json.loads(req.text)
 
         # check versions #
         if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
-        if versions[current_branch] != current_version:
+        if check_package_version(versions[current_branch], current_version):
             res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {versions[current_branch]}\nDo you want to open the Github repository?")
             if res == "Yes":
                 try:
@@ -407,7 +93,7 @@ if __name__ == "__main__":
         
         logging.debug(f"Running on v{current_version} -> Latest is v{versions[current_branch]} ")
     except Exception as e:
-        msgbox.alert(f"Failed to check for new updates. {traceback.format_exc()}")
+        msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
 
     run_config = False
 
@@ -433,20 +119,24 @@ if __name__ == "__main__":
             else: 
                 os.kill(os.getpid(), 9)
         
-        elif res == "Exit": os.kill(os.getpid(), 9)
+        elif res == "Exit" or res == "": os.kill(os.getpid(), 9)
         else: logging.info("Starting the macro...")
 
     # main loader #
     logging.info("Importing libraries...")
     from utils.finder import MainHandler, SellUI
     from utils.pathfinding import PathfingingHandler
+
     from utils.general.mouse import left_click
     from utils.general.keyboard import press_key
+
     from utils.images.screenshots import screenshot_cleanup
     from utils.images.screen import screen_res_str
 
     from utils.roblox.rejoin import can_rejoin, rejoin_dig
     from utils.roblox.window import is_roblox_focused
+
+    from utils.general.fps_counter import FPSCounter
 
     import interface.web_ui as WebUI
     from interface.region_selection import RegionSelector
@@ -464,8 +154,6 @@ if __name__ == "__main__":
             self.hotkeys = None
 
             # classes #
-            self.sct = mss.mss()
-
             self.region_selector = RegionSelector()
             self.finder = MainHandler()
             self.pathfinding = PathfingingHandler()
@@ -529,10 +217,11 @@ if __name__ == "__main__":
                 # load guide #
                 logging.info("Showing guide...")
 
-                self.guide_ui.start()
-                if not Variables.is_running or self.guide_ui.is_running == False:
-                    self.exit_macro()
-                    return
+                if "--skip-guide-ui" not in sys.argv:
+                    self.guide_ui.start()
+                    if not Variables.is_running or self.guide_ui.is_running == False:
+                        self.exit_macro()
+                        return
 
                 # start region select #
                 logging.info("Starting region selection...")
@@ -550,7 +239,7 @@ if __name__ == "__main__":
                 self.region_check_ui.start()
                 if self.region_check_ui.restart_macro:
                     self.exit_macro()
-                    restart_macro()
+                    restart_macro(["--skip-selection", "--skip-guide-ui", "--skip-install"])
                     return
                 
                 if self.region_check_ui.is_okay == False:
@@ -632,20 +321,21 @@ if __name__ == "__main__":
             
             if timed_out == True and Variables.is_minigame_active == False:
                 if equipped == True:
-                    self.update_window_status("Error", f"Failed to start the minigame in the second try, waiting...", "red")
+                    self.update_window_status("Error", "Failed to start the minigame in the second try, waiting...", "red")
                     time.sleep(2.5)
                     return
                 
-                self.update_window_status("Error", f"Failed to start the minigame!", "red")
+                self.update_window_status("Error", "Failed to start the minigame!", "red")
 
                 logging.info("Equipping shovel...")
-                press_key("+") # equip the shovel #
+                press_key("1") # equip the shovel #
                 time.sleep(0.5)
                 return self.start_minigame(equipped=True)
 
 
         def main_loop(self, _):
-            sct = mss.mss()
+            print("Creating screenshot folders...")
+            FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
             while Variables.is_running:
                 time.sleep(0.25)
@@ -653,7 +343,7 @@ if __name__ == "__main__":
                 # handle idle_time, and skip if not in idle #
                 if not Variables.is_idle():
                     if Variables.is_minigame_active:
-                        self.update_window_status("Minigame", f"Completing minigame...", "green")
+                        self.update_window_status("Minigame", "Completing minigame...", "green")
                     
                     self.total_idle_time = 0
                 else:
@@ -695,21 +385,29 @@ if __name__ == "__main__":
 
                     self.finder.debug_img = None
                     self.total_idle_time += 0.25
-                    self.update_window_status("Minigame", f"Waiting for minigame...", "yellow")
+
+                       # no dirt bar #
+                    if self.finder.DirtBar.clickable_position is None:
+                        self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
+
+                    elif self.finder.PlayerBar.current_position is None:
+                        self.update_window_status("Minigame", "Waiting for player bar...", "yellow")
+
+                    else:
+                        self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
 
                     # pathfinding handler #
                     was_last_key = False
                     if Config.PATHFINDING == True:
-                        self.update_window_status("Pathfinding", f"Walking to the next point...", "green")
+                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")
                         was_last_key = self.pathfinding.start_walking()
                     
                     # auto sell #
-                    if Config.AUTO_SELL == True:
-                        self.sell_all_items(was_last_key=was_last_key)
+                    if Config.AUTO_SELL == True: self.sell_all_items(was_last_key=was_last_key)
 
                     # minigame handler #
-                    if Config.AUTO_START_MINIGAME == True:
-                        self.start_minigame()
+                    if Config.AUTO_START_MINIGAME == True: self.start_minigame()
+            
             ###############################################################################################
             logging.info("Main loop has successfully ended.")
             self.ui.stop_window()
@@ -732,6 +430,7 @@ if __name__ == "__main__":
 
                     frame_time = 1 / Config.TARGET_FPS
                     sct = mss.mss()
+                    fps_counter = FPSCounter()
 
                     while not self._stop_event.is_set():
                         frame_start = time.perf_counter()
@@ -740,9 +439,12 @@ if __name__ == "__main__":
                         finder.update_state(sct)
                         finder.handle_click()
                         
+                        fps_counter.accumulate_frame_time(frame_start)
+                        finder.current_fps = fps_counter.get_fps()
+
                         elapsed = time.perf_counter() - frame_start
                         sleep_time = max(0, frame_time - elapsed)
-                        
+
                         if sleep_time > 0: time.sleep(sleep_time)
 
                     logging.info("Finder loop stopped successfully.")
@@ -784,7 +486,6 @@ if __name__ == "__main__":
             Variables.is_running = False
 
             screenshot_cleanup()
-            self.sct.close()
 
             # stop hotkeys #
             if self.hotkeys:
@@ -823,8 +524,8 @@ if __name__ == "__main__":
                 except Exception as e: logging.warning(f"Error in cleanup function: {func.__name__}: {str(e)}")
 
             # clear empty files/folders #
-            if FileHandler.is_folder_empty(StaticVariables.prediction_screenshots_path):
-                FileHandler.try_delete_folder(StaticVariables.prediction_screenshots_path)
+            for (folderpath, is_empty) in FileHandler.get_folders(StaticVariables.screenshots_path):
+                if is_empty == True: FileHandler.try_delete_folder(folderpath)
 
     # load main macro handler #
     macro = MacroHandler()

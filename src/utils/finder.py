@@ -1,5 +1,5 @@
-import os, time, threading, logging
-import cv2 
+import os, time, threading, logging, platform
+import cv2
 import numpy as np
 
 # file imports #
@@ -11,11 +11,12 @@ from utils.images.screen import *
 
 import utils.general.mouse as Mouse
 import utils.general.keyboard as Keyboard
+
 from utils.general.movement_tracker import MovementTracker
 
-import platform; current_os = platform.system()
-
-def is_pos_in_bbox(pos_x, left, width): return left <= pos_x <= (left + width)
+current_os = platform.system()
+def is_pos_in_bbox(pos_x, left, width):
+    return left <= pos_x <= (left + width)
 
 ## SELL ANYWHERE UI ##
 class SellUI:
@@ -91,7 +92,6 @@ class PlayerBar:
     def find_bar(self, 
         screenshot, 
         region_left, region_height,
-
         clickable_position
     ):
         if not clickable_position: return
@@ -100,19 +100,31 @@ class PlayerBar:
         player_bar_bbox = None
 
         # edit screenshot #
-        # sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
-        # abs_sobelx = cv2.convertScaleAbs(sobelx)
-        mask = cv2.Canny(screenshot, 600, 600)
+        min_width_bar = 1
+        detection = Config.PLAYER_BAR_DETECTION
+        
+        if detection == "Canny":
+            mask = cv2.Canny(screenshot, 600, 600)
 
-        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY) 
+        elif detection == "Canny + GaussianBlur":
+            mask = cv2.GaussianBlur(screenshot, (3, 3), 0)
+            mask = cv2.Canny(mask, 290, 290)
+
+        else:
+            min_width_bar = 3
+            sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
+            mask = cv2.convertScaleAbs(sobelx)
+
+        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         self.mask = mask
 
+        # find player bar #
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
-            if w >= 1 and h > 15 and h / w > 5.5:
+            if w >= min_width_bar and h > 15 and h / w > 5.5:
                 fixed_x = region_left + (x + w // 2) - 5
 
                 player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
@@ -156,7 +168,7 @@ class DirtBar:
 
     def find_dirt(self, 
         screenshot,
-        region_left, region_top, region_width
+        region_left, region_top
     ):
         dirt_bar_absolute_position = None
 
@@ -172,16 +184,16 @@ class DirtBar:
         if contours:
             largest_contour = max(contours, key=cv2.contourArea)
             x, y, w, h = cv2.boundingRect(largest_contour)
-            if 25 < w >= region_width - 5:
-                self.position = None
-                self.clickable_position = None
-                return
+            
+            # if 25 < w >= region_width - 5:
+            #     self.position = None
+            #     self.clickable_position = None
+            #     return
             
             dirt_bar_absolute_position = (region_left + x, region_top + y, w, h)
 
             # set clickable part #
-            clickable_percentage = Config.CLICKABLE_WIDTH 
-            clickable_width = int(w * clickable_percentage)
+            clickable_width = int(w * Config.DIRT_CLICKABLE_WIDTH)
             clickable_x = x + (w - clickable_width) // 2
 
             clickable_part_bbox = (
@@ -202,6 +214,8 @@ class DirtBar:
 ## MAIN HANDLER FOR CLICKS ##
 class MainHandler:
     def __init__(self):
+        self.current_fps = 0.0
+
         # initliaze classes #
         self.PlayerBar = PlayerBar()
         self.DirtBar = DirtBar()
@@ -227,39 +241,37 @@ class MainHandler:
 
         # take screenshots #
         screenshot_np = take_screenshot(Variables.minigame_region, sct)
-        if screenshot_np is None: Variables.is_minigame_active = False; return
+        if screenshot_np is None:
+            Variables.is_minigame_active = False
+            return
         gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2GRAY)
 
         if Variables.is_selecting_region == True:
-            # find clickable region #
             self.DirtBar.find_dirt( 
                 gray_screenshot,
-                region_left, region_top, region_width
+                region_left, region_top
             )
 
-            # if clickable_position is not none we can update playerBar #
             self.PlayerBar.find_bar(
                 gray_screenshot,
                 region_left, region_height,
                 self.DirtBar.clickable_position
             )
 
-            # create debug image
             self.create_debug_image(screenshot_np, region_left)
             return
 
         # find clickable region #
         self.DirtBar.find_dirt( 
             gray_screenshot,
-            region_left, region_top, region_width
+            region_left, region_top
         )
 
-        # handle status #
+        # no dirt bar #
         if self.DirtBar.clickable_position is None:
             Variables.is_minigame_active = False
-            self.was_in_zone = False
+            # self.was_in_zone = False
             return
-        else: Variables.is_minigame_active = True
 
         # if clickable_position is not none we can update playerBar #
         self.PlayerBar.find_bar(
@@ -268,20 +280,22 @@ class MainHandler:
             self.DirtBar.clickable_position
         )
 
+        # no player bar #
         if self.PlayerBar.current_position is None:
             Variables.is_minigame_active = False
-            self.was_in_zone = False
+            # self.was_in_zone = False
             return
-        else: Variables.is_minigame_active = True
-
+        
         # zone tracking variables #
         # in_zone_now = self.PlayerBar.bar_in_clickable
         # self.just_entered = in_zone_now and not self.was_in_zone
         # self.was_in_zone = in_zone_now
 
+        # enable the minigame #
+        Variables.is_minigame_active = True
+
         # create debug image
-        if Config.SHOW_DEBUG:
-            self.create_debug_image(screenshot_np, region_left)
+        if Config.SHOW_COMPUTER_VISION: self.create_debug_image(screenshot_np, region_left)
 
     def handle_click(self):
         if not Variables.is_minigame_active or self.PlayerBar.current_position is None:
@@ -342,10 +356,10 @@ class MainHandler:
 
                         is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
 
-                        if confidence >= Config.MIN_CENTER_CONFIDENCE:
+                        if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
                             should_click = True
                             prediction_used = True
-                        elif is_moving_slowly and confidence >= Config.MIN_SLOW_CONFIDENCE:
+                        elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
                             should_click = True
                             prediction_used = True
             
@@ -362,7 +376,7 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms
 
-                if Config.SHOW_DEBUG and Config.PREDICTION_SCREENSHOTS and prediction_used:
+                if Config.SHOW_COMPUTER_VISION and Config.PREDICTION_SCREENSHOTS and prediction_used:
                     write_image(os.path.join(StaticVariables.prediction_screenshots_path, str(Variables.click_count) + ("_pred" if prediction_used else "") + ".png"), self.debug_img)
 
     def create_debug_image(self,
@@ -396,8 +410,7 @@ class MainHandler:
             cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), Config.PLAYER_BAR_WIDTH) 
 
         # finally set the debug img #
-        self.debug_img = stack_images_with_dividers([
-            screenshot_np, 
-            # self.DirtBar.mask,
-            # self.PlayerBar.mask
-        ])
+        if Config.SHOW_DEBUG_MASKS:
+            self.debug_img = stack_images_with_dividers([ screenshot_np, self.PlayerBar.mask, self.DirtBar.mask ])
+        else:
+            self.debug_img = stack_images_with_dividers([ screenshot_np ])

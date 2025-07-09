@@ -1,13 +1,10 @@
-import time, random
-
-__all__ = ["PathfingingHandler"]
+import time, logging
 
 from utils.general.keyboard import press_key, press_multiple_keys
-import logging
-
 from config import Config
 from variables import Variables
 
+__all__ = ["PathfingingHandler"]
 class PathfingingHandler:
     def __init__(self):
         self.current_index = 0
@@ -30,13 +27,12 @@ class PathfingingHandler:
 
         logging.info("Walking started...")
         Variables.is_walking = True
-
-        key, duration, was_last_key = self.get_next_key()
-        if isinstance(key, list):
-            press_multiple_keys(key, duration)
-        else:
-            press_key(key, duration)
-        
         time.sleep(0.1)
+
+        keys_str, duration, was_last_key = self.get_next_key()
+        if isinstance(keys_str, list):  press_multiple_keys(keys_str, duration)
+        else:                           press_key(keys_str, duration)
+        
+        time.sleep(0.25)
         Variables.is_walking = False
         return was_last_key

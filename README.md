@@ -54,22 +54,11 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-| Operating System          | Support Status  | Supported Versions                                                         | Tested On                             | Notes                                |
-| ------------------------- | --------------- | -------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                       | Windows 10, Windows 11                | Best performance and compatibility   |
-| **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu, Debian, Linux Mint, Fedora, Arch, etc.) | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | 🧪 Experimental | macOS Sequoia 15.5+                                                        | Apple M3 16 GB, Sequoia 15.5 (Retina) | Work-in-progress, known issues exist |
-
-### macOS Feature Status
-
-| Feature                      | Status          | Notes                                                                              |
-| ---------------------------- | --------------- | ---------------------------------------------------------------------------------- |
-| Main GUI Support             | ✅ Working      | No issues observed while testing                                                   |
-| Configuration GUI Support    | ✅ Working      | No issues observed while testing                                                   |
-| Region Selection GUI Support | ✅ Working      | No issues observed while testing                                                   |
-| Box Detection                | ✅ Working      | No issues observed while testing                                                   |
-| In Minigame Detection        | ⚠️ Issues exist | Fails to persist detection of being inside a minigame after clicking once or twice |
-| Click Handler                | ⚠️ Issues exist | Due to minigame detection and some other issues, can fail to click sometimes       |
+| Operating System          | Support Status  | Supported Versions                                                            | Tested On                             | Notes                                |
+| ------------------------- | --------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
+| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                          | Windows 10, Windows 11                | Best performance and compatibility   |
+| **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
+| **macOS**                 | ✅ Full Support | macOS Sierra 10.12.6+, Apple Silicon + Intel CPUs                             | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works better with external monitors  |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
@@ -91,11 +80,11 @@ _If you have improvements or patches for additional (or currently supported) ope
 #### Source version
 
 1. **Download the latest version:**
-   - [Click here to download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip)
+   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
 2. **Extract the ZIP File:**
    - Right-click the downloaded file and choose "Extract Here" or "Extract All".
 3. **Open the Folder:**
-   - Go into the extracted `digmacro-main` folder.
+   - Go into the extracted `digmacro-[main/dev]` folder.
 4. **Run the macro:**
    - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
    - **Linux/macOS:** Run `sh launch.sh` in your terminal.
@@ -219,9 +208,19 @@ The macro can move your character in different patterns (like a square, line, et
 ## 🔧 Troubleshooting
 
 - **Macro is missing clicks or not working well:**
-  - The macro's speed depends on your computer and Roblox's performance. Try changing the configuration (MIN_CLICK_INTERVAL, TARGET_FPS) or your screen resolution if you have issues.
+  - The macro’s speed can be affected by several factors:
+    1) Your CPU performance and Roblox FPS also impact how well the macro runs
+    2) **mss on Windows** slows down the macro because of VSync
+
+  - If you're having issues, try the following:
+    1) Lower your in-game graphics and enable "Low Graphics" inside DIG settings
+    2) Close background applications (ideally only have the macro and Roblox running)
+    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS)
+    4) Change your screen resolution (for example 1080p to 720p)
+
 - **Running from source with macOS is not working well:**
-  - This may be due to using Python from Homebrew, please uninstall python from homebrew and install it from the official site for the best experience running from source.
+  - This may be due to using Python from Homebrew, please uninstall Python from homebrew and install it from the official site for the best experience running from source.
+  
 - **Need help?**
   - Check the [Changelogs](CHANGELOGS.md) for updates or create a new issue in this repository.
 

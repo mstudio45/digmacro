@@ -1,8 +1,13 @@
 **/__pycache__/
 **/storage/
 **/dist/
-digmacro_venv_*/
+
+env/
+output/
 prebuilt/
+
 storage/
 tests/
 .DS_Store
+
+nuitka-crash-report.xml

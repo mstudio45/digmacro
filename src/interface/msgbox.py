@@ -20,7 +20,7 @@ if current_os == "Darwin":
             logging.error(f"AppleScript error: {e.stderr}")
             return None
 
-    def alert(message, title=Config.WINDOW_NAME, log_level=logging.INFO, bypass=False):
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
         if not message:
             return
 
@@ -37,7 +37,7 @@ if current_os == "Darwin":
             script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
             run_osascript(script)
 
-    def confirm(message, title=Config.WINDOW_NAME, buttons=("Yes", "No")):
+    def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         btn_list = ", ".join(f'"{btn}"' for btn in buttons)
         default_button = f'default button "{buttons[0]}"' if buttons else ""
 
@@ -52,7 +52,7 @@ else:
     import tkinter as tk
     from tkinter import ttk, messagebox
 
-    def alert(message, title=Config.WINDOW_NAME, log_level=logging.INFO, bypass=False):
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
         if not message: return
 
         logging.log(level=log_level, msg=message, stacklevel=2)
@@ -69,7 +69,7 @@ else:
             
             root.destroy()
 
-    def confirm(message, title=Config.WINDOW_NAME, buttons=("Yes", "No")):
+    def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         # create dialog #
         dialog = tk.Tk()
         result = tk.StringVar()
