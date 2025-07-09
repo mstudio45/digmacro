@@ -28,4 +28,4 @@ esac
 cd ../..
 
 echo "Starting the src version..."
-python3 src/main.py
+python3 src/main.py "$@"

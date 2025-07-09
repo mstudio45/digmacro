@@ -23,7 +23,7 @@ cd ..
 cd ..
 
 echo Starting the src version...
-py src/main.py
+py src/main.py %*
 
 pause
 endlocal

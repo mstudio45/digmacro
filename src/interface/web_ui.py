@@ -1,4 +1,4 @@
-import os, time, threading, logging, traceback
+import os, sys, time, threading, logging, traceback
 import cv2
 import webview, platform, subprocess
 
@@ -96,8 +96,7 @@ class WebUI(UIBase):
             self.window.evaluate_js("removeComputerVision()")
             self._stop_event.wait()
         else:
-            if Config.SHOW_DEBUG_MASKS: 
-                self.window.evaluate_js("changeImageSize(14)")
+            if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
 
             frame_time = 1 / Config.DEBUG_IMAGE_FPS
             while not self._stop_event.is_set():
@@ -185,8 +184,13 @@ class RegionCheckUI(UIBase):
 
     def update(self):
         logging.info("Loading buttons...")
-        self.window.evaluate_js("updateStatus('Region Select', 'Please verify if the region detects everything correctly...', 'yellow')")
-        self.window.evaluate_js("showRegionSelectButtons()")
+        if "--region-check" not in sys.argv: 
+            self.window.evaluate_js("updateStatus('Region Select', 'Please verify if the region detects everything correctly...', 'yellow')")
+            self.window.evaluate_js("showRegionSelectButtons()")
+        else:
+            self.window.evaluate_js("updateStatus('Checking...', 'Waiting for exit...', 'green')")
+
+        if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
 
         while self.is_running == True:
             try:

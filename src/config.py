@@ -23,6 +23,7 @@ elif current_os == "Linux":
     default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
 
 settings_table = {
+    # SYSTEM OPTIONS #
     "TARGET_FPS": {
         "widget": "QSpinBox",
         "tooltip": "Target Frames Per Second for the macro.",
@@ -46,6 +47,17 @@ settings_table = {
         "tooltip": "Enable or disable the error message boxes."
     },
 
+    # DISCORD WEBHOOK OPTIONS #
+    # "DISCORD_NOTIFICATIONS": {
+    #     "widget": "QCheckBox",
+    #     "tooltip": "Enable or disable the Discord Notifications."
+    # },
+    # "DISCORD_WEBHOOK_URL": {
+    #     "widget": "QLineEdit",
+    #     "tooltip": "Your Discord Webhook URL."
+    # },
+
+    # AUTO REJOIN OPTIONS #
     "AUTO_REJOIN": {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable the rejoining system."
@@ -76,6 +88,7 @@ settings_table = {
         "step": 0.01
     },
     
+    # MINIGAME OPTIONS #
     "USE_SAVED_POSITION": {
         "widget": "QCheckBox",
         "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
@@ -137,8 +150,7 @@ Choose how to detect the player bar:
         "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01,
-        "default": 0.1
+        "step": 0.01
     },
     "DIRT_SATURATION_THRESHOLD": {
         "widget": "QSpinBox",
@@ -147,6 +159,7 @@ Choose how to detect the player bar:
         "max": 50
     },
     
+    # PATHFINDING OPTIONS #
     "PATHFINDING": {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable pathfinding movement."
@@ -157,6 +170,7 @@ Choose how to detect the player bar:
         "items": None
     },
     
+    # AUTO SELL OPTIONS #
     "AUTO_SELL": {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
@@ -183,6 +197,7 @@ Choose how to detect the player bar:
         "tooltip": "This setting will ignore 'AUTO_SELL_REQUIRED_ITEMS' and will sell after the pathfinding macro has finished."
     },
 
+    # PREDICTION OPTIONS #
     "USE_PREDICTION": {
         "widget": "QCheckBox",
         "tooltip": "Calculate prediction using acceleration and velocity history."
@@ -212,18 +227,17 @@ Choose how to detect the player bar:
         "tooltip": "Minimum confidence required to click when player bar is reasonably centered inside the dirt part.",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01,
-        "default": 0.9
+        "step": 0.01
     },
     "PREDICTION_SLOW_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Minimum confidence required to click when player bar is moving slowly to the center of the dirt part.",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01,
-        "default": 0.85
+        "step": 0.01
     },
 
+    # PACKAGES OPTIONS #
     "MOUSE_INPUT_PACKAGE": {
         "widget": "QComboBox",
         "tooltip": "Select the mouse input package to use.",
@@ -235,6 +249,7 @@ Choose how to detect the player bar:
         "items": screenshot_packages
     },
     
+    # GUI OPTIONS #
     "SHOW_COMPUTER_VISION": {
         "widget": "QCheckBox",
         "tooltip": "Displays an image with all of the highlighted information that the computer has."
@@ -250,7 +265,8 @@ Choose how to detect the player bar:
         "max": 480,
         "step": 1
     },
-
+    
+    # SCREENSHOTS OPTIONS #
     "PREDICTION_SCREENSHOTS": {
         "widget": "QCheckBox",
         "tooltip": "Enables saving prediction screenshots (requires 'Show Debug' to be enabled)."
@@ -281,6 +297,11 @@ class ConfigManager:
                 "LOGGING_ENABLED": True,
                 "MSGBOX_ENABLED": False
             },
+
+            # "DISCORD": {
+            #     "DISCORD_NOTIFICATIONS": False,
+            #     "DISCORD_WEBHOOK_URL": "",
+            # },
 
             "ROBLOX": {
                 "AUTO_REJOIN": False,

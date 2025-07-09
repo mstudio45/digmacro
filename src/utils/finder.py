@@ -87,7 +87,8 @@ class PlayerBar:
         self.player_bar_tracker = MovementTracker()
 
         self.mask = None
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
+        self.vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
+        # self.horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
 
     def find_bar(self, 
         screenshot, 
@@ -100,23 +101,22 @@ class PlayerBar:
         player_bar_bbox = None
 
         # edit screenshot #
-        min_width_bar = 1
         detection = Config.PLAYER_BAR_DETECTION
         
+        mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
         if detection == "Canny":
-            mask = cv2.Canny(screenshot, 600, 600)
+            mask = cv2.Canny(mask, 600, 600)
 
         elif detection == "Canny + GaussianBlur":
-            mask = cv2.GaussianBlur(screenshot, (3, 3), 0)
+            mask = cv2.GaussianBlur(mask, (3, 3), 0)
             mask = cv2.Canny(mask, 290, 290)
 
         else:
-            min_width_bar = 3
-            sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
+            sobelx = cv2.Sobel(mask, cv2.CV_64F, 1, 0, ksize=1)
             mask = cv2.convertScaleAbs(sobelx)
 
+        # threshold the background #
         _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel) 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         self.mask = mask
@@ -124,7 +124,7 @@ class PlayerBar:
         # find player bar #
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
-            if w >= min_width_bar and h > 15 and h / w > 5.5:
+            if w >= 1 and h > 15 and h / w > 5.5:
                 fixed_x = region_left + (x + w // 2) - 5
 
                 player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
@@ -175,19 +175,20 @@ class DirtBar:
 
         # edit screenshot #
         if Config.DIRT_DETECTION == "Kernels + GaussianBlur":
-            screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0)
+            screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0) # further remove noise #
 
+        # threshold the background #
         _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.horizontal_kernel)
-        mask = cv2.bitwise_not(mask)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # remove vertical lines #
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.horizontal_kernel) # remove horizontal rect #
+        mask = cv2.bitwise_not(mask) # flip the detection to include vertical lines and horizontal rect #
 
         self.mask = mask
 
         # find dirt part #
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
+            largest_contour = max(contours, key=cv2.contourArea) # vertical lines are always smaller #
             x, y, w, h = cv2.boundingRect(largest_contour)
             
             # if 25 < w >= region_width - 5:
@@ -406,15 +407,16 @@ class MainHandler:
         # draw the player bar (current and prediction) #
         plr_x = self.PlayerBar.current_position
         pred_x = self.PlayerBar.predicted_position
+        plr_w = Config.PLAYER_BAR_WIDTH
 
         if plr_x is not None:
             plr_x = int(plr_x - region_left)
-            cv2.line(screenshot_np, (plr_x, 0), (plr_x, screenshot_height), (0, 0, 255), Config.PLAYER_BAR_WIDTH)
+            cv2.line(screenshot_np, (plr_x, 0), (plr_x, screenshot_height), (0, 0, 255), plr_w)
 
         if Config.USE_PREDICTION and pred_x is not None:
             pred_x = int(pred_x - region_left)
-            cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), Config.PLAYER_BAR_WIDTH) 
-
+            cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), plr_w) 
+        
         # finally set the debug img #
         if Config.SHOW_DEBUG_MASKS:
             self.debug_img = stack_images_with_dividers([ screenshot_np, self.PlayerBar.mask, self.DirtBar.mask ])

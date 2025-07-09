@@ -52,11 +52,11 @@ def get_folders(folderpath: str): # (path, is_empty)
     
     except OSError as e:
         logging.error(f"Failed to create folder '{folderpath}': {str(e)}")
-        return False
+        return []
     
     except Exception as e:
         logging.error(f"An unexpected error occurred while creating folder '{folderpath}': {str(e)}")
-        return False
+        return []
 
 def create_folder(folderpath: str):
     try:

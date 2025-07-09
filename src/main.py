@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     run_config = False
 
-    if "--skip-selection" in sys.argv:
+    if "--skip-selection" in sys.argv or "--region-check" in sys.argv:
         logging.info("Skipping config/start selection.")
     else:
         res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
@@ -215,7 +215,19 @@ if __name__ == "__main__":
         
         def setup_region_setter(self): # requires to be run in main thread #
             region = self.check_saved_region()
-            if region == None:
+            
+            if "--region-check" in sys.argv:
+                Variables.minigame_region = region
+                if region is None:
+                    print("Invalid region, you need to have a saved region.")
+                    self.exit_macro()
+                    sys.exit(1)
+
+                self.region_check_ui.start()
+                self.exit_macro()
+                sys.exit(0)
+
+            if region is None:
                 # load guide #
                 logging.info("Showing guide...")
 
@@ -229,7 +241,7 @@ if __name__ == "__main__":
                 logging.info("Starting region selection...")
                 self.region_selector.start()
                 region = self.region_selector.get_selection()
-                if region == None:
+                if region is None:
                     self.exit_macro()
                     return
 
@@ -528,6 +540,8 @@ if __name__ == "__main__":
             # clear empty files/folders #
             for (folderpath, is_empty) in FileHandler.get_folders(StaticVariables.screenshots_path):
                 if is_empty == True: FileHandler.try_delete_folder(folderpath)
+
+            logging.info("----------- CLEANUP DONE -------------")
 
     # load main macro handler #
     macro = MacroHandler()

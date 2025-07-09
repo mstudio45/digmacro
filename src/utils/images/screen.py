@@ -324,7 +324,7 @@ def stack_images_with_dividers(images, margin_thickness=2):
         return None
     
 def find_image(image, confidence, log=False, region=None):
-    if region == None:
+    if region is None:
         if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam (Windows)":
             region = logical_screen_region
         else:
