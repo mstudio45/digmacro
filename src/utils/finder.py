@@ -89,6 +89,8 @@ class PlayerBar:
         self.vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
         # self.horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
 
+        self.distance_threshold = 10 * scale_x
+
     def find_bar(self, 
         screenshot, 
         region_left, region_height,
@@ -139,7 +141,7 @@ class PlayerBar:
                 x2, y2, w2, h2 = candidate_bars[i + 1]
 
                 if w1 == w2 and h1 == h2:
-                    if 0 < x2 - (x1 + w1) <= 10:
+                    if 0 < x2 - (x1 + w1) <= self.distance_threshold:
                         fixed_x = region_left + (x1 + w1 // 2) + 5
 
                         player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
