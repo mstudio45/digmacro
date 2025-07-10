@@ -250,6 +250,10 @@ Choose how to detect the player bar:
     },
     
     # GUI OPTIONS #
+    "UI_ON_TOP": {
+        "widget": "QCheckBox",
+        "tooltip": "Enable or disable if the UI should appear over everything on the screen."
+    },
     "SHOW_COMPUTER_VISION": {
         "widget": "QCheckBox",
         "tooltip": "Displays an image with all of the highlighted information that the computer has."
@@ -357,6 +361,7 @@ class ConfigManager:
             },
 
             "GUI": {
+                "UI_ON_TOP": True,
                 "SHOW_COMPUTER_VISION": True,
                 "SHOW_DEBUG_MASKS": False,
                 "DEBUG_IMAGE_FPS": 120

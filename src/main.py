@@ -281,6 +281,7 @@ if __name__ == "__main__":
                     return
 
                 logging.info("Region has been set.")
+                region["height"] = min(16, region["height"])
                 Variables.minigame_region = region
                 self.saved_regions[screen_res_str] = region
 

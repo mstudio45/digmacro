@@ -40,7 +40,7 @@ class UIBase:
 
             frameless=True, easy_drag=False,
             transparent=False, shadow=True,
-            on_top=True, focus=True
+            on_top=Config.UI_ON_TOP, focus=True
         )
         self.window.expose(self.resize_window, self.get_session_id)
 
