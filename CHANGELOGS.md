@@ -1,7 +1,7 @@
 # v2.0.2
 ```diff
 [New Features]
-+ Added DIRT_DETECTION configuration
++ Added DIRT_DETECTION, UI_ON_TOP configurations
 
 [Improvements]
 + Message Boxes are top most (only on Linux and Windows)
