@@ -36,6 +36,7 @@ check_special_errors() # still required to run, fixes for tkinter on windows #
 
 # imports #
 import logging, threading
+import cv2
 import pyautogui, pynput, mss
 
 from PySide6.QtWidgets import QApplication
@@ -138,8 +139,6 @@ if __name__ == "__main__":
         else: logging.info("Starting the macro...")
 
     # log opencv info #
-    import cv2
-
     logging.debug(cv2.getBuildInformation())
     logging.info("Optimizing opencv...")
 

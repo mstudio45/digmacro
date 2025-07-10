@@ -59,9 +59,6 @@ else:
         if Config.MSGBOX_ENABLED or bypass:
             root = tk.Tk()
             root.withdraw()
-
-            if current_os == "Linux": root.wait_visibility(root)
-            else: root.overrideredirect(True)
             root.wm_attributes("-topmost", True)
 
             if log_level >= logging.CRITICAL or log_level >= logging.ERROR:

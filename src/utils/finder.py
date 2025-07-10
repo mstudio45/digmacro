@@ -102,17 +102,20 @@ class PlayerBar:
         # edit screenshot #
         detection = Config.PLAYER_BAR_DETECTION
         
-        mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
         if detection == "Canny":
+            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
             mask = cv2.Canny(mask, 600, 600)
 
         elif detection == "Canny + GaussianBlur":
+            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
             mask = cv2.GaussianBlur(mask, (3, 3), 0)
             mask = cv2.Canny(mask, 290, 290)
 
-        else:
-            sobelx = cv2.Sobel(mask, cv2.CV_64F, 1, 0, ksize=1)
+        elif detection == "Sobel":
+            sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
             mask = cv2.convertScaleAbs(sobelx)
+
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
 
         # threshold the background #
         _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY)
@@ -121,15 +124,37 @@ class PlayerBar:
         self.mask = mask
 
         # find player bar #
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
-            if w >= 1 and h > 15 and h / w > 5.5:
-                fixed_x = region_left + (x + w // 2) - 5
+        if detection == "Sobel":
+            candidate_bars = []
 
-                player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
-                player_bar_center = fixed_x
-                break
-        
+            for cnt in contours:
+                x, y, w, h = cv2.boundingRect(cnt)
+                if w >= 1 and h > 15 and h / w > 5:
+                    candidate_bars.append((x, y, w, h))
+
+            candidate_bars.sort(key=lambda b: b[0])
+
+            for i in range(len(candidate_bars) - 1):
+                x1, y1, w1, h1 = candidate_bars[i]
+                x2, y2, w2, h2 = candidate_bars[i + 1]
+
+                if w1 == w2 and h1 == h2:
+                    if 0 < x2 - (x1 + w1) <= 10:
+                        fixed_x = region_left + (x1 + w1 // 2) + 5
+
+                        player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
+                        player_bar_center = fixed_x
+                        break
+        else:
+            for cnt in contours:
+                x, y, w, h = cv2.boundingRect(cnt)
+                if w >= 1 and h > 15 and h / w > 5:
+                    fixed_x = region_left + (x + w // 2) - 5
+
+                    player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
+                    player_bar_center = fixed_x
+                    break
+                    
         if not player_bar_center:
             self.position = None
             self.current_position = None
