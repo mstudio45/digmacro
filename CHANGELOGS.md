@@ -4,6 +4,7 @@
 + Added DIRT_DETECTION, UI_ON_TOP configurations
 
 [Improvements]
++ More reliable dirt bar recognition using Otsu algorithm
 + Message Boxes are top most (only on Linux and Windows)
 
 [Fixes]
