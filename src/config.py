@@ -328,7 +328,7 @@ class ConfigManager:
 
                 "DIRT_DETECTION": "Kernels",
                 "DIRT_CLICKABLE_WIDTH": 0.125,
-                "DIRT_SATURATION_THRESHOLD": 22 if current_os == "Darwin" else 50,
+                "DIRT_SATURATION_THRESHOLD": 25,
             },
 
             "PATHFINDING": {

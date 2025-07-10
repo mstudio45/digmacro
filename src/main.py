@@ -216,7 +216,10 @@ if __name__ == "__main__":
             thread.stop()
             thread.join(timeout=timeout)
             if thread.is_alive(): 
-                logging.warning(f"Warning: Thread '{thread.name or "???"}' did not stop gracefully.")
+                thread_name = "???"
+                if thread.name is not None: thread_name = thread.name
+                
+                logging.warning(f"Warning: Thread '{thread_name}' did not stop gracefully.")
                 return False
             
             return True

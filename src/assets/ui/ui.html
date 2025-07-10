@@ -141,12 +141,15 @@
     </script>
 
     <script>
-        const resizeWindow = async () => {
+        let debounce = false;
+        const resizeWindow = () => {
+            if (debounce == true) return;
+
             const body = document.body;
             const height = body.clientHeight;
             const width = body.clientWidth;
 
-            await window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height))
+            window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height)).then((res) => { debounce = false });
         };
 
         window.addEventListener("pywebviewready", async () => {
@@ -157,8 +160,8 @@
                 credits.textContent = credits.textContent + " | " + id
             });
 
-            // const resizeObserver = new ResizeObserver(entries => resizeWindow())
-            // resizeObserver.observe(document.body)
+            const resizeObserver = new ResizeObserver(entries => resizeWindow())
+            resizeObserver.observe(document.body)
         });
     </script>
 </body>

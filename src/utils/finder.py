@@ -177,7 +177,7 @@ class DirtBar:
             screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0) # further remove noise #
 
         # threshold the background #
-        _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV)
+        _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # remove vertical lines #
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.horizontal_kernel) # remove horizontal rect #
         mask = cv2.bitwise_not(mask) # flip the detection to include vertical lines and horizontal rect #
