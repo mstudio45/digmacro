@@ -4,7 +4,8 @@
 + Added DIRT_DETECTION, UI_ON_TOP configurations
 
 [Improvements]
-+ More reliable dirt bar recognition using Otsu algorithm
++ Improved dirt and player bar detection algorithms
++ Improved prediction screenshots (found and clicked frames)
 + Message Boxes are top most (only on Linux and Windows)
 
 [Fixes]

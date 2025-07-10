@@ -75,7 +75,7 @@ class SellUI:
 
 class PlayerBar:
     def __init__(self):
-        self.position = None
+        # self.position = None
         self.current_position = None
         self.bar_in_clickable = False
         
@@ -99,71 +99,70 @@ class PlayerBar:
         if not clickable_position: return
 
         player_bar_center = None
-        player_bar_bbox = None
+        # player_bar_bbox = None
 
         # edit screenshot #
-        detection = Config.PLAYER_BAR_DETECTION
+        # detection = Config.PLAYER_BAR_DETECTION
         
-        if detection == "Canny":
-            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-            mask = cv2.Canny(mask, 600, 600)
+        # if detection == "Canny":
+        #     mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
+        #     mask = cv2.Canny(mask, 600, 600)
+        # 
+        # elif detection == "Canny + GaussianBlur":
+        #     mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
+        #     mask = cv2.GaussianBlur(mask, (3, 3), 0)
+        #     mask = cv2.Canny(mask, 290, 290)
+        # 
+        # elif detection == "Sobel":
 
-        elif detection == "Canny + GaussianBlur":
-            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-            mask = cv2.GaussianBlur(mask, (3, 3), 0)
-            mask = cv2.Canny(mask, 290, 290)
-
-        elif detection == "Sobel":
-            sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
-            mask = cv2.convertScaleAbs(sobelx)
-
-            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-
-        # threshold the background #
-        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY)
+        sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
+        mask = cv2.convertScaleAbs(sobelx)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
+        
+        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # threshold
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         self.mask = mask
 
         # find player bar #
-        if detection == "Sobel":
-            candidate_bars = []
+        # if detection == "Sobel":
+        candidate_bars = []
 
-            for cnt in contours:
-                x, y, w, h = cv2.boundingRect(cnt)
-                if w >= 1 and h > 15 and h / w > 5:
-                    candidate_bars.append((x, y, w, h))
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            if w >= 1 and h > 15 and h / w > 5:
+                candidate_bars.append((x, w, h)) # x, y, w, h
 
-            candidate_bars.sort(key=lambda b: b[0])
+        candidate_bars.sort(key=lambda b: b[0])
 
-            for i in range(len(candidate_bars) - 1):
-                x1, y1, w1, h1 = candidate_bars[i]
-                x2, y2, w2, h2 = candidate_bars[i + 1]
+        for i in range(len(candidate_bars) - 1):
+            x1, w1, h1 = candidate_bars[i]
+            x2, w2, h2 = candidate_bars[i + 1]
 
-                if w1 == w2 and h1 == h2:
-                    if 0 < x2 - (x1 + w1) <= self.distance_threshold:
-                        fixed_x = region_left + (x1 + w1 // 2) + 5
+            if w1 == w2 and h1 == h2:
+                if 0 < x2 - (x1 + w1) <= self.distance_threshold:
+                    fixed_x = region_left + (x1 + w1 // 2) + 5
 
-                        player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
-                        player_bar_center = fixed_x
-                        break
-        else:
-            for cnt in contours:
-                x, y, w, h = cv2.boundingRect(cnt)
-                if w >= 1 and h > 15 and h / w > 5:
-                    fixed_x = region_left + (x + w // 2) - 5
-
-                    player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
+                    # player_bar_bbox = (fixed_x, y1, Config.PLAYER_BAR_WIDTH, region_height)
                     player_bar_center = fixed_x
                     break
+        # else:
+        #     for cnt in contours:
+        #         x, y, w, h = cv2.boundingRect(cnt)
+        #         if w >= 1 and h > 15 and h / w > 5:
+        #             fixed_x = region_left + (x + w // 2) - 5
+        # 
+        #             player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
+        #             player_bar_center = fixed_x
+        #             break
                     
         if not player_bar_center:
-            self.position = None
+            # self.position = None
             self.current_position = None
             return
 
         # update variables for prediction #
-        self.position = player_bar_bbox
+        # self.position = player_bar_bbox
         self.update_values(player_bar_center, clickable_position)
     
     # Prediction system #
@@ -204,7 +203,7 @@ class DirtBar:
             screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0) # further remove noise #
 
         # threshold the background #
-        _, mask = cv2.threshold(screenshot, Config.DIRT_SATURATION_THRESHOLD, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        _, mask = cv2.threshold(screenshot, Config.DIRT_THRESHOLD, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # remove vertical lines #
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.horizontal_kernel) # remove horizontal rect #
         mask = cv2.bitwise_not(mask) # flip the detection to include vertical lines and horizontal rect #
@@ -351,53 +350,52 @@ class MainHandler:
 
         # verify if we should click or no #
         if (
-            current_time_ms >= self.click_cooldown
-            and not Mouse.clicking_lock.locked()
+            current_time_ms >= self.click_cooldown and
+            not Mouse.clicking_lock.locked()
         ):
             if self.PlayerBar.bar_in_clickable:
                 should_click = True
-            else:
-                if Config.USE_PREDICTION:
-                    predicted_player_bar = self.PlayerBar.predicted_position
-                    current_velocity = self.PlayerBar.current_velocity
+            elif Config.USE_PREDICTION:
+                predicted_player_bar = self.PlayerBar.predicted_position
+                current_velocity = self.PlayerBar.current_velocity
 
-                    if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
-                        player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
+                if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
+                    player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
 
-                        if player_bar_to_clickable: # check if player bar is going towards clickable part #
-                            distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
+                    if player_bar_to_clickable: # check if player bar is going towards clickable part #
+                        distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
 
-                            if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
-                                confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
+                        if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
+                            confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
 
-                                if confidence >= Config.PREDICTION_CONFIDENCE:
-                                    distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
-                                    arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
+                            if confidence >= Config.PREDICTION_CONFIDENCE:
+                                distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
+                                arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
 
-                                    if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
-                                        should_click, prediction_used, click_delay = True, True, arrival_in_ms
-                
-                    if not should_click:
-                        dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
-                        dirt_half_width = min(0, dirt_width / 2)
-                        if dirt_half_width != 0:
-                            dirt_bar_center = dirt_left + dirt_half_width
-
-                            # Compute player bar center correctly
-                            player_bar_center = self.PlayerBar.current_position
-
-                            center_distance = abs(player_bar_center - dirt_bar_center)
-                            normalized_distance = center_distance / dirt_half_width
-                            confidence = 1.0 - normalized_distance
-
-                            is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
-
-                            if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
-                                should_click = True
-                                prediction_used = True
-                            elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
-                                should_click = True
-                                prediction_used = True
+                                if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
+                                    should_click, prediction_used, click_delay = True, True, arrival_in_ms
+            
+                # if not should_click:
+                #     dirt_left, dirt_top, dirt_width, dirt_height = self.DirtBar.clickable_position
+                #     dirt_half_width = min(0, dirt_width / 2)
+                #     if dirt_half_width != 0:
+                #         dirt_bar_center = dirt_left + dirt_half_width
+                # 
+                #         # Compute player bar center correctly
+                #         player_bar_center = self.PlayerBar.current_position
+                # 
+                #         center_distance = abs(player_bar_center - dirt_bar_center)
+                #         normalized_distance = center_distance / dirt_half_width
+                #         confidence = 1.0 - normalized_distance
+                #  
+                #         is_moving_slowly = abs(self.PlayerBar.current_velocity) < 0.25
+                # 
+                #         if confidence >= Config.PREDICTION_CENTER_CONFIDENCE:
+                #             should_click = True
+                #             prediction_used = True
+                #         elif is_moving_slowly and confidence >= Config.PREDICTION_SLOW_CONFIDENCE:
+                #             should_click = True
+                #             prediction_used = True
                 
             # do the click #
             if should_click:
@@ -409,8 +407,15 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms
 
-                if Config.SHOW_COMPUTER_VISION and Config.PREDICTION_SCREENSHOTS and prediction_used:
-                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, str(Variables.click_count) + ("_pred" if prediction_used else "") + ".png"), self.debug_img)
+                if Config.PREDICTION_SCREENSHOTS and prediction_used:
+                    def screenshot():
+                        filename = str(Variables.click_count) + "_pred"
+
+                        write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_found.png"), self.debug_img)
+                        time.sleep(click_delay)
+                        write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_clicked.png"), self.debug_img)
+
+                    threading.Thread(target=screenshot, daemon=True).start()
 
     def create_debug_image(self,
         screenshot_np,
