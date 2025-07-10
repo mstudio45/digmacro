@@ -137,17 +137,7 @@ try:
 
     elif current_os == "Windows":
         import ctypes
-
-        try:
-            ctypes.windll.shcore.SetProcessDpiAwarenessContext(-4)
-            logging.info("SetProcessDpiAwarenessContext to PER_MONITOR_AWARE_V2")
-        except AttributeError: # fallback for older win versions
-            try:
-                ctypes.windll.user32.SetProcessDPIAware()
-                logging.info("SetProcessDPIAware to System Aware")
-            except Exception as e:
-                msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR, bypass=True)
-
+        
         MDT_EFFECTIVE_DPI = 0
 
         def get_windows_display_info():

@@ -141,16 +141,16 @@
     </script>
 
     <script>
-        const resizeWindow = () => {
+        const resizeWindow = async () => {
             const body = document.body;
             const height = body.clientHeight;
             const width = body.clientWidth;
 
-            window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height))
+            await window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height))
         };
 
-        window.addEventListener("pywebviewready", () => {
-            resizeWindow();
+        window.addEventListener("pywebviewready", async () => {
+            await resizeWindow();
 
             pywebview.api.get_session_id().then((id) => {
                 const credits = document.querySelector("#credit")

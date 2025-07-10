@@ -53,6 +53,20 @@ pyautogui.PAUSE = 0
 pyautogui.MINIMUM_DURATION = 0.0
 pyautogui.MINIMUM_SLEEP = 0.0
 
+# set DPI awareness #
+if current_os == "Windows":
+    import ctypes
+
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwarenessContext(-4)
+        logging.info("SetProcessDpiAwarenessContext to PER_MONITOR_AWARE_V2")
+    except AttributeError: # fallback for older win versions
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+            logging.info("SetProcessDPIAware to System Aware")
+        except Exception as e:
+            msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR, bypass=True)
+
 if __name__ == "__main__":
     # create folders #
     print("Creating storage folder...")

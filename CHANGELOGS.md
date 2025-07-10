@@ -7,6 +7,7 @@
 + Message Boxes are top most (only on Linux and Windows)
 
 [Fixes]
++ Fixed the UI resizing incorrectly on different monitor resolutions
 + Fixed version checker
 ```
 

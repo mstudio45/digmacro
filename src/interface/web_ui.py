@@ -19,11 +19,7 @@ class UIBase:
     
     # api functions #
     def resize_window(self, width, height):
-        if current_os == "Windows":
-            width, height = int(width * scale_x), int(height * scale_y)
-        else:
-            width, height = int(width), int(height)
-            
+        width, height = int(width), int(height)
         self.window.resize(width, height)
         return "Done"
 
