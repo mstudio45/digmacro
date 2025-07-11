@@ -246,6 +246,13 @@ Sobel: Slower, more accurate. Only works on 720p and higher.
         "widget": "QCheckBox",
         "tooltip": "Enable or disable if the UI should appear over everything on the screen."
     },
+    "UI_SCALE_OVERRIDE": {
+        "widget": "QDoubleSpinBox",
+        "tooltip": "Option that makes the UI window smaller or bigger.",
+        "min": 0.5,
+        "max": 2.5,
+        "step": 0.1,
+    },
     "SHOW_COMPUTER_VISION": {
         "widget": "QCheckBox",
         "tooltip": "Displays an image with all of the highlighted information that the computer has."
@@ -355,6 +362,7 @@ class ConfigManager:
 
             "GUI": {
                 "UI_ON_TOP": True,
+                "UI_SCALE_OVERRIDE": 1.0,
                 "SHOW_COMPUTER_VISION": True,
                 "SHOW_DEBUG_MASKS": False,
                 "DEBUG_IMAGE_FPS": 120

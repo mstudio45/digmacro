@@ -14,6 +14,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            overflow-y: hidden;
         }
 
         img { max-width: 100%; max-height: 100%; }
@@ -21,72 +22,74 @@
 </head>
 
 <body class="max-h bg-black">
-    <div class="pywebview-drag-region text-white w-full max-w-2xl shadow-2xl p-6">
-        <header class="flex justify-between items-start mb-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-gray-800 p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-                        <path d="M2 22v-5l5-5 5 5-5 5z"></path>
-                        <path d="M9.5 14.5 16 8"></path>
-                        <path d="m17 2 5 5-.5.5a3.5 3.5 0 0 1-5 0s0 0 0 0a3.5 3.5 0 0 1 0-5L17 2"></path>
+    <div id="scale-wrapper">
+        <div class="pywebview-drag-region text-white w-full shadow-2xl p-6">
+            <header class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="bg-gray-800 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                            <path d="M2 22v-5l5-5 5 5-5 5z"></path>
+                            <path d="M9.5 14.5 16 8"></path>
+                            <path d="m17 2 5 5-.5.5a3.5 3.5 0 0 1-5 0s0 0 0 0a3.5 3.5 0 0 1 0-5L17 2"></path>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h1 class="text-xl font-bold">DIG Macro</h1>
+                        <p id="credit" class="text-sm text-gray-400">Made by mstudio45</p>
+                    </div>
+                </div>
+
+                <button class="text-gray-500 hover:text-white transition-colors" onclick="pywebview.api.close()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
-                </div>
-
-                <div>
-                    <h1 class="text-xl font-bold">DIG Macro</h1>
-                    <p id="credit" class="text-sm text-gray-400">Made by mstudio45</p>
-                </div>
-            </div>
-
-            <button class="text-gray-500 hover:text-white transition-colors" onclick="pywebview.api.close()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-        </header>
-
-        <main id="computervision">
-            <div class="flex justify-between items-center mb-2 gap-1">
-                <h2 id="debugtitle" class="text-sm font-medium text-gray-300">Computer Vision</h2>
-                <div class="flex items-center cursor-pointer" onclick='pywebview.api.open_url("https://github.com/mstudio45/digmacro")'>
-                    <svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-
-                    <p class="text-xs text-gray-400 font-mono">mstudio45/digmacro</p>
-                </div>
-            </div>
-            
-            <div id="debugdiv" class="w-full bg-black border border-gray-600 rounded-lg p-3 flex items-center justify-center" style="height: 3rem;">
-                <img id="debugimg" alt="Debug Image" class="object-cover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
-            </div>
-        </main>
-
-        <footer class="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
-            <div class="flex gap-3">
-                <button id="continuenbtn" style="display: none;" onclick="pywebview.api.region_okay()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
-                    Continue
                 </button>
+            </header>
 
-                <button id="restartbtn" style="display: none;" onclick="pywebview.api.restart()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
-                    Restart
-                </button>
+            <main id="computervision">
+                <div class="flex justify-between items-center mb-2 gap-1">
+                    <h2 id="debugtitle" class="text-sm font-medium text-gray-300">Computer Vision</h2>
+                    <div class="flex items-center cursor-pointer" onclick='pywebview.api.open_url("https://github.com/mstudio45/digmacro")'>
+                        <svg class="mr-2" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                        </svg>
 
-                <button id="closebtn" onclick="pywebview.api.close()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
-                    Exit
-                </button>
-            </div>
-           
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-sm font-medium text-white" id="status">Waiting for Roblox Window Focus</p>
-                    <p class="text-xs text-gray-500" id="statushint">Please focus Roblox!</p>
+                        <p class="text-xs text-gray-400 font-mono">mstudio45/digmacro</p>
+                    </div>
                 </div>
                 
-                <div class="w-4 h-4 rounded-full animate-pulse" id="statuscircle"></div>
-            </div>
-        </footer>
+                <div id="debugdiv" class="w-full bg-black border border-gray-600 rounded-lg p-3 flex items-center justify-center" style="height: 3rem;">
+                    <img id="debugimg" alt="Debug Image" class="object-cover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
+                </div>
+            </main>
+
+            <footer class="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
+                <div class="flex gap-3">
+                    <button id="continuenbtn" style="display: none;" onclick="pywebview.api.region_okay()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Continue
+                    </button>
+
+                    <button id="restartbtn" style="display: none;" onclick="pywebview.api.restart()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Restart
+                    </button>
+
+                    <button id="closebtn" onclick="pywebview.api.close()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Exit
+                    </button>
+                </div>
+            
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-white" id="status">Waiting for Roblox Window Focus</p>
+                        <p class="text-xs text-gray-500" id="statushint">Please focus Roblox!</p>
+                    </div>
+                    
+                    <div class="w-4 h-4 rounded-full animate-pulse" id="statuscircle"></div>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <script>
@@ -134,34 +137,38 @@
 
         // region selector //
         function showRegionSelectButtons() {
-            document.querySelector("#continuenbtn").style.display = ""
-            document.querySelector("#restartbtn").style.display = ""
-            document.querySelector("#closebtn").style.display = "none"
+            document.querySelector("#continuenbtn").style.display = "";
+            document.querySelector("#restartbtn").style.display = "";
+            document.querySelector("#closebtn").style.display = "none";
         }
     </script>
 
     <script>
-        let debounce = false;
-        const resizeWindow = () => {
-            if (debounce == true) return;
+        const wrapper = document.getElementById("scale-wrapper");
 
-            const body = document.body;
-            const height = body.clientHeight;
-            const width = body.clientWidth;
+        function scaleContent(scale, baseWidth, baseHeight) {
+            if (typeof scale !== "number" || scale <= 0) return;
 
-            window.pywebview.api.resize_window(Math.ceil(width), Math.ceil(height)).then((res) => { debounce = false });
-        };
+            wrapper.style.width = `${baseWidth}px`;
+            wrapper.style.height = `${baseHeight}px`;
+            wrapper.style.scale = `${scale}`;
+            wrapper.style.transformOrigin = "top left";
+
+            return new Promise(resolve => requestAnimationFrame(resolve));
+        }
 
         window.addEventListener("pywebviewready", async () => {
-            await resizeWindow();
+            const scale = await pywebview.api.get_scale_override()
+            const width = wrapper.offsetWidth;
+            const height = wrapper.offsetHeight;
+
+            await window.pywebview.api.resize_window(Math.ceil(width * scale), Math.ceil(height * scale));
+            await scaleContent(scale, width, height);
 
             pywebview.api.get_session_id().then((id) => {
                 const credits = document.querySelector("#credit")
                 credits.textContent = credits.textContent + " | " + id
             });
-
-            const resizeObserver = new ResizeObserver(entries => resizeWindow())
-            resizeObserver.observe(document.body)
         });
     </script>
 </body>

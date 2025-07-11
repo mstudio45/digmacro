@@ -26,6 +26,9 @@ class UIBase:
     def get_session_id(self):
         return Variables.session_id
     
+    def get_scale_override(self):
+        return Config.UI_SCALE_OVERRIDE
+    
     # window functions #
     def stop_window(self):
         if self.window: self.window.destroy()
@@ -42,7 +45,7 @@ class UIBase:
             transparent=False, shadow=True,
             on_top=Config.UI_ON_TOP, focus=True
         )
-        self.window.expose(self.resize_window, self.get_session_id)
+        self.window.expose(self.resize_window, self.get_session_id, self.get_scale_override)
 
 class WebUI(UIBase):
     def __init__(self, finder):
@@ -92,7 +95,7 @@ class WebUI(UIBase):
             self.window.evaluate_js("removeComputerVision()")
             self._stop_event.wait()
         else:
-            if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
+            if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(10)")
 
             frame_time = 1 / Config.DEBUG_IMAGE_FPS
             while not self._stop_event.is_set():
@@ -127,19 +130,18 @@ class GuideUI(UIBase):
         logging.info("GuideUI closing using 'start_region_select'...")
         self.stop_window()
 
+    def get_image(self):
+        example_img = cv2.imread(StaticVariables.region_example_imgpath)
+        base_64 = image_to_base64(example_img)
+        return base_64
+
     # main handler #
     def start(self):
         self.create_window()
-        self.window.expose(self.start_region_select, self.close)
+        self.window.expose(self.start_region_select, self.close, self.get_image)
 
         # start ui #
-        webview.start(self.update, gui=gui_type)
-
-    def update(self):
-        logging.info("Loading guide image...")
-
-        example_img = cv2.imread(StaticVariables.region_example_imgpath)
-        self.window.evaluate_js(f'updateImage("{image_to_base64(example_img)}")')
+        webview.start(gui=gui_type)
 
 class RegionCheckUI(UIBase):
     def __init__(self, finder):
@@ -186,7 +188,7 @@ class RegionCheckUI(UIBase):
         else:
             self.window.evaluate_js("updateStatus('Checking...', 'Waiting for exit...', 'green')")
 
-        if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(14)")
+        if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(10)")
 
         while self.is_running == True:
             try:

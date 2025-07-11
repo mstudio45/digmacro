@@ -1,17 +1,18 @@
 # v2.0.2
 ```diff
 [New Features]
-+ Added DIRT_DETECTION, UI_ON_TOP configurations
-+ Added an macOS permission checker (Screen Recoding and Accessibility)
++ Added DIRT_DETECTION, UI_ON_TOP and UI_SCALE_OVERRIDE configurations
++ Added a macOS permission checker for Screen Recording and Accessibility
 
 [Improvements]
-+ Improved the minigame recongition system
-+ Improved prediction screenshot configuration (found and clicked frames will now be saved with the setting enabled)
-+ Message Boxes will now appear over everything else now (only on Linux and Windows)
++ Macro loading now waits until Roblox is focused for 1 second before starting
++ Enhanced the minigame recognition system
++ Improved prediction screenshot configuration (found and clicked frames are now saved when the setting is enabled)
++ Message boxes now appear above all other windows (Linux and Windows only)
 
 [Fixes]
-+ Fixed the UI resizing incorrectly on different monitor resolutions
-+ Fixed version checker
++ Fixed UI resizing issues on monitors with different resolutions
++ Fixed the version checker
 ```
 
 # v2.0.1

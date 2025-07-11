@@ -447,83 +447,90 @@ if __name__ == "__main__":
 
 
         def main_loop(self, _):
-            print("Creating screenshot folders...")
+            logging.info("Creating screenshot folders...")
             FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
-            while Variables.is_running:
-                time.sleep(0.25)
+            logging.info("Waiting for Roblox to be focused atleast one to start...")
+            while not Variables.is_roblox_focused:
+                self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
+                if Variables.sleep(1): break
+                continue
+                
+            if Variables.is_running: 
+                while Variables.is_running:
+                    time.sleep(0.25)
 
-                # handle idle_time, and skip if not in idle #
-                if not Variables.is_idle():
-                    if Variables.is_minigame_active:
-                        self.update_window_status("Minigame", "Completing minigame...", "green")
-                    
-                    self.total_idle_time = 0
-                else:
-                    # main handler #
-                    if Config.AUTO_REJOIN:
-                        if Variables.is_rejoining: 
-                            continue
-
-                        if can_rejoin(self.total_idle_time):
-                            self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
-
-                            self.total_idle_time = 0
-                            rejoin_dig()
-                            continue
-
-                    # skip main loop if roblox is not focused #
-                    if not Variables.is_roblox_focused:
-                        self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
-                        time.sleep(0.5)
-                        continue
-
-                    # handling dig_count and if digging finished #
-                    digging_finished = False
-                    if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
-                        last_interact = int(Variables.last_minigame_interaction) / 1000
-
-                        if last_interact > 0 and (time.time() - last_interact) >= 1.5:
-                            Variables.dig_count = Variables.dig_count + 1
-                            Variables.last_minigame_interaction = None
-
-                            logging.debug("Added 1 to dig_count, waiting..."); 
-                            digging_finished = True
-
-                            if Variables.sleep(0.75): break
-                    else: digging_finished = True
-
-                    # skip if digging didnt finish #
-                    if not digging_finished: continue
-
-                    self.finder.debug_img = None
-                    self.total_idle_time += 0.25
-
-                    # no dirt bar #
-                    if self.finder.minigame_detected_by_avg == False:
-                        self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
-
-                    elif self.finder.DirtBar.clickable_position is None:
-                        self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
-
-                    elif self.finder.PlayerBar.current_position is None:
-                        self.update_window_status("Minigame", "Waiting for player bar...", "yellow")
-
+                    # handle idle_time, and skip if not in idle #
+                    if not Variables.is_idle():
+                        if Variables.is_minigame_active:
+                            self.update_window_status("Minigame", "Completing minigame...", "green")
+                        
+                        self.total_idle_time = 0
                     else:
-                        self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
+                        # main handler #
+                        if Config.AUTO_REJOIN:
+                            if Variables.is_rejoining: 
+                                continue
 
-                    # pathfinding handler #
-                    was_last_key = False
-                    if Config.PATHFINDING == True:
-                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")
-                        was_last_key = self.pathfinding.start_walking()
-                    
-                    # auto sell #
-                    if Config.AUTO_SELL == True: self.sell_all_items(was_last_key=was_last_key)
+                            if can_rejoin(self.total_idle_time):
+                                self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
 
-                    # minigame handler #
-                    if Config.AUTO_START_MINIGAME == True: self.start_minigame()
-            
+                                self.total_idle_time = 0
+                                rejoin_dig()
+                                continue
+
+                        # skip main loop if roblox is not focused #
+                        if not Variables.is_roblox_focused:
+                            self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
+                            time.sleep(0.5)
+                            continue
+
+                        # handling dig_count and if digging finished #
+                        digging_finished = False
+                        if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
+                            last_interact = int(Variables.last_minigame_interaction) / 1000
+
+                            if last_interact > 0 and (time.time() - last_interact) >= 1.5:
+                                Variables.dig_count = Variables.dig_count + 1
+                                Variables.last_minigame_interaction = None
+
+                                logging.debug("Added 1 to dig_count, waiting..."); 
+                                digging_finished = True
+
+                                if Variables.sleep(0.75): break
+                        else: digging_finished = True
+
+                        # skip if digging didnt finish #
+                        if not digging_finished: continue
+
+                        self.finder.debug_img = None
+                        self.total_idle_time += 0.25
+
+                        # no dirt bar #
+                        if self.finder.minigame_detected_by_avg == False:
+                            self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
+
+                        elif self.finder.DirtBar.clickable_position is None:
+                            self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
+
+                        elif self.finder.PlayerBar.current_position is None:
+                            self.update_window_status("Minigame", "Waiting for player bar...", "yellow")
+
+                        else:
+                            self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
+
+                        # pathfinding handler #
+                        was_last_key = False
+                        if Config.PATHFINDING == True:
+                            self.update_window_status("Pathfinding", "Walking to the next point...", "green")
+                            was_last_key = self.pathfinding.start_walking()
+                        
+                        # auto sell #
+                        if Config.AUTO_SELL == True: self.sell_all_items(was_last_key=was_last_key)
+
+                        # minigame handler #
+                        if Config.AUTO_START_MINIGAME == True: self.start_minigame()
+                
             ###############################################################################################
             logging.info("Main loop has successfully ended.")
             self.ui.stop_window()
