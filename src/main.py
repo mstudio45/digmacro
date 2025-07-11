@@ -76,7 +76,7 @@ if __name__ == "__main__":
             message_check = (
                 "This application requires '{permission}' permission to control mouse and keyboard.\n\n"
                 "Please go to:\nSystem Settings -> Privacy & Security -> {permission}\n" 
-                "Then, ensure this application (digmacro_macosarm64 or digmacro_macosx86_64) is enabled.\n\n" 
+                "Then, ensure this application (digmacro_macosarm64, digmacro_macosx86_64 or Python Launcher/Python) is enabled.\n\n" 
                 "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n" 
                 "If the permission is enabled and you are still being prompted with this notification, press 'Skip'"
             )
