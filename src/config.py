@@ -108,8 +108,8 @@ settings_table = {
     "PLAYER_BAR_DETECTION": {
         "widget": "QComboBox",
         "tooltip": """
-Canny: Faster, works only for certain CPUs.
-Sobel: Slower, more accurate.
+Canny: Faster, works only for certain CPUs. Might not work on certain brightness and saturation.
+Sobel: Slower, more accurate. Only works on 720p and higher.
 """,
         "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
     },
