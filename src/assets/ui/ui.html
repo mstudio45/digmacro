@@ -159,11 +159,13 @@
 
         window.addEventListener("pywebviewready", async () => {
             const scale = await pywebview.api.get_scale_override()
-            const width = wrapper.offsetWidth;
-            const height = wrapper.offsetHeight;
+            setTimeout(async () => {
+                const width = wrapper.offsetWidth;
+                const height = wrapper.offsetHeight;
 
-            await window.pywebview.api.resize_window(Math.ceil(width * scale), Math.ceil(height * scale));
-            await scaleContent(scale, width, height);
+                await window.pywebview.api.resize_window(Math.ceil(width * scale), Math.ceil(height * scale));
+                await scaleContent(scale, width, height);
+            }, 250);
 
             pywebview.api.get_session_id().then((id) => {
                 const credits = document.querySelector("#credit")

@@ -3,10 +3,11 @@
 [New Features]
 + Added DIRT_DETECTION, UI_ON_TOP and UI_SCALE_OVERRIDE configurations
 + Added a macOS permission checker for Screen Recording and Accessibility
++ Added "Gradient" detection method that will be more stable for certain computers
 
 [Improvements]
 + Macro loading now waits until Roblox is focused for 1 second before starting
-+ Enhanced the minigame recognition system
++ Enhanced the minigame recognition system (if it is active or not)
 + Improved prediction screenshot configuration (found and clicked frames are now saved when the setting is enabled)
 + Message boxes now appear above all other windows (Linux and Windows only)
 

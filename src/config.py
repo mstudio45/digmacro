@@ -108,10 +108,11 @@ settings_table = {
     "PLAYER_BAR_DETECTION": {
         "widget": "QComboBox",
         "tooltip": """
+Gradient: Fastest and recommended. Uses numpy to find the player bar by the 'gradient' outline.
 Canny: Faster, works only for certain CPUs. Might not work on certain brightness and saturation.
-Sobel: Slower, more accurate. Only works on 720p and higher.
+Sobel: Slower than every method, requires a very good CPU. Only works on 720p and higher.
 """,
-        "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
+        "items": ["Gradient", "Canny", "Canny + GaussianBlur", "Sobel"]
     },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
@@ -272,9 +273,13 @@ Sobel: Slower, more accurate. Only works on 720p and higher.
     # SCREENSHOTS OPTIONS #
     "PREDICTION_SCREENSHOTS": {
         "widget": "QCheckBox",
-        "tooltip": "Enables saving prediction screenshots (requires 'Show Debug' to be enabled)."
+        "tooltip": "Enables making screenshots for each prediction clicks (requires 'Show Debug' to be enabled)."
     },
-    
+    "SCREENSHOT_EVERY_CLICK": {
+        "widget": "QCheckBox",
+        "tooltip": "Enables making screenshots for each click (requires 'Show Debug' to be enabled)."
+    },
+
     "default": {
         "widget": "QLineEdit",
         "tooltip": "Configuration value for {key}."
@@ -321,7 +326,7 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
-                "PLAYER_BAR_DETECTION": "Sobel" if current_os == "Darwin" else "Canny",
+                "PLAYER_BAR_DETECTION": "Gradient", # "Sobel" if current_os == "Darwin" else "Canny",
                 "PLAYER_BAR_WIDTH": 5,
                 "PLAYER_BAR_SOBEL_THRESHOLD": 25,
                 "PLAYER_BAR_CANNY_THRESHOLD": 100,
@@ -370,6 +375,7 @@ class ConfigManager:
 
             "DEBUG SCREENSHOTS": {
                 "PREDICTION_SCREENSHOTS": False,
+                "SCREENSHOT_EVERY_CLICK": False
             }
         }
 

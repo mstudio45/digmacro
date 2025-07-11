@@ -1,5 +1,6 @@
 import os, time, threading, logging, platform
 import cv2
+import numpy as np
 
 # file imports #
 from variables import Variables, StaticVariables
@@ -107,67 +108,85 @@ class PlayerBar:
             self.bar_in_clickable = False
             return
         
-        player_bar_center = None
         detection = Config.PLAYER_BAR_DETECTION
-        s_height = screenshot.shape[0]
+        if detection == "Gradient":
+            screenshot = screenshot.astype(np.float32) # convert to np float32 array (more accurate for gradient finder) #
 
-        if detection == "Sobel":
-            # edit screenshot #
-            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines #
-            
-            sobelx = cv2.Sobel(mask, cv2.CV_64F, 1, 0, ksize=1) # extract edges #
-            mask = cv2.convertScaleAbs(sobelx) # convert to abs #
-            
-            _, mask = cv2.threshold(mask, Config.PLAYER_BAR_SOBEL_THRESHOLD, 255, cv2.THRESH_OTSU) # threshold #
-            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4) # using contours just ignores the player bar inside the dirt part, force to label everything as its own part #
+            # find horizontal gradients by central difference #
+            grad_x = np.zeros_like(screenshot)
+            grad_x[:, 1:-1] = (screenshot[:, 2:] - screenshot[:, :-2]) / 2.0
+            grad_mag = np.abs(grad_x) # absolute gradient to highlight edges #
 
-            self.mask = mask
+            column_strength = grad_mag.sum(axis=0) # sum of gradients along vertical axis #
+            best_x = np.argmax(column_strength) # use the one line with maximum edge strenght #
+            direction_score = grad_x[:, best_x].mean() # get direction for margin offset to put the position in the middle of the player bar #
 
-            # find player bar #
-            if num_labels < 2: # player bar has two edges (two lines) #
-                self.current_position = None
-                self.bar_in_clickable = False
-                return
-            
-            candidate_bars = []
-            bar_width = Config.PLAYER_BAR_WIDTH
-
-            for i in range(1, num_labels):
-                x, y, w, h, area = stats[i]
-                if w <= 1 or abs(h - s_height) > 3 or h / w <= 5: continue
-                candidate_bars.append((x, h))
-
-            candidate_bars.sort(key=lambda b: b[0])
-            for i in range(len(candidate_bars) - 1):
-                x1, h1 = candidate_bars[i]
-                x2, h2 = candidate_bars[i + 1]
-                
-                if h1 == h2 and 0 < x2 - (x1 + bar_width) <= self.distance_threshold:
-                    player_bar_center = region_left + (x1 + bar_width // 2) # - 5 # ((x1 + x2) // 2)
-                    break
-        
-        elif "Canny" in detection:
-            if detection == "Canny + GaussianBlur":
-                mask = cv2.GaussianBlur(screenshot, (3, 3), 0)
-                mask = cv2.Canny(mask, 290, 290)
+            if direction_score > 0:
+                self.update_values(region_left + best_x - self.margin_offset, clickable_position)
             else:
-                mask = cv2.Canny(screenshot, 600, 600)
+                self.update_values(region_left + best_x + self.margin_offset, clickable_position)
             
-            _, mask = cv2.threshold(mask, Config.PLAYER_BAR_CANNY_THRESHOLD, 255, cv2.THRESH_OTSU) # cv2.THRESH_BINARY + 
-            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.canny_kernel)
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        else:
+            player_bar_center = None
+            s_height = screenshot.shape[0]
 
-            self.mask = mask
+            if detection == "Sobel":
+                # edit screenshot #
+                mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines #
+                
+                sobelx = cv2.Sobel(mask, cv2.CV_64F, 1, 0, ksize=1) # extract edges #
+                mask = cv2.convertScaleAbs(sobelx) # convert to abs #
+                
+                _, mask = cv2.threshold(mask, Config.PLAYER_BAR_SOBEL_THRESHOLD, 255, cv2.THRESH_OTSU) # threshold #
+                num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4) # using contours just ignores the player bar inside the dirt part, force to label everything as its own part #
 
-            # find player bar #
-            for cnt in contours:
-                x, y, w, h = cv2.boundingRect(cnt)
-                if w < 1 or abs(h - s_height) > 3 or h / w <= 5: continue
+                self.mask = mask
 
-                player_bar_center = region_left + (x + w // 2) - self.margin_offset
-                break
+                # find player bar #
+                if num_labels < 2: # player bar has two edges (two lines) #
+                    self.current_position = None
+                    self.bar_in_clickable = False
+                    return
+                
+                candidate_bars = []
+                bar_width = Config.PLAYER_BAR_WIDTH
+
+                for i in range(1, num_labels):
+                    x, y, w, h, area = stats[i]
+                    if w <= 1 or abs(h - s_height) > 3 or h / w <= 5: continue
+                    candidate_bars.append((x, h))
+
+                candidate_bars.sort(key=lambda b: b[0])
+                for i in range(len(candidate_bars) - 1):
+                    x1, h1 = candidate_bars[i]
+                    x2, h2 = candidate_bars[i + 1]
                     
-        self.update_values(player_bar_center, clickable_position)
+                    if h1 == h2 and 0 < x2 - (x1 + bar_width) <= self.distance_threshold:
+                        player_bar_center = region_left + (x1 + bar_width // 2) # - 5 # ((x1 + x2) // 2)
+                        break
+            
+            elif "Canny" in detection:
+                if detection == "Canny + GaussianBlur":
+                    mask = cv2.GaussianBlur(screenshot, (3, 3), 0)
+                    mask = cv2.Canny(mask, 290, 290)
+                else:
+                    mask = cv2.Canny(screenshot, 600, 600)
+                
+                _, mask = cv2.threshold(mask, Config.PLAYER_BAR_CANNY_THRESHOLD, 255, cv2.THRESH_OTSU) # cv2.THRESH_BINARY + 
+                mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.canny_kernel)
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                self.mask = mask
+
+                # find player bar #
+                for cnt in contours:
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    if w < 1 or abs(h - s_height) > 3 or h / w <= 5: continue
+
+                    player_bar_center = region_left + (x + w // 2) - self.margin_offset
+                    break
+                        
+            self.update_values(player_bar_center, clickable_position)
     
     # Prediction system # 
     def update_values(self, current_left, clickable_position):
@@ -387,16 +406,20 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms
 
-                if prediction_used and Config.PREDICTION_SCREENSHOTS:
-                    def screenshot():
-                        filename = str(Variables.click_count) + "_pred"
+                if prediction_used:
+                    if Config.PREDICTION_SCREENSHOTS or Config.SCREENSHOT_EVERY_CLICK:
+                        def screenshot():
+                            filename = str(Variables.click_count) + "_pred"
 
-                        write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_found.png"), self.debug_img)
-                        time.sleep(click_delay)
-                        write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_clicked.png"), self.debug_img)
+                            write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_found.png"), self.debug_img)
+                            time.sleep(click_delay)
+                            write_image(os.path.join(StaticVariables.prediction_screenshots_path, filename + "_clicked.png"), self.debug_img)
 
-                    threading.Thread(target=screenshot, daemon=True).start()
-
+                        threading.Thread(target=screenshot, daemon=True).start()
+                else: 
+                    if Config.SCREENSHOT_EVERY_CLICK:
+                        threading.Thread(target=write_image, args=(os.path.join(StaticVariables.prediction_screenshots_path, str(Variables.click_count) + ".png"), self.debug_img), daemon=True).start()
+                
     def create_debug_image(self,
         screenshot_np,
         region_left
