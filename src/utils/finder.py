@@ -78,6 +78,7 @@ class PlayerBar:
         # self.position = None
         self.current_position = None
         self.bar_in_clickable = False
+        self.mask = None
         
         # prediction
         self.predicted_position = None
@@ -85,89 +86,95 @@ class PlayerBar:
         self.current_acceleration = 0
         self.player_bar_tracker = MovementTracker()
 
-        self.mask = None
-        self.vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
-        # self.horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
+        # kernels and scaling numbers #
+        scaling_number = scale_x if scale_factor > 1 else scale_x_1080p
 
-        self.distance_threshold = 10 * scale_x
+        self.num_kernel = max(3, int(5 * scaling_number))
+        self.vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, self.num_kernel))
+        self.canny_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, self.num_kernel))
+        
+        self.distance_threshold = 10 // scaling_number
+        self.margin_offset = 5 // scaling_number
+        logging.info(f"Player Bar:\n    - Scaling Factor: {scaling_number} (to 1080p: {scale_x_1080p}, from 1080p: {scale_x})\n    - Kernel NUM: {self.num_kernel}\n    - Distance: {self.distance_threshold}, Margin: {self.margin_offset}")
 
     def find_bar(self, 
         screenshot, 
-        region_left, region_height,
+        region_left,
         clickable_position
     ):
-        if not clickable_position: return
-
-        player_bar_center = None
-        # player_bar_bbox = None
-
-        # edit screenshot #
-        # detection = Config.PLAYER_BAR_DETECTION
-        
-        # if detection == "Canny":
-        #     mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-        #     mask = cv2.Canny(mask, 600, 600)
-        # 
-        # elif detection == "Canny + GaussianBlur":
-        #     mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-        #     mask = cv2.GaussianBlur(mask, (3, 3), 0)
-        #     mask = cv2.Canny(mask, 290, 290)
-        # 
-        # elif detection == "Sobel":
-
-        sobelx = cv2.Sobel(screenshot, cv2.CV_64F, 1, 0, ksize=3)
-        mask = cv2.convertScaleAbs(sobelx)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines
-        
-        _, mask = cv2.threshold(mask, Config.PLAYER_BAR_THRESHOLD, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) # threshold
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        self.mask = mask
-
-        # find player bar #
-        # if detection == "Sobel":
-        candidate_bars = []
-
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
-            if w >= 1 and h > 15 and h / w > 5:
-                candidate_bars.append((x, w, h)) # x, y, w, h
-
-        candidate_bars.sort(key=lambda b: b[0])
-
-        for i in range(len(candidate_bars) - 1):
-            x1, w1, h1 = candidate_bars[i]
-            x2, w2, h2 = candidate_bars[i + 1]
-
-            if w1 == w2 and h1 == h2:
-                if 0 < x2 - (x1 + w1) <= self.distance_threshold:
-                    fixed_x = region_left + (x1 + w1 // 2) + 5
-
-                    # player_bar_bbox = (fixed_x, y1, Config.PLAYER_BAR_WIDTH, region_height)
-                    player_bar_center = fixed_x
-                    break
-        # else:
-        #     for cnt in contours:
-        #         x, y, w, h = cv2.boundingRect(cnt)
-        #         if w >= 1 and h > 15 and h / w > 5:
-        #             fixed_x = region_left + (x + w // 2) - 5
-        # 
-        #             player_bar_bbox = (fixed_x, y, Config.PLAYER_BAR_WIDTH, region_height)
-        #             player_bar_center = fixed_x
-        #             break
-                    
-        if not player_bar_center:
-            # self.position = None
+        if not clickable_position:
             self.current_position = None
+            self.bar_in_clickable = False
             return
+        
+        player_bar_center = None
+        detection = Config.PLAYER_BAR_DETECTION
+        s_height = screenshot.shape[0]
 
-        # update variables for prediction #
-        # self.position = player_bar_bbox
+        if detection == "Sobel":
+            # edit screenshot #
+            mask = cv2.morphologyEx(screenshot, cv2.MORPH_OPEN, self.vertical_kernel) # highlight vertical lines #
+            
+            sobelx = cv2.Sobel(mask, cv2.CV_64F, 1, 0, ksize=1) # extract edges #
+            mask = cv2.convertScaleAbs(sobelx) # convert to abs #
+            
+            _, mask = cv2.threshold(mask, Config.PLAYER_BAR_SOBEL_THRESHOLD, 255, cv2.THRESH_OTSU) # threshold #
+            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4) # using contours just ignores the player bar inside the dirt part, force to label everything as its own part #
+
+            self.mask = mask
+
+            # find player bar #
+            if num_labels < 2: # player bar has two edges (two lines) #
+                self.current_position = None
+                self.bar_in_clickable = False
+                return
+            
+            candidate_bars = []
+            bar_width = Config.PLAYER_BAR_WIDTH
+
+            for i in range(1, num_labels):
+                x, y, w, h, area = stats[i]
+                if w <= 1 or abs(h - s_height) > 3 or h / w <= 5: continue
+                candidate_bars.append((x, h))
+
+            candidate_bars.sort(key=lambda b: b[0])
+            for i in range(len(candidate_bars) - 1):
+                x1, h1 = candidate_bars[i]
+                x2, h2 = candidate_bars[i + 1]
+                
+                if h1 == h2 and 0 < x2 - (x1 + bar_width) <= self.distance_threshold:
+                    player_bar_center = region_left + (x1 + bar_width // 2) # - 5 # ((x1 + x2) // 2)
+                    break
+        
+        elif "Canny" in detection:
+            if detection == "Canny + GaussianBlur":
+                mask = cv2.GaussianBlur(screenshot, (3, 3), 0)
+                mask = cv2.Canny(mask, 290, 290)
+            else:
+                mask = cv2.Canny(screenshot, 600, 600)
+            
+            _, mask = cv2.threshold(mask, Config.PLAYER_BAR_CANNY_THRESHOLD, 255, cv2.THRESH_OTSU) # cv2.THRESH_BINARY + 
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.canny_kernel)
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            self.mask = mask
+
+            # find player bar #
+            for cnt in contours:
+                x, y, w, h = cv2.boundingRect(cnt)
+                if w < 1 or abs(h - s_height) > 3 or h / w <= 5: continue
+
+                player_bar_center = region_left + (x + w // 2) - self.margin_offset
+                break
+                    
         self.update_values(player_bar_center, clickable_position)
     
-    # Prediction system #
+    # Prediction system # 
     def update_values(self, current_left, clickable_position):
-        if not current_left: return
+        if not current_left:
+            self.current_position = None
+            self.bar_in_clickable = False
+            return
 
         bbox_left, bbox_width = clickable_position[0], clickable_position[2] # clickable_position is always a tuple here #
 
@@ -215,13 +222,6 @@ class DirtBar:
         if contours:
             largest_contour = max(contours, key=cv2.contourArea) # vertical lines are always smaller #
             x, y, w, h = cv2.boundingRect(largest_contour)
-            
-            # if 25 < w >= region_width - 5:
-            #     self.position = None
-            #     self.clickable_position = None
-            #     return
-            # this thing hates macOS (so real)
-            
             dirt_bar_absolute_position = (region_left + x, region_top + y, w, h)
 
             # set clickable part #
@@ -252,87 +252,67 @@ class MainHandler:
         self.PlayerBar = PlayerBar()
         self.DirtBar = DirtBar()
 
-        # click and find variables #
-        # self.was_in_zone = False
-        # self.just_entered = False
+        # variables #
+        self.minigame_detected_by_avg = False
+
         self.click_cooldown = 0
-
-        # self.last_frame_time = 0
-        # self.frame_times = []
-
-        # debug images #
         self.debug_img = None
+        self.resized_image_size = (1, 1)
+        
+    def setup_region_image_size(self):
+        if Variables.minigame_region is None: return
+        
+        _, _, region_width, region_height = Variables.minigame_region.values()
+        self.resized_image_size = (int(region_width * scale_x_1080p), int(region_height * scale_y_1080p))
+        logging.info(f"Region Image size: ({region_width}, {region_height}) -> {self.resized_image_size}")
     
     def update_state(self, sct):
-        if Variables.is_rejoining == True: return
-        if Variables.is_roblox_focused == False and Variables.is_selecting_region == False: return
-        if Variables.is_selling == True: return
+        if Variables.is_rejoining == True or \
+            (Variables.is_roblox_focused == False and Variables.is_selecting_region == False) or \
+            Variables.is_selling == True \
+        : return
         
         # get offsets #
-        region_left, region_top, region_width, region_height = Variables.minigame_region.values()
+        region_left, region_top, _, _ = Variables.minigame_region.values()
 
         # take screenshots #
         screenshot_np = take_screenshot(Variables.minigame_region, sct)
         if screenshot_np is None:
             Variables.is_minigame_active = False
             return
+        
+        # resize image to 1080p and change to gray_scale #
+        if scale_factor > 1: screenshot_np = cv2.resize(screenshot_np, self.resized_image_size, interpolation=cv2.INTER_AREA)
         gray_screenshot = cv2.cvtColor(screenshot_np, cv2.COLOR_BGRA2GRAY)
 
-        if Variables.is_selecting_region == True:
-            self.DirtBar.find_dirt( 
-                gray_screenshot,
-                region_left, region_top
-            )
-
-            self.PlayerBar.find_bar(
-                gray_screenshot,
-                region_left, region_height,
-                self.DirtBar.clickable_position
-            )
-
+        # selection region #
+        if Variables.is_selecting_region == True:        
+            self.DirtBar.find_dirt(gray_screenshot, region_left, region_top)
+            self.PlayerBar.find_bar(gray_screenshot, region_left, self.DirtBar.clickable_position)
             self.create_debug_image(screenshot_np, region_left)
             return
-
-        # find clickable region #
-        self.DirtBar.find_dirt( 
-            gray_screenshot,
-            region_left, region_top
-        )
-
-        # no dirt bar #
-        if self.DirtBar.clickable_position is None:
+        
+        # check the minigame #
+        avg_color = cv2.mean(screenshot_np[:, :15])[:3]
+        self.minigame_detected_by_avg = max(avg_color) - min(avg_color) <= 1
+        if self.minigame_detected_by_avg == False:
             Variables.is_minigame_active = False
-            # self.was_in_zone = False
             return
 
-        # if clickable_position is not none we can update playerBar #
-        self.PlayerBar.find_bar(
-            gray_screenshot,
-            region_left, region_height,
-            self.DirtBar.clickable_position
-        )
-
-        # no player bar #
+        # find all stuff #
+        self.DirtBar.find_dirt(gray_screenshot, region_left, region_top)
+        self.PlayerBar.find_bar(gray_screenshot, region_left, self.DirtBar.clickable_position)
+        
         if self.PlayerBar.current_position is None:
             Variables.is_minigame_active = False
-            # self.was_in_zone = False
             return
         
-        # zone tracking variables #
-        # in_zone_now = self.PlayerBar.bar_in_clickable
-        # self.just_entered = in_zone_now and not self.was_in_zone
-        # self.was_in_zone = in_zone_now
-
         # enable the minigame #
         Variables.is_minigame_active = True
-
-        # create debug image
         if Config.SHOW_COMPUTER_VISION: self.create_debug_image(screenshot_np, region_left)
 
     def handle_click(self):
-        if not Variables.is_minigame_active or self.PlayerBar.current_position is None:
-            return
-        
+        if not Variables.is_minigame_active: return
         current_time_ms = int(time.time() * 1000)
 
         # positions #
@@ -351,7 +331,7 @@ class MainHandler:
         # verify if we should click or no #
         if (
             current_time_ms >= self.click_cooldown and
-            not Mouse.clicking_lock.locked()
+            not Mouse.clicking_lock.locked() # clicking lock is used for prediction #
         ):
             if self.PlayerBar.bar_in_clickable:
                 should_click = True
@@ -407,7 +387,7 @@ class MainHandler:
                 Variables.click_count += 1
                 Variables.last_minigame_interaction = current_time_ms
 
-                if Config.PREDICTION_SCREENSHOTS and prediction_used:
+                if prediction_used and Config.PREDICTION_SCREENSHOTS:
                     def screenshot():
                         filename = str(Variables.click_count) + "_pred"
 
@@ -422,7 +402,7 @@ class MainHandler:
         region_left
     ):
         # Get screenshot dimensions for proper coordinate conversion
-        screenshot_height = screenshot_np.shape[:2][0]
+        screenshot_height = screenshot_np.shape[0]
         
         # draw the dirt part and clickable part #
         if self.DirtBar.position:
@@ -447,7 +427,7 @@ class MainHandler:
         if Config.USE_PREDICTION and pred_x is not None:
             pred_x = int(pred_x - region_left)
             cv2.line(screenshot_np, (pred_x, 0), (pred_x, screenshot_height), (255, 0, 255), plr_w) 
-        
+
         # finally set the debug img #
         if Config.SHOW_DEBUG_MASKS:
             self.debug_img = stack_images_with_dividers([ screenshot_np, self.PlayerBar.mask, self.DirtBar.mask ])

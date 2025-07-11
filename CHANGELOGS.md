@@ -2,11 +2,12 @@
 ```diff
 [New Features]
 + Added DIRT_DETECTION, UI_ON_TOP configurations
++ Added an macOS permission checker (Screen Recoding and Accessibility)
 
 [Improvements]
-+ Improved dirt and player bar detection algorithms
-+ Improved prediction screenshots (found and clicked frames)
-+ Message Boxes are top most (only on Linux and Windows)
++ Improved the minigame recongition system
++ Improved prediction screenshot configuration (found and clicked frames will now be saved with the setting enabled)
++ Message Boxes will now appear over everything else now (only on Linux and Windows)
 
 [Fixes]
 + Fixed the UI resizing incorrectly on different monitor resolutions

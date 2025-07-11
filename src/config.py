@@ -105,37 +105,29 @@ settings_table = {
         "max": 150
     },
 
-    # "PLAYER_BAR_DETECTION": {
-    #     "widget": "QComboBox",
-    #     "tooltip": """
-# Choose how to detect the player bar:
-# 
-#     Canny:
-#         - Very accurate in most cases.
-#         - Might not work well on super high-resolution screens (like Retina on Mac).
-#         [ Best for normal screenshots without too much detail. ]
-# 
-#     Canny + GaussianBlur:
-#         - Works the same as Canny, but removes background clutter.
-#         - Good for screenshots with lots of detail or noise.
-#         [ Best for messy or very detailed screenshots (like 4K or Retina). ]
-# 
-#     Sobel:
-#         - Works better on tricky screen types (like Retina).
-#         - Can confuse the cooldown icon with the player bar.
-#         [ Best when the other methods don't work. ]
-# """,
-    #     "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
-    # },
+    "PLAYER_BAR_DETECTION": {
+        "widget": "QComboBox",
+        "tooltip": """
+Canny: Faster, works only for certain CPUs.
+Sobel: Slower, more accurate.
+""",
+        "items": ["Canny", "Canny + GaussianBlur", "Sobel"]
+    },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
         "tooltip": "The width of the player bar.",
         "min": 2,
         "max": 10
     },
-    "PLAYER_BAR_THRESHOLD": {
+    "PLAYER_BAR_SOBEL_THRESHOLD": {
         "widget": "QSpinBox",
-        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar.",
+        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Sobel detection).",
+        "min": 0,
+        "max": 255
+    },
+    "PLAYER_BAR_CANNY_THRESHOLD": {
+        "widget": "QSpinBox",
+        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Canny detections).",
         "min": 0,
         "max": 255
     },
@@ -322,9 +314,10 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
-                # "PLAYER_BAR_DETECTION": "Sobel" if current_os == "Darwin" else "Canny",
+                "PLAYER_BAR_DETECTION": "Sobel" if current_os == "Darwin" else "Canny",
                 "PLAYER_BAR_WIDTH": 5,
-                "PLAYER_BAR_THRESHOLD": 25,
+                "PLAYER_BAR_SOBEL_THRESHOLD": 25,
+                "PLAYER_BAR_CANNY_THRESHOLD": 100,
 
                 "DIRT_DETECTION": "Kernels",
                 "DIRT_CLICKABLE_WIDTH": 0.125,

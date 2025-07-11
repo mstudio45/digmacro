@@ -2,14 +2,16 @@ import collections
 import time
 
 class MovementTracker:
-    def __init__(self, position_history_length: int = 10, velocity_history_length: int = 5):
+    def __init__(self, position_history_length = 10, velocity_history_length = 5):
         self.position_history = collections.deque(maxlen=position_history_length)
         self.velocity_history = collections.deque(maxlen=velocity_history_length)
 
         self._last_timestamp = None
         self._last_position = None
 
-    def update(self, current_position_x: float):
+    def update(self, current_position_x):
+        if current_position_x is None: return
+
         current_timestamp = time.monotonic()
 
         # add current position and timestamp to the history #
@@ -26,7 +28,7 @@ class MovementTracker:
         self._last_timestamp = current_timestamp
         self._last_position = current_position_x
 
-    def get_velocity(self) -> float:
+    def get_velocity(self):
         if len(self.position_history) < 2:
             return 0.0
 
@@ -41,7 +43,7 @@ class MovementTracker:
 
         return total_position_delta / total_time_delta
 
-    def get_acceleration(self) -> float:
+    def get_acceleration(self):
         if len(self.velocity_history) < 2:
             return 0.0
 

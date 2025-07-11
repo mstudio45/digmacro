@@ -69,7 +69,63 @@ if current_os == "Windows":
             msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR, bypass=True)
 
 if __name__ == "__main__":
-    # create folders #
+    # macOS Permission Checks (thanks SalValichu) #
+    if current_os == "Darwin":
+        try:
+            from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
+            message_check = (
+                "This application requires '{permission}' permission to control mouse and keyboard.\n\n"
+                "Please go to:\nSystem Settings -> Privacy & Security -> {permission}\n" 
+                "Then, ensure this application (digmacro_macosarm64 or digmacro_macosx86_64) is enabled.\n\n" 
+                "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n" 
+                "If the permission is enabled and you are still being prompted with this notification, press 'Skip'"
+            )
+
+            # Check Accessibility #
+            if not AXIsProcessTrustedWithOptions({ kAXTrustedCheckOptionPrompt: True }): # this will also prompt the notification to allow the permission #
+                # if it goes here the user didn't select "Allow" # 
+                logging.info("[macOS Permissions] Accessibility access is required, prompting user to enable it.")
+                res = msgbox.confirm(
+                    message_check.replace("{permission}", "Accessibility"),
+                    title="DIGMacro - Permission Issue",
+                    buttons=("OK", "Skip", "Exit")
+                )
+
+                if res == "OK":
+                    restart_macro()
+                    sys.exit(0)
+                else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
+            else: logging.info("[macOS Permissions] Accessibility access is enabled.")
+
+            # Check Screen Recording (we will try to make an screenshot - mss should prompt that allow notification) #
+            try:
+                with mss.mss() as sct:
+                    monitor = sct.monitors[0]
+                    sct.grab(monitor)
+                    sct.close()
+                
+                logging.info("[macOS Permissions] Screen Recording check permission appears granted.")
+            except Exception as e:
+                logging.warning(f"[macOS Permissions] Screen Recording check failed: {e}")
+                logging.info("[macOS Permissions] Screen Recording access is required, prompting user to enable it.")
+
+                res = msgbox.confirm(
+                    message_check.replace("{permission}", "Screen Recording"),
+                    title="DIGMacro - Permission Issue",
+                    buttons=("OK", "Skip", "Exit")
+                )
+                if res == "OK":
+                    restart_macro()
+                    sys.exit(0)
+                else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
+
+            # we will skip input monitoring permission, the user needs to use their keyboard and mouse for the test to work #
+            # it will be pretty annoying for the user to do that each macro restart #
+            # pynput should however prompt that permission notification #
+        except ImportError:     logging.warning("[macOS Permissions] Could not import ApplicationServices for permission check. Skipping...")
+        except Exception as e:  logging.error(f"[macOS Permissions] Error during permission check: {e}")
+
+    # create folders (on macOS it will prompt an allow 'folder' access notification) #
     print("Creating storage folder...")
     FileHandler.create_folder("storage")
 
@@ -255,6 +311,8 @@ if __name__ == "__main__":
             
             if "--region-check" in sys.argv:
                 Variables.minigame_region = region
+                self.finder.setup_region_image_size()
+
                 if region is None:
                     print("Invalid region, you need to have a saved region.")
                     self.exit_macro()
@@ -283,9 +341,11 @@ if __name__ == "__main__":
                     return
 
                 logging.info("Region has been set.")
-                region["height"] = min(16, region["height"])
+                region["height"] = max(16, region["height"]) # required for player bar aspect ratio checking #
                 Variables.minigame_region = region
                 self.saved_regions[screen_res_str] = region
+
+                self.finder.setup_region_image_size()
 
                 # load region select checker ui #
                 self.region_check_ui.start()
@@ -308,6 +368,7 @@ if __name__ == "__main__":
             Variables.is_roblox_focused = False
             Variables.is_selecting_region = False
             Variables.minigame_region = region
+            self.finder.setup_region_image_size()
 
         # window functions #
         def update_window_status(self, text, hint, circleColor): 
@@ -438,8 +499,11 @@ if __name__ == "__main__":
                     self.finder.debug_img = None
                     self.total_idle_time += 0.25
 
-                       # no dirt bar #
-                    if self.finder.DirtBar.clickable_position is None:
+                    # no dirt bar #
+                    if self.finder.minigame_detected_by_avg == False:
+                        self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
+
+                    elif self.finder.DirtBar.clickable_position is None:
                         self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
 
                     elif self.finder.PlayerBar.current_position is None:
@@ -584,6 +648,7 @@ if __name__ == "__main__":
     # load main macro handler #
     macro = MacroHandler()
 
+    # verify configuration #
     if Config.AUTO_SELL == True and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.", bypass=True)
         Config.AUTO_SELL = False

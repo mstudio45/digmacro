@@ -15,7 +15,8 @@ __all__ = [
     "resize_image", "stack_images_with_dividers", "find_image", "write_image",
     
     "screen_region", "screen_res_str",
-    "scale_x", "scale_y", "scale_factor"
+    "scale_x", "scale_y", "scale_factor",
+    "scale_x_1080p", "scale_y_1080p"
 ]
 
 # get the display resolution to support all window sizes #
@@ -234,6 +235,8 @@ try:
     scale_x = screen_region["width"] / base_width
     scale_y = screen_region["height"] / base_height
     scale_factor = min(scale_x, scale_y) # aspect ratio #
+
+    scale_x_1080p, scale_y_1080p = 1920 / screen_region["width"], 1080 / screen_region["height"]
 except FailedToGetDiplayResolutionException as e:
     msgbox.alert(f"Failed to get the correct Display Resolution: {str(e)}")
     sys.exit(1)
@@ -242,6 +245,7 @@ except Exception as e:
     sys.exit(1)
 
 logging.info(f"\nPhysical Screen region (scaled by DPI):\n    {screen_region} | {scale_x:.2f}x{scale_y:.2f} - {scale_factor}\nBase Resolution:\n    {BASE_RESOLUTION} | 1x1 1")
+logging.info(f"Resizing factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}")
 
 def resize_image(img_path):
     global scale_factor
