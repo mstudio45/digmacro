@@ -54,20 +54,19 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-| Operating System          | Support Status     | Supported Versions                                                            | Tested On                             | Notes                                |
-| ------------------------- | ------------------ | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                          | Windows 10, Windows 11                | Nothing here                         |
-| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland was not tested               |
-| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                   | Apple M3 16 GB, Sequoia 15.5 (Retina) | Macro might struggle on macOS        |
+| Operating System          | Support Status     | Supported Versions                                                            | Tested On                             | Notes                                       |
+| ------------------------- | ------------------ | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------  |
+| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                          | Windows 10, Windows 11                | Nothing here                               |
+| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland was not tested                     |
+| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                   | Apple M3 16 GB, Sequoia 15.5 (Retina) | Macro might struggle with performance      |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
 ###  **macOS Stability Issues**
-| OS Version          | RAM                 | CPU                 | Support Status      | Notes                                                                   |
-| ------------------- | ------------------- | ------------------- | --------------------------------------------------------------------------------------------- |
-| Monterey 12.6.7+    | 8GB or more         | Apple Silicon       | ✅ Full Support     | **M3** works better with external monitors                              |
-| Monterey 12.6.7+    | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires 720p for stable 60 FPS          |
-
+| OS Version          | RAM                 | CPU                 | Support Status      | Notes                                                                                             |
+| ------------------- | ------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Monterey 12.6.7+    | 8GB or more         | Apple Silicon       | ✅ Full Support     | **M3 chip** works better with external monitors                                                   |
+| Monterey 12.6.7+    | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires a lot of config changes to make it work properly          |
 
 ---
 
@@ -222,7 +221,7 @@ The macro can move your character in different patterns (like a square, line, et
   - If you're having issues, try the following:
     1) Lower your in-game graphics and enable "Low Graphics" inside DIG settings
     2) Close background applications (ideally only have the macro and Roblox running)
-    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS)
+    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS, USE_PREDICTION, PLAYER_BAR_DETECTION)
     4) Change your screen resolution (for example 1080p to 720p)
 
 - **Running from source with macOS is not working well:**

@@ -312,11 +312,16 @@ class MainHandler:
             return
         
         # check the minigame #
-        avg_color = cv2.mean(screenshot_np[:, :15])[:3]
+        avg_color = cv2.mean(screenshot_np[:, :15])[:3] # check left side #
         self.minigame_detected_by_avg = max(avg_color) - min(avg_color) <= 1
+
         if self.minigame_detected_by_avg == False:
-            Variables.is_minigame_active = False
-            return
+            avg_color = cv2.mean(screenshot_np[:, -15:])[:3] # check right side #
+            self.minigame_detected_by_avg = max(avg_color) - min(avg_color) <= 1
+
+            if self.minigame_detected_by_avg == False:
+                Variables.is_minigame_active = False
+                return
 
         # find all stuff #
         self.DirtBar.find_dirt(gray_screenshot, region_left, region_top)

@@ -9,4 +9,4 @@
 ---
 
 ### 🚩 Known Issues
-- Nothing here...
+- [ ] Macro struggles on Intel CPUs and on certain macOS devices

@@ -12,6 +12,7 @@
 + Message boxes now appear above all other windows (Linux and Windows only)
 
 [Fixes]
++ Fixed pathfinding on macOS
 + Fixed UI resizing issues on monitors with different resolutions
 + Fixed the version checker
 ```
