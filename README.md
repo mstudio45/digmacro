@@ -213,6 +213,9 @@ The macro can move your character in different patterns (like a square, line, et
 
 ## 🔧 Troubleshooting
 
+- **Computer Vision is at the wrong place.**
+  - Go to the `storage` folder and delete `region.json` file. Then you will be prompted to re-select your minigame region again.
+
 - **Macro is missing clicks or not working well:**
   - The macro’s speed can be affected by several factors:
     1) Your CPU performance and Roblox FPS also impact how well the macro runs
