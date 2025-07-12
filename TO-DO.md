@@ -5,6 +5,7 @@
     - [ ] Tool for creating pathfinding macros
     - [ ] "random" movement pattern
 - [ ] Discord Webhook Notifications
+- [ ] Config presets
 
 ---
 
