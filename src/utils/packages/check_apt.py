@@ -14,9 +14,10 @@ required_packages = {
             "libgtk-3-0t64": "libgtk-3-0"
         },
 
-        "fedora": {
+        "rhel_based": {
             "gobject-introspection-devel": "gobject-introspection-devel",
-            "gtk3": "gtk3"
+            "gtk3": "gtk3",
+            "python3-gobject": "python3-gobject"
         },
 
         "arch_based": {

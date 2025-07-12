@@ -58,16 +58,17 @@ else:
     distro_key = ""
 
     is_ubuntu_based     = distro_id in [ "debian", "ubuntu", "raspbian", "linuxmint", "pop", "elementary", "zorin" ]
-    is_fedora           = distro_id in [ "fedora" ]
+    is_rhel_based       = distro_id in [ "rhel", "fedora", "bazzite" ]
     is_arch_based       = distro_id in [ "arch", "manjaro", "endeavouros", "garuda" ]
     is_opensuse_based   = distro_id in [ "opensuse", "suse", "opensuse-leap", "opensuse-tumbleweed" ]
 
-    if (is_ubuntu_based or is_fedora or is_arch_based or is_opensuse_based) == False:
-        print(f"{distro_name} ({distro_id}) is not supported.")
+    print(f"[INFO] Detected Linux distro: {distro_name} ({distro_id}), using key '{distro_key}'")
+    if (is_ubuntu_based or is_rhel_based or is_arch_based or is_opensuse_based) == False:
+        print(f"{distro_name} ({distro_id} - {distro_key}) is not supported. If your Linux Distro supports PyGObject, PyWebView and GTK make an feature request in the Discord Server to request official support for your Linux Distro.")
         sys.exit(1)
 
     if is_ubuntu_based:         distro_key = "ubuntu_based"
-    elif is_fedora:             distro_key = "fedora"
+    elif is_rhel_based:         distro_key = "rhel_based"
     elif is_arch_based:         distro_key = "arch_based"
     elif is_opensuse_based:     distro_key = "opensuse_based"
 
@@ -76,7 +77,7 @@ else:
         if is_ubuntu_based:
             return ["sudo", "apt-get", "install", "-y"]
         
-        elif is_fedora:
+        elif is_rhel_based:
             return ["sudo", "dnf", "install", "-y"]
         
         elif is_arch_based:
@@ -92,7 +93,7 @@ else:
         if is_ubuntu_based:
             cmd = ["dpkg-query", "-W", "-f=${Package}\n"]
 
-        elif is_fedora:
+        elif is_rhel_based:
             cmd = ["dnf", "list", "installed"]
 
         elif is_arch_based:
@@ -112,7 +113,7 @@ else:
             if is_ubuntu_based:
                 packages = output.split("\n")
 
-            elif is_fedora:
+            elif is_rhel_based:
                 lines = output.split("\n")
                 packages = [line.split()[0] for line in lines if line and not line.startswith("Installed Packages")]
 
