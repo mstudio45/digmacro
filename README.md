@@ -105,6 +105,12 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 ###  **macOS Setup**
 
+#### Video Tutorial
+<a href="https://youtu.be/KHdoO1UF_n0" title="Video Tutorial">
+  <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/tutorial_video.png" alt="Video Tutorial" width="500">
+</a>
+
+#### Text Tutorial
 1. **Download & unzip** `digmacro_macos.zip`, then double-click `digmacro_macos.app` to launch.
 
 2. If you see a warning that the app is from an unidentified developer, you need to allow it in your security settings:
