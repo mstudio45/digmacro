@@ -76,7 +76,7 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 > [!WARNING]
 > Some antivirus software may flag the standalone (pre-built) version as a **false positive**. <br />
-> This is a common issue with **binary files (`.exe`/`.app`/`.bin`)** generated using Python compilers such as **Nuitka** or **PyInstaller/auto-py-to-exe**. These tools bundle Python code into a single binary file, which can sometimes trigger antivirus alerts despite the code being completely safe. <br />
+> This is a common issue with **binary files (`.exe`/`.app`/`.bin`)** generated using Python compilers such as **Nuitka** or **PyInstaller/auto-py-to-exe**. These tools bundle Python code into a single binary file, which can sometimes trigger antivirus alerts despite the code being completely safe. <br /> <br />
 > **All of our code is open source and publicly available!**
 
 #### Standalone (pre-built) version
