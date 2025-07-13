@@ -9,8 +9,8 @@ from config import Config
 from utils.images.screenshots import take_screenshot
 from utils.images.screen import *
 
-import utils.general.mouse as Mouse
-import utils.general.keyboard as Keyboard
+import utils.input.mouse as Mouse
+import utils.input.keyboard as Keyboard
 
 from utils.general.movement_tracker import MovementTracker
 
@@ -21,7 +21,6 @@ def is_pos_in_bbox(pos_x, left, width):
 ## SELL ANYWHERE UI ##
 class SellUI:
     def __init__(self):
-        self.sell_img = resize_image(StaticVariables.sell_anywhere_btn_imgpath)
         self.total_sold = 0
     
     def toggle_shop(self):
@@ -32,29 +31,6 @@ class SellUI:
         if not Variables.is_idle():             logging.debug("Not idle, skipping..."); return
         if not Variables.is_roblox_focused:     logging.debug("Roblox is not focused."); return
         Variables.is_selling = True
-
-        # try to get the button #
-        # tryidx = 0
-        # button_pos = None
-        # 
-        # Mouse.move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
-        # 
-        # while Variables.is_running == True and tryidx < 5:
-        #     self.toggle_shop()
-        # 
-        #     button_pos = find_image(self.sell_img, Config.AUTO_SELL_BUTTON_CONFIDENCE, log=True)
-        #     if button_pos is not None: break
-        # 
-        #     time.sleep(0.25)
-        #     tryidx = tryidx + 1
-        # 
-        # if not button_pos or not Variables.is_running or tryidx >= 4:
-        #     logging.debug("Button not found.");
-        #     Variables.is_selling = False
-        #     return
-        # 
-        # target_x = button_pos["left"] + button_pos["width"] // 2
-        # target_y = button_pos["top"]  + button_pos["height"] // 2
 
         # sell items #
         self.toggle_shop()

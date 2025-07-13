@@ -36,7 +36,7 @@ check_special_errors() # still required to run, fixes for tkinter on windows #
 
 # imports #
 import logging, threading
-import cv2
+import cv2, webbrowser
 import pyautogui, pynput, mss
 
 from PySide6.QtWidgets import QApplication
@@ -161,9 +161,13 @@ if __name__ == "__main__":
             if res == "Yes":
                 try:
                     if current_os == "Windows":
-                        os.startfile("https://github.com/mstudio45/digmacro")
+                        webbrowser.open("https://github.com/mstudio45/digmacro")
                     else:
-                        subprocess.run([Variables.unix_macos_open_cmd, "https://github.com/mstudio45/digmacro"])
+                        subprocess.run(
+                            [Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"], 
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                        )
                 except Exception as e: logging.error(f"Failed to open link: {e}")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
@@ -219,13 +223,13 @@ if __name__ == "__main__":
     from utils.finder import MainHandler, SellUI
     from utils.pathfinding import PathfingingHandler
 
-    from utils.general.mouse import left_click
-    from utils.general.keyboard import press_key
+    from utils.input.mouse import left_click
+    from utils.input.keyboard import press_key
 
     from utils.images.screenshots import screenshot_cleanup
     from utils.images.screen import screen_res_str
 
-    from utils.roblox.rejoin import can_rejoin, rejoin_dig
+    from utils.roblox.rejoin import roblox_status_handler, rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
 
     from utils.general.fps_counter import FPSCounter
@@ -287,6 +291,7 @@ if __name__ == "__main__":
         # region selector #
         def check_saved_region(self):
             logging.info("Checking saved region...")
+            self.region_key = f"{current_os} {screen_res_str}" # TO-DO: Windows MonitorID:0x0 1920x1080
 
             if Config.USE_SAVED_POSITION and os.path.isfile(StaticVariables.region_filepath):
                 try:
@@ -294,10 +299,10 @@ if __name__ == "__main__":
                     if pos is None: pass
                     self.saved_regions = json.loads(pos)
 
-                    if screen_res_str in self.saved_regions:
-                        region = self.saved_regions[screen_res_str]
+                    if self.region_key in self.saved_regions:
+                        region = self.saved_regions[self.region_key]
                         if "left" in region and "top" in region and "width" in region and "height" in region:
-                            logging.info(f"Using saved region '{screen_res_str}'.")
+                            logging.info(f"Using saved region '{self.region_key}'.")
                             return region
                         else:
                             region = None
@@ -343,7 +348,7 @@ if __name__ == "__main__":
                 logging.info("Region has been set.")
                 region["height"] = max(16, region["height"]) # required for player bar aspect ratio checking #
                 Variables.minigame_region = region
-                self.saved_regions[screen_res_str] = region
+                self.saved_regions[self.region_key] = region
 
                 self.finder.setup_region_image_size()
 
@@ -360,9 +365,9 @@ if __name__ == "__main__":
                 
                 if Config.USE_SAVED_POSITION: 
                     FileHandler.write(StaticVariables.region_filepath, json.dumps(self.saved_regions, indent=4))
-                    logging.info(f"Region saved successfully as {screen_res_str}.")
+                    logging.info(f"Region saved successfully as {self.region_key}.")
 
-                logging.info(f"Region '{screen_res_str}' selected successfully.")
+                logging.info(f"Region '{self.region_key}' selected successfully.")
 
             # region selected correctly #
             Variables.is_roblox_focused = False
@@ -418,6 +423,7 @@ if __name__ == "__main__":
             self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count}", "green")
 
             # start minigame #
+            time.sleep(0.1)
             left_click()
             
             # waiting of max 1.5 sec #
@@ -429,7 +435,7 @@ if __name__ == "__main__":
                 timed_out = (time.time() - start) > 1.5
                 if Variables.is_minigame_active == True or timed_out: break
             
-            logging.debug(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active} | Equipped: {equipped}")
+            logging.info(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active} | Equipped: {equipped}")
             if not Variables.is_running or not Variables.is_roblox_focused: return
             
             if timed_out == True and Variables.is_minigame_active == False:
@@ -442,7 +448,7 @@ if __name__ == "__main__":
 
                 logging.info("Equipping shovel...")
                 press_key("1") # equip the shovel #
-                time.sleep(0.5)
+                time.sleep(0.8)
                 return self.start_minigame(equipped=True)
 
 
@@ -455,7 +461,8 @@ if __name__ == "__main__":
                 self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
                 if Variables.sleep(1): break
                 continue
-                
+            
+            time.sleep(0.5)
             if Variables.is_running: 
                 while Variables.is_running:
                     time.sleep(0.25)
@@ -469,8 +476,7 @@ if __name__ == "__main__":
                     else:
                         # main handler #
                         if Config.AUTO_REJOIN:
-                            if Variables.is_rejoining: 
-                                continue
+                            if Variables.is_rejoining: continue
 
                             if can_rejoin(self.total_idle_time):
                                 self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
@@ -659,7 +665,7 @@ if __name__ == "__main__":
     if Config.AUTO_SELL == True and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.", bypass=True)
         Config.AUTO_SELL = False
-    
+
     # region #
     macro.setup_finder_thread()
     macro.setup_region_setter()

@@ -2,8 +2,6 @@ import psutil, logging, subprocess
 import platform, traceback
 
 __all__ = ["is_roblox_focused", "focus_roblox", "kill_roblox", "is_roblox_running"]
-
-# make functions depending on the os #
 current_os = platform.system()
 
 if current_os == "Windows":
@@ -23,8 +21,8 @@ if current_os == "Windows":
             if not roblox_window: return
             roblox_window = roblox_window[0]
 
-            roblox_window.restore() # minimized #
             roblox_window.activate()
+            roblox_window.show()
 
             win32gui.ShowWindow(roblox_window._hWnd, win32con.SW_SHOW)
             win32gui.SetForegroundWindow(roblox_window._hWnd)

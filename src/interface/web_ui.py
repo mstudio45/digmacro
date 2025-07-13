@@ -1,5 +1,5 @@
-import os, sys, time, threading, logging, traceback
-import cv2
+import sys, time, threading, logging, traceback
+import cv2, webbrowser
 import webview, platform, subprocess
 
 from config import Config
@@ -61,9 +61,13 @@ class WebUI(UIBase):
 
         try:
             if current_os == "Windows":
-                os.startfile(url)
+                webbrowser.open(url)
             else:
-                subprocess.run([Variables.unix_macos_open_cmd, url])
+                subprocess.run(
+                    [Variables.unix_open_app_cmd, url], 
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
         except Exception as e: logging.error(f"Failed to open link: {e}")
 
     def close(self):

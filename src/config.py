@@ -68,24 +68,10 @@ settings_table = {
     },
     "AUTO_REJOIN_INACTIVITY_TIMEOUT": {
         "widget": "QDoubleSpinBox",
-        "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes).",
-        "min": 0.5,
+        "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes, to disable this set the value to 0).",
+        "min": 0.0,
         "max": 10.0,
         "step": 0.1
-    },
-    "AUTO_REJOIN_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Used in Auto Rejoin to find the Gamepass Shop button to see if the rejoin was successful.",
-        "min": 0.35,
-        "max": 1.0,
-        "step": 0.01
-    },
-    "AUTO_REJOIN_RECONNECT_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Used in Auto Rejoin to check if the reconnect button (in the 'Disconnected' menu) is on the screen.",
-        "min": 0.35,
-        "max": 1.0,
-        "step": 0.01
     },
     
     # MINIGAME OPTIONS #
@@ -314,10 +300,7 @@ class ConfigManager:
             "ROBLOX": {
                 "AUTO_REJOIN": False,
                 "PRIVATE_SERVER_CODE": "",
-                
-                "AUTO_REJOIN_INACTIVITY_TIMEOUT": 1.5,
-                "AUTO_REJOIN_CONFIDENCE": 0.85,
-                "AUTO_REJOIN_RECONNECT_CONFIDENCE": 0.85
+                "AUTO_REJOIN_INACTIVITY_TIMEOUT": 2.5,
             },
 
             "MINIGAME": {

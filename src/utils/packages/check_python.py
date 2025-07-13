@@ -5,34 +5,36 @@ from utils.packages.versions import check_package_version
 __all__ = ["check_pip_packages"]
 required_packages = {
     "all": [
-        { "pip": "opencv-python",   "import": "cv2",            "version": "all" },
-        { "pip": "numpy",           "import": "numpy",          "version": "all" },
-        { "pip": "PyAutoGUI",       "import": "pyautogui",      "version": "all" },
-        { "pip": "mss",             "import": "mss",            "version": "all" },
-        { "pip": "screeninfo",      "import": "screeninfo",     "version": "all" },
+        { "pip": "opencv-python",   "import": "cv2",            "version": "all"   },
+        { "pip": "numpy",           "import": "numpy",          "version": "all"   },
+        { "pip": "PyAutoGUI",       "import": "pyautogui",      "version": "all"   },
+        { "pip": "PyScreeze",       "import": "pyscreeze",      "version": "all"   },                
+        { "pip": "mss",             "import": "mss",            "version": "all"   },
+        { "pip": "screeninfo",      "import": "screeninfo",     "version": "all"   },
         { "pip": "pynput",          "import": "pynput",         "version": "1.8.1" },
-        { "pip": "requests",        "import": "requests",       "version": "all" },
-        { "pip": "PySide6",         "import": "PySide6",        "version": "all" },
-        { "pip": "psutil",          "import": "psutil",         "version": "all" },
-        { "pip": "logging",         "import": "logging",        "version": "all" },
-        { "pip": "pillow",          "import": "PIL",            "version": "all" }
+        { "pip": "requests",        "import": "requests",       "version": "all"   },
+        { "pip": "PySide6",         "import": "PySide6",        "version": "all"   },
+        { "pip": "psutil",          "import": "psutil",         "version": "all"   },
+        { "pip": "logging",         "import": "logging",        "version": "all"   },
+        { "pip": "pillow",          "import": "PIL",            "version": "all"   },
+        { "pip": "watchdog",        "import": "watchdog",       "version": "all"   },
     ],
 
     "Windows": [
-        { "pip": "pywebview",        "import":  "webview",      "version": "all" },
-        { "pip": "bettercam",        "import":  "bettercam",    "version": "all" },
-        { "pip": "PyGetWindow",      "import":  "pygetwindow",  "version": "all" },
-        { "pip": "pywin32",          "import":  "win32gui",     "version": "all" },
-        { "pip": "PyAutoIt",         "import":  "autoit",       "version": "all" }
+        { "pip": "pywebview",        "import":  "webview",      "version": "all"   },
+        { "pip": "bettercam",        "import":  "bettercam",    "version": "all"   },
+        { "pip": "PyGetWindow",      "import":  "pygetwindow",  "version": "all"   },
+        { "pip": "pywin32",          "import":  "win32gui",     "version": "all"   },
+        { "pip": "PyAutoIt",         "import":  "autoit",       "version": "all"   },
     ],
 
     "Linux": [
-        { "pip": "pywebview[gtk]",   "import": "webview",       "version": "all" },
+        { "pip": "pywebview[gtk]",   "import": "webview",       "version": "all"   },
     ],
 
     "Darwin": [
-        { "pip": "pywebview",        "import": "webview",       "version": "all" },
-        { "pip": "pyobjc",           "import": "AppKit",        "version": "all" }
+        { "pip": "pywebview",        "import": "webview",       "version": "all"   },
+        { "pip": "pyobjc",           "import": "AppKit",        "version": "all"   },
     ]
 }
 check_import_only = ["pywebview[gtk]"]

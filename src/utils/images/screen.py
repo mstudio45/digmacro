@@ -12,7 +12,7 @@ from config import Config
 from utils.images.screenshots import take_screenshot
 
 __all__ = [
-    "resize_image", "stack_images_with_dividers", "find_image", "write_image",
+    "stack_images_with_dividers", "write_image",
     
     "screen_region", "screen_res_str",
     "scale_x", "scale_y", "scale_factor",
@@ -22,8 +22,9 @@ __all__ = [
 # get the display resolution to support all window sizes #
 BASE_RESOLUTION = (1920, 1080)
 screen_res_str = "0x0 1920x1080"
-scale_x, scale_y, scale_factor = 1.0, 1.0, 1.0
 base_width, base_height = BASE_RESOLUTION
+
+scale_x, scale_y, scale_factor = 1.0, 1.0, 1.0
 screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "height": BASE_RESOLUTION[1] }
 logical_screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "height": BASE_RESOLUTION[1] }
 
@@ -137,7 +138,7 @@ try:
         }
 
     elif current_os == "Windows":
-        import ctypes
+        import ctypes, ctypes.wintypes
         
         MDT_EFFECTIVE_DPI = 0
 
@@ -244,24 +245,23 @@ except Exception as e:
     msgbox.alert(f"Failed to get the correct Display Resolution: {traceback.format_exc()}")
     sys.exit(1)
 
-logging.info(f"\nPhysical Screen region (scaled by DPI):\n    {screen_region} | {scale_x:.2f}x{scale_y:.2f} - {scale_factor}\nBase Resolution:\n    {BASE_RESOLUTION} | 1x1 1")
-logging.info(f"Resizing factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}")
+# DEBUG INFO
+logging.info(f"\n=== SCALING DEBUG INFO ===")
 
-def resize_image(img_path):
-    global scale_factor
+# res #
+logging.info(f"Base Resolution (resolution that was used for asset images): {BASE_RESOLUTION}")
+logging.info(f"Screen Resolution: {screen_res_str}")
+logging.info(f"Current (Physical) Screen Region: {screen_region}")
+logging.info(f"Logical Screen Region: {logical_screen_region}")
 
-    try:
-        # read the image without changes #
-        image = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-        if image is None: raise IOError(f"Image not found at {str(img_path)}")
+# scale #
+logging.info(f"Scale X: {scale_x:.5f}, Scale Y: {scale_y:.5f}")
+logging.info(f"Scale Factor: {scale_factor:.5f}")
+logging.info(f"Image Finder Scale Factor: {1.0 / scale_factor:.5f}")
+logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}")
 
-        # calculate new resize dimensions #
-        h, w, _ = image.shape
-        new_w, new_h = int(w * scale_factor), int(h * scale_factor)
-        return cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-    except Exception as e:
-        msgbox.alert(f"Failed to resize the image '{str(img_path)}': \n{traceback.format_exc()}")
-        sys.exit(1)
+logging.info(f"Screenshot package: { Config.SCREENSHOT_PACKAGE}")
+logging.info(f"========================\n")
 
 black_pixel = np.zeros((1, 1, 3), dtype=np.uint8)
 def stack_images_with_dividers(images, margin_thickness=2):
@@ -316,67 +316,6 @@ def stack_images_with_dividers(images, margin_thickness=2):
     except Exception as e:
         logging.error(f"Failed to stack images: \n{traceback.format_exc()}")
         return None
-    
-def find_image(image, confidence, log=False, region=None):
-    if region is None:
-        if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam (Windows)":
-            region = logical_screen_region
-        else:
-            region = screen_region
-    
-    try:
-        sct = mss.mss()
-        screenshot_bgr = take_screenshot(region, sct)
-
-        template = cv2.imread(image, cv2.IMREAD_COLOR) if isinstance(image, str) else image
-        if template is None:
-            try: sct.close() 
-            except: pass
-
-            logging.error("Image is None.")
-            return None
-        
-        # ensure same format and number of dimensions #
-        if len(screenshot_bgr.shape) != len(template.shape):
-            try: sct.close() 
-            except: pass
-
-            logging.error("Screenshot and template have different number of dimensions.")
-            return None
-
-        if screenshot_bgr.shape[2] != template.shape[2]:
-            if screenshot_bgr.shape[2] == 4: screenshot_bgr = cv2.cvtColor(screenshot_bgr, cv2.COLOR_BGRA2BGR)
-            if template.shape[2] == 4: template = cv2.cvtColor(template, cv2.COLOR_BGRA2BGR)
-
-        # get shapes #
-        h_template, w_template = template.shape[:2]
-        h_screen, w_screen = screenshot_bgr.shape[:2]
-
-        # template (img we want to find) is bigger than screenshot #
-        if h_template > h_screen or w_template > w_screen:
-            try: sct.close() 
-            except: pass
-
-            logging.error("Image is bigger than screenshot.")
-            return None
-        
-        # match the template #
-        result = cv2.matchTemplate(screenshot_bgr, template, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-
-        if log == True: print(f"Max: {max_val} >= {confidence}")
-        if max_val >= confidence:
-            try: sct.close() 
-            except: pass
-            
-            top_left = max_loc
-            return { "left": top_left[0], "top": top_left[1], "width": w_template, "height": h_template }
-        
-        return None
-    except Exception as e:
-        logging.error(f"Error: \n{traceback.format_exc()}")
-    
-    return None
 
 def write_image(filename, image):
     try: 

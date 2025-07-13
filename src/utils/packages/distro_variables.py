@@ -62,15 +62,15 @@ else:
     is_arch_based       = distro_id in [ "arch", "manjaro", "endeavouros", "garuda" ]
     is_opensuse_based   = distro_id in [ "opensuse", "suse", "opensuse-leap", "opensuse-tumbleweed" ]
 
-    print(f"[INFO] Detected Linux distro: {distro_name} ({distro_id}), using key '{distro_key}'")
-    if (is_ubuntu_based or is_rhel_based or is_arch_based or is_opensuse_based) == False:
-        print(f"{distro_name} ({distro_id} - {distro_key}) is not supported. If your Linux Distro supports PyGObject, PyWebView and GTK make an feature request in the Discord Server to request official support for your Linux Distro.")
-        sys.exit(1)
-
     if is_ubuntu_based:         distro_key = "ubuntu_based"
     elif is_rhel_based:         distro_key = "rhel_based"
     elif is_arch_based:         distro_key = "arch_based"
     elif is_opensuse_based:     distro_key = "opensuse_based"
+
+    print(f"[INFO] Detected Linux distro: {distro_name} ({distro_id}), using key '{distro_key}'")
+    if (is_ubuntu_based or is_rhel_based or is_arch_based or is_opensuse_based) == False:
+        print(f"{distro_name} ({distro_id} - {distro_key}) is not supported. If your Linux Distro supports PyGObject, PyWebView and GTK make an feature request in the Discord Server to request official support for your Linux Distro.")
+        sys.exit(1)
 
     # linux functions #
     def get_linux_app_install_cmd():

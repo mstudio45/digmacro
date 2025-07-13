@@ -5,7 +5,11 @@
 + Added a macOS permission checker for Screen Recording and Accessibility
 + Added "Gradient" detection method that will be more stable for certain computers
 
+[Changes]
++ Changed saved region format (OS leftxtop heightxwidth)
+
 [Improvements]
++ Improved Auto Rejoin system
 + Macro loading now waits until Roblox is focused for 1 second before starting
 + Enhanced the minigame recognition system (if it is active or not)
 + Improved prediction screenshot configuration (found and clicked frames are now saved when the setting is enabled)

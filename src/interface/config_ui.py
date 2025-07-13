@@ -137,7 +137,7 @@ class ConfigUI(QWidget):
 
                     self.avalaible_regions = json.loads(pos)
                     if self.avalaible_regions:
-                        region_group_layout.addWidget(QLabel("Region Format Example: 0x0 1920x1080 (monitor left and top position, display resolution)"))
+                        region_group_layout.addWidget(QLabel("Region Format Example: 'Windows 0x0 1920x1080' (os leftxtop widthxheight)"))
 
                         # list #
                         self.region_widget = QComboBox()

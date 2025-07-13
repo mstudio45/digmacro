@@ -39,7 +39,7 @@ class Variables:
     is_idle = lambda: (Variables.is_rejoining == False and Variables.is_walking == False and Variables.is_selling == False and Variables.is_minigame_active == False) == True
 
     # cmds #
-    unix_macos_open_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
+    unix_open_app_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
     where_cmd = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
 
     # functions #
@@ -55,10 +55,6 @@ class Variables:
 class StaticVariables:
     ui_filepath                 = resource_path(os.path.join("assets", "ui", "ui.html"))
     guide_ui_filepath           = resource_path(os.path.join("assets", "ui", "guide.html"))
-
-    sell_anywhere_btn_imgpath   = resource_path(os.path.join("assets", "sell.png"))
-    topbar_btns_imgpath         = resource_path(os.path.join("assets", "topbar_btns.png"))
-    reconnect_btn_imgpath       = resource_path(os.path.join("assets", "reconnect.png"))
     region_example_imgpath      = resource_path(os.path.join("assets", "select_example.png"))
 
     region_filepath = os.path.join("storage", "region.json")

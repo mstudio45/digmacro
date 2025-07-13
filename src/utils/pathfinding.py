@@ -1,6 +1,6 @@
 import time, logging
 
-from utils.general.keyboard import press_key, press_multiple_keys
+from utils.input.keyboard import press_key, press_multiple_keys
 from config import Config
 from variables import Variables
 

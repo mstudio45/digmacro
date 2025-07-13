@@ -4,6 +4,8 @@
     - [ ] Better saving system and format
     - [ ] Tool for creating pathfinding macros
     - [ ] "random" movement pattern
+    - [ ] ShiftLock support
+    - [ ] Walking slowdown calculation
 - [ ] Discord Webhook Notifications
 - [ ] Config presets
 
