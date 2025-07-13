@@ -1,4 +1,4 @@
-# DIG macro
+# DIG Macro
 
 <p align="center">
     <img src="https://github.com/user-attachments/assets/a15c5e87-ab1e-44e6-be01-0fd095e00982" alt="Showcase video"> <br />

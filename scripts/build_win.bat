@@ -16,7 +16,7 @@ if errorlevel 1 (
 py -m nuitka ^
   --onefile ^
   --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" ^
-  --lto=yes ^
+  --lto=auto ^
   --standalone ^
   --follow-imports ^
   --assume-yes-for-downloads ^
