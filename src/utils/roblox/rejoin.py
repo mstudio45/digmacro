@@ -52,7 +52,7 @@ def launch_protocol(protocol):
         webbrowser.open(protocol)
         return
 
-    subprocess.run(
+    subprocess.Popen(
         [Variables.unix_open_app_cmd, protocol],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL

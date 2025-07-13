@@ -8,10 +8,19 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
 
 compiled = "__compiled__" in globals()
 def restart_macro(args=["--skip-selection"]):
+    final_exe, final_args = "", []
+
     if compiled:
-        os.execvp(sys.argv[0], args)
+        final_exe = sys.argv[0]
+        final_args = args
     else:
-        os.execvp(sys.executable, [sys.executable, os.path.abspath(__file__)] + args)
+        final_exe = sys.executable
+        final_args = [sys.executable, os.path.abspath(__file__)] + args
+
+    print(f"Restarting: {final_exe} {final_args}")
+    logging.info(f"Restarting: {final_exe} {final_args}")
+    
+    os.execvp(final_exe, final_args)
     return
 
 # install requirements #
@@ -31,6 +40,7 @@ if "--skip-install" not in sys.argv:
     if check_shutil_applications() or check_apt_packages() or check_pip_packages():
         restart_macro(["--skip-install"])
         sys.exit(0)
+else: logging.info("Package installation skipped.")
 
 check_special_errors() # still required to run, fixes for tkinter on windows #
 
@@ -135,7 +145,7 @@ if __name__ == "__main__":
     print("Loading config...")
     Config.load_config() # default_config_loaded
 
-    from utils.logs import setup_logger;
+    from utils.logs import setup_logger, disable_spammy_loggers
     print("Loading logger...")
     setup_logger()
 
@@ -163,11 +173,7 @@ if __name__ == "__main__":
                     if current_os == "Windows":
                         webbrowser.open("https://github.com/mstudio45/digmacro")
                     else:
-                        subprocess.run(
-                            [Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"], 
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL
-                        )
+                        subprocess.run([Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"])
                 except Exception as e: logging.error(f"Failed to open link: {e}")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
@@ -199,22 +205,25 @@ if __name__ == "__main__":
         else: logging.info("Starting the macro...")
 
     # log opencv info #
+    logging.info("===============================")
+
     logging.debug(cv2.getBuildInformation())
     logging.info("Optimizing opencv...")
 
     try:
-        logging.info(f"===============================\nOptimized: {cv2.useOptimized()}\nThreads: {cv2.getNumThreads()}\nCPUs: {cv2.getNumberOfCPUs()}")
+        logging.info(f"Optimized: {cv2.useOptimized()} - Threads: {cv2.getNumThreads()} - CPUs: {cv2.getNumberOfCPUs()}")
 
         cv2.setUseOptimized(True)
         cv2.setNumThreads(cv2.getNumberOfCPUs())
 
-        logging.info(f"===============================\nOptimized: {cv2.useOptimized()}\nThreads: {cv2.getNumThreads()}\nCPUs: {cv2.getNumberOfCPUs()}")
-    except Exception as e: logging.critical(f"Failed to optimize opencv (#1): {str(e)}")
-
-    try:
-        logging.info("Enabling OpenCL...")
-        cv2.ocl.setUseOpenCL(True)
-    except Exception as e: logging.critical(f"Failed to optimize opencv (#2): {str(e)}")
+        logging.info(f"Optimized: {cv2.useOptimized()} - Threads: {cv2.getNumThreads()} - CPUs: {cv2.getNumberOfCPUs()}")
+    except Exception as e: logging.critical(f"Failed to optimize opencv: {str(e)}")
+    
+    # try:
+    #     time.sleep(0.1)
+    #     logging.info("Enabling OpenCL...")
+    #     cv2.ocl.setUseOpenCL(True)
+    # except Exception as e: logging.critical(f"Failed to optimize opencv (#2): {str(e)}")
 
     logging.info("===============================")
 
@@ -229,7 +238,7 @@ if __name__ == "__main__":
     from utils.images.screenshots import screenshot_cleanup
     from utils.images.screen import screen_res_str
 
-    from utils.roblox.rejoin import roblox_status_handler, rejoin_dig, can_rejoin
+    from utils.roblox.rejoin import rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
 
     from utils.general.fps_counter import FPSCounter
@@ -248,6 +257,9 @@ if __name__ == "__main__":
 
             self.total_idle_time = 0
             self.hotkeys = None
+
+            self.last_text = ""
+            self.last_hint = ""
 
             # classes #
             self.region_selector = RegionSelector()
@@ -290,52 +302,64 @@ if __name__ == "__main__":
 
         # region selector #
         def check_saved_region(self):
-            logging.info("Checking saved region...")
             self.region_key = f"{current_os} {screen_res_str}" # TO-DO: Windows MonitorID:0x0 1920x1080
+            logging.info(f"Checking saved region: {self.region_key}...")
 
-            if Config.USE_SAVED_POSITION and os.path.isfile(StaticVariables.region_filepath):
-                try:
-                    pos = FileHandler.read(StaticVariables.region_filepath)
-                    if pos is None: pass
+            if Config.USE_SAVED_POSITION == False or not os.path.isfile(StaticVariables.region_filepath):
+                logging.info("Saved regions are disabled or storage/region.json file doesn't exist.")
+                return None
+            
+            try:
+                pos = FileHandler.read(StaticVariables.region_filepath)
+                if pos is not None and isinstance(pos, str) and pos != "":
                     self.saved_regions = json.loads(pos)
 
                     if self.region_key in self.saved_regions:
                         region = self.saved_regions[self.region_key]
+
                         if "left" in region and "top" in region and "width" in region and "height" in region:
-                            logging.info(f"Using saved region '{self.region_key}'.")
+                            logging.info(f"Using saved region '{self.region_key}'.\n")
                             return region
                         else:
-                            region = None
-                except Exception as e:
-                    msgbox.alert(f"Failed to load saved position: \n{traceback.format_exc()}", log_level=logging.ERROR)
+                            logging.info(f"Invalid region found: '{self.region_key}', it will be deleted.\n")
+                            self.saved_regions[self.region_key] = None
+                        ##########################################################################
+                    else: logging.info(f"{self.region_key} doesn't exist, will prompt region selector.\n")
+                else: logging.info("Failed to read region file/Invalid data found inside region file.\n")
+            except Exception as e: msgbox.alert(f"Failed to load saved position: \n{str(e)}", log_level=logging.ERROR)
 
             return None
         
         def setup_region_setter(self): # requires to be run in main thread #
+            logging.info("Loading region setter...")
             region = self.check_saved_region()
             
             if "--region-check" in sys.argv:
-                Variables.minigame_region = region
-                self.finder.setup_region_image_size()
-
+                logging.info("Loading region check...")
                 if region is None:
-                    print("Invalid region, you need to have a saved region.")
+                    msgbox.alert("Invalid region, you need to have a saved region.", bypass=True)
                     self.exit_macro()
                     sys.exit(1)
 
+                Variables.minigame_region = region
+                self.finder.setup_region_image_size()
+                
+                logging.info("Loading region check UI...")
                 self.region_check_ui.start()
                 self.exit_macro()
                 sys.exit(0)
 
+            logging.info(f"Saved region: {region}")
             if region is None:
                 # load guide #
-                logging.info("Showing guide...")
-
                 if "--skip-guide-ui" not in sys.argv:
+                    logging.info("Showing guide...")
+
                     self.guide_ui.start()
                     if not Variables.is_running or self.guide_ui.is_running == False:
                         self.exit_macro()
                         return
+                else: logging.info("Guide UI skipped.")
 
                 # start region select #
                 logging.info("Starting region selection...")
@@ -349,10 +373,10 @@ if __name__ == "__main__":
                 region["height"] = max(16, region["height"]) # required for player bar aspect ratio checking #
                 Variables.minigame_region = region
                 self.saved_regions[self.region_key] = region
-
                 self.finder.setup_region_image_size()
 
                 # load region select checker ui #
+                logging.info("Loading region check UI...")
                 self.region_check_ui.start()
                 if self.region_check_ui.restart_macro:
                     self.exit_macro()
@@ -370,31 +394,37 @@ if __name__ == "__main__":
                 logging.info(f"Region '{self.region_key}' selected successfully.")
 
             # region selected correctly #
+            logging.info("Region has been loaded successfully.\n")
             Variables.is_roblox_focused = False
             Variables.is_selecting_region = False
             Variables.minigame_region = region
             self.finder.setup_region_image_size()
 
         # window functions #
-        def update_window_status(self, text, hint, circleColor): 
-            self.ui.window.evaluate_js(f'updateStatus("{text}", "{hint}", "{circleColor}")')
+        def update_window_status(self, text, hint, circleColor):
+            if (text == "" and hint == "") or text != self.last_text or hint != self.last_hint: # prevent update spam #
+                self.last_text = text
+                self.last_hint = hint
+
+                logging.debug(f"[UI STATUS - {circleColor}] {text}: {hint}")
+                self.ui.window.evaluate_js(f'updateStatus("{text}", "{hint}", "{circleColor}")')
 
         # hotkeys #
         def setup_hotkeys(self):
             if not Variables.is_running: return
 
             if current_os == "Darwin": # macos will crash for some reason
-                logging.info("Global hotkeys disabled on macOS. You can stop the macro by closing the UI window.")
+                logging.info("Global hotkeys disabled are currently disabled on macOS. You can stop the macro by closing the UI window.\n")
                 return
             
             try:
                 self.hotkeys = pynput.keyboard.GlobalHotKeys({ "<ctrl>+e": lambda: setattr(Variables, "is_running", False) })
                 self.hotkeys.__enter__()
 
-                logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.")
+                logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.\n")
             except Exception as e:
-                logging.warning(f"Failed to setup global hotkeys: {e}")
-                logging.info("You can stop the macro by closing the UI window.")
+                msgbox.alert(f"Failed to setup global hotkeys: {str(e)}", bypass=True)
+                logging.info("You can stop the macro by closing the UI window.\n")
 
         # main function #
         def sell_all_items(self, was_last_key=False):
@@ -451,12 +481,12 @@ if __name__ == "__main__":
                 time.sleep(0.8)
                 return self.start_minigame(equipped=True)
 
-
         def main_loop(self, _):
             logging.info("Creating screenshot folders...")
             FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
-            logging.info("Waiting for Roblox to be focused atleast one to start...")
+            # TO-DO: switch to pause system
+            logging.info("Waiting for Roblox to be focused atleast once for the macro to start...")
             while not Variables.is_roblox_focused:
                 self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
                 if Variables.sleep(1): break
@@ -473,8 +503,8 @@ if __name__ == "__main__":
                             self.update_window_status("Minigame", "Completing minigame...", "green")
                         
                         self.total_idle_time = 0
-                    else:
-                        # main handler #
+                    else: # main handler #
+
                         if Config.AUTO_REJOIN:
                             if Variables.is_rejoining: continue
 
@@ -532,11 +562,12 @@ if __name__ == "__main__":
                             was_last_key = self.pathfinding.start_walking()
                         
                         # auto sell #
-                        if Config.AUTO_SELL == True: self.sell_all_items(was_last_key=was_last_key)
+                        if Config.AUTO_SELL == True: 
+                            self.sell_all_items(was_last_key=was_last_key)
 
                         # minigame handler #
-                        if Config.AUTO_START_MINIGAME == True: self.start_minigame()
-                
+                        if Config.AUTO_START_MINIGAME == True: 
+                            self.start_minigame()
             ###############################################################################################
             logging.info("Main loop has successfully ended.")
             self.ui.stop_window()
@@ -659,6 +690,7 @@ if __name__ == "__main__":
             logging.info("----------- CLEANUP DONE -------------")
 
     # load main macro handler #
+    logging.info("Loading MacroHandler...")
     macro = MacroHandler()
 
     # verify configuration #
@@ -678,6 +710,8 @@ if __name__ == "__main__":
 
     # load ui #
     if Variables.is_running:
+        disable_spammy_loggers()
+
         logging.info("Loading UI...")
         macro.ui.start(macro.main_loop)
         macro.exit_macro()

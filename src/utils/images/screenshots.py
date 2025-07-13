@@ -8,10 +8,8 @@ if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
     import bettercam # type: ignore
     camera = bettercam.create(output_idx=0, output_color="BGRA")
 
-    # disable console spam #
-    loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
-    for logger in loggers: 
-        if logger.name.startswith("comtypes"): logger.setLevel(logging.CRITICAL)
+    from utils.logs import disable_spammy_loggers
+    disable_spammy_loggers()
     
     def take_screenshot(region, sct):
         return camera.grab(region=(

@@ -246,19 +246,19 @@ except Exception as e:
     sys.exit(1)
 
 # DEBUG INFO
-logging.info(f"\n=== SCALING DEBUG INFO ===")
+logging.info(f"=== SCALING DEBUG INFO ===")
 
 # res #
 logging.info(f"Base Resolution (resolution that was used for asset images): {BASE_RESOLUTION}")
 logging.info(f"Screen Resolution: {screen_res_str}")
 logging.info(f"Current (Physical) Screen Region: {screen_region}")
-logging.info(f"Logical Screen Region: {logical_screen_region}")
+logging.info(f"Logical Screen Region: {logical_screen_region}\n")
 
 # scale #
 logging.info(f"Scale X: {scale_x:.5f}, Scale Y: {scale_y:.5f}")
 logging.info(f"Scale Factor: {scale_factor:.5f}")
 logging.info(f"Image Finder Scale Factor: {1.0 / scale_factor:.5f}")
-logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}")
+logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}\n")
 
 logging.info(f"Screenshot package: { Config.SCREENSHOT_PACKAGE}")
 logging.info(f"========================\n")

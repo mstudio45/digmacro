@@ -35,6 +35,13 @@ class UIBase:
         logging.info("[UIBase] Window destroyed successfully.")
 
     def create_window(self):
+        logging.debug("Fetching 'UI_ON_TOP' configuration...")
+        is_on_top = True
+        if hasattr(Config, "UI_ON_TOP"):
+            if isinstance(Config.UI_ON_TOP, bool):
+                is_on_top = Config.UI_ON_TOP
+
+        logging.debug(f"Creating a new pywebview window - on_top={is_on_top}...")
         self.window = webview.create_window(
             "mstudio45's DIG macro",
             html=self.html,
@@ -43,9 +50,10 @@ class UIBase:
 
             frameless=True, easy_drag=False,
             transparent=False, shadow=True,
-            on_top=Config.UI_ON_TOP, focus=True
+            on_top=is_on_top, focus=True
         )
         self.window.expose(self.resize_window, self.get_session_id, self.get_scale_override)
+        logging.debug("Window has been created.")
 
 class WebUI(UIBase):
     def __init__(self, finder):
@@ -63,11 +71,7 @@ class WebUI(UIBase):
             if current_os == "Windows":
                 webbrowser.open(url)
             else:
-                subprocess.run(
-                    [Variables.unix_open_app_cmd, url], 
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
+                subprocess.run([Variables.unix_open_app_cmd, url])
         except Exception as e: logging.error(f"Failed to open link: {e}")
 
     def close(self):
@@ -92,6 +96,7 @@ class WebUI(UIBase):
             self.next_logic_thread.start()
 
         # start ui #
+        logging.info("Starting Web UI (webview.start)...")
         webview.start(gui=gui_type)
 
     def update(self):
@@ -145,6 +150,7 @@ class GuideUI(UIBase):
         self.window.expose(self.start_region_select, self.close, self.get_image)
 
         # start ui #
+        logging.info("Starting Guide UI (webview.start)...")
         webview.start(gui=gui_type)
 
 class RegionCheckUI(UIBase):
@@ -182,6 +188,7 @@ class RegionCheckUI(UIBase):
         self.window.expose(self.region_okay, self.close, self.restart)
 
         # start ui #
+        logging.info("Starting Region UI (webview.start)...")
         webview.start(self.update, gui=gui_type)
 
     def update(self):

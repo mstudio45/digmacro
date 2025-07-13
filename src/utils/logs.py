@@ -34,3 +34,13 @@ def setup_logger():
 
     # loaded #
     logging.debug("Logger loaded!")
+
+def disable_spammy_loggers():
+    logging.info("Disabling spammy loggers...")
+
+    # disable console spam #
+    all_loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for logger in all_loggers:
+        if logger.name.startswith("comtypes") or logger.name.startswith("watchdog.observers.inotify"):
+            logging.info(f"  - {logger.name} disabled.")
+            logger.setLevel(logging.ERROR)
