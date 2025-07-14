@@ -105,6 +105,8 @@ if __name__ == "__main__":
                 if res == "OK":
                     restart_macro()
                     sys.exit(0)
+                elif res == "Skip":
+                    print("Skipped...")
                 else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
             else: logging.info("[macOS Permissions] Accessibility access is enabled.")
 
@@ -125,9 +127,12 @@ if __name__ == "__main__":
                     title="DIGMacro - Permission Issue",
                     buttons=("OK", "Skip", "Exit")
                 )
+                
                 if res == "OK":
                     restart_macro()
                     sys.exit(0)
+                elif res == "Skip":
+                    print("Skipped...")
                 else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
 
             # we will skip input monitoring permission, the user needs to use their keyboard and mouse for the test to work #
