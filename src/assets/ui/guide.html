@@ -95,7 +95,10 @@
             const width = wrapper.offsetWidth;
             const height = wrapper.offsetHeight;
 
-            await window.pywebview.api.resize_window(Math.ceil(width * scale), Math.ceil(height * scale));
+            await window.pywebview.api.resize_window(
+                Math.ceil(width * scale * window.devicePixelRatio), 
+                Math.ceil(height * scale * window.devicePixelRatio)
+            );
             await scaleContent(scale, width, height);
 
             pywebview.api.get_session_id().then((id) => {

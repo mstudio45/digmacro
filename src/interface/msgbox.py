@@ -51,7 +51,7 @@ if current_os == "Darwin":
 else:
     import tkinter as tk
     from tkinter import ttk, messagebox
-    from utils.images.screen import screen_region
+    from utils.images.screen import logical_screen_region
 
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
         if not message: return
@@ -115,8 +115,8 @@ else:
         dialog_width = dialog.winfo_reqwidth()
         dialog_height = dialog.winfo_reqheight()
 
-        x_pos = (screen_region["width"] // 2) - (dialog_width // 2)
-        y_pos = (screen_region["height"] // 2) - (dialog_height // 2)
+        x_pos = (logical_screen_region["width"] // 2) - (dialog_width // 2)
+        y_pos = (logical_screen_region["height"] // 2) - (dialog_height // 2)
         dialog.geometry(f"+{x_pos}+{y_pos}")
 
         # wait for result #

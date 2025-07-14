@@ -3,18 +3,16 @@ import numpy as np
 import logging
 import cv2, base64, io
 from PIL import Image
-import platform, mss
+import platform
 
 current_os = platform.system()
 import interface.msgbox as msgbox
-
 from config import Config
-from utils.images.screenshots import take_screenshot
 
 __all__ = [
     "stack_images_with_dividers", "write_image",
     
-    "screen_region", "screen_res_str",
+    "screen_region", "logical_screen_region", "screen_res_str",
     "scale_x", "scale_y", "scale_factor",
     "scale_x_1080p", "scale_y_1080p"
 ]
@@ -187,8 +185,7 @@ try:
                     "physical_width": physical_width,
                     "physical_height": physical_height,
 
-                    "scale_factor": min(scale_factor_x, scale_factor_y),
-                    "system_dpi": system_dpi
+                    "scale_factor": min(scale_factor_x, scale_factor_y)
                 }
             except Exception as e:
                 logging.error(f"Error getting Windows DPI info: {e}")
