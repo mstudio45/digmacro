@@ -57,7 +57,7 @@ for arch in "${ARCS[@]}"; do
     --enable-plugin=pyside6,tk-inter \
     --nofollow-import-to=cryptography,unittest,test,doctest \
     --include-data-dir=assets=assets \
-    --output-dir=dist/macos \
+    --output-dir=dist/macos_$arch \
     --output-filename=digmacro_macos \
     --macos-create-app-bundle \
     --macos-app-icon=assets/icons/macos_icon.icns \
