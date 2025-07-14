@@ -51,8 +51,6 @@ check_special_errors() # still required to run, fixes for tkinter on windows #
 import logging, threading
 import cv2, webbrowser
 import pyautogui, pynput, mss
-
-from PySide6.QtWidgets import QApplication
 import interface.msgbox as msgbox
 
 # config and variables # 
@@ -199,6 +197,8 @@ if __name__ == "__main__":
                 os.environ["QT_STYLE_OVERRIDE"] = "fusion"
 
             from interface.config_ui import ConfigUI
+            from PySide6.QtWidgets import QApplication
+
             q_app = QApplication(sys.argv)
             config_ui = ConfigUI()
             config_ui.show()

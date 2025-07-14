@@ -11,23 +11,27 @@ required_packages = {
         "ubuntu_based": {
             "libgirepository1.0-dev": "libgirepository1.0-dev", 
             "libgirepository-2.0-dev": "libgirepository-2.0-dev",
-            "libgtk-3-0t64": "libgtk-3-0"
+            "libgtk-3-0t64": "libgtk-3-0",
+            "libxcb-cursor-dev": "libxcb-cursor-dev"
         },
 
         "rhel_based": {
             "gobject-introspection-devel": "gobject-introspection-devel",
             "gtk3": "gtk3",
-            "python3-gobject": "python3-gobject"
+            "python3-gobject": "python3-gobject",
+            "xcb-util-cursor": "xcb-util-cursor"
         },
 
         "arch_based": {
             "gobject-introspection": "gobject-introspection",
-            "gtk3": "gtk3"
+            "gtk3": "gtk3",
+            "xcb-util-cursor": "xcb-util-cursor"
         },
 
         "opensuse_based": {
             "gobject-introspection-devel": "gobject-introspection-devel",
-            "gtk3-devel": "gtk3-devel"
+            "gtk3-devel": "gtk3-devel",
+            "xcb-util-cursor-devel": "xcb-util-cursor-devel"
         }
     }
 }
