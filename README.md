@@ -91,15 +91,17 @@ _If you have improvements or patches for additional (or currently supported) ope
 #### Source version
 
 1. **Download the latest version:**
-   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
+   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
 2. **Extract the ZIP File:**
    - **Windows/Linux:** Right-click the downloaded zip file and select `Extract Here` or `Extract All`.
    - **macOS:** Double-click the downloaded zip file.
 3. **Open the Folder:**
-   - Go into the extracted `digmacro-[main/dev]` folder.
+   - **Windows:** Go into the extracted `digmacro-[main/dev]` folder.
+   - **Linux:** Right-click the extracted `digmacro-[main/dev]` folder and select `Open in Terminal`.
+   - **macOS:** Right-click the extracted `digmacro-[main/dev]` folder and select `New Terminal at Folder` (that option might be inside `Services` dropdown).
 4. **Run the macro:**
-   - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
-   - **Linux/macOS:** Run `sh launch.sh` in your terminal.
+   - **Windows:** Double-click `launch.bat` or run `launch.bat` in Command Prompt opened in the extracted folder.
+   - **Linux/macOS:** Run `sh launch.sh` in the Terminal you opened.
 
 ---
 

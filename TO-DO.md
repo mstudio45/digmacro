@@ -7,9 +7,10 @@
     - [ ] ShiftLock support
     - [ ] Walking slowdown calculation
 - [ ] Discord Webhook Notifications
-- [ ] Config presets
+- [ ] Config presets (allows you to setup multiple config files)
 
 ---
 
 ### 🚩 Known Issues
 - [ ] Macro struggles on Intel CPUs and on certain macOS devices
+- [ ] macOS isn't overlaying over the screen if Roblox is in fullscreen mode
