@@ -63,7 +63,7 @@ for arch in "${ARCS[@]}"; do
     --macos-app-icon=assets/icons/macos_icon.icns \
     --macos-signed-app-name="com.mstudio45.digmacro" \
     --macos-app-name="DIG Macro" \
-    --macos-app-version="2.0.1" \
+    --macos-app-version="2.0.2" \
     --macos-prohibit-multiple-instances \
     --macos-app-protected-resource=NSAccessibilityUsageDescription:"DIG Macro needs Accessibility access to control mouse, keyboard inside Roblox." \
     --macos-app-protected-resource=NSScreenCaptureUsageDescription:"DIG Macro needs Screen Recording access to take screenshots for computer vision (opencv)." \
