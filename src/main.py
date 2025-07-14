@@ -18,7 +18,9 @@ def restart_macro(args=["--skip-selection"]):
         final_args = [sys.executable, os.path.abspath(__file__)] + args
 
     print(f"Restarting: {final_exe} {final_args}")
-    try: logging.info(f"Restarting: {final_exe} {final_args}")
+    try:
+        import logging
+        logging.info(f"Restarting: {final_exe} {final_args}")
     except: pass
     
     os.execvp(final_exe, final_args)
