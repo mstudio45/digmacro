@@ -71,7 +71,7 @@ for arch in "${ARCS[@]}"; do
     main.py
 
   cd dist
-  cd macos
+  cd macos_$arch
 
   if [ ! -d "digmacro_macos$arch.app" ]; then
     # then check for main.app in the current directory
