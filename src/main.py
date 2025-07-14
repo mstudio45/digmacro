@@ -18,7 +18,8 @@ def restart_macro(args=["--skip-selection"]):
         final_args = [sys.executable, os.path.abspath(__file__)] + args
 
     print(f"Restarting: {final_exe} {final_args}")
-    logging.info(f"Restarting: {final_exe} {final_args}")
+    try: logging.info(f"Restarting: {final_exe} {final_args}")
+    except: pass
     
     os.execvp(final_exe, final_args)
     return
@@ -149,6 +150,10 @@ if __name__ == "__main__":
     print("Loading logger...")
     setup_logger()
 
+    logging.info("Loading screen information...")
+    from utils.images.screenshots import screenshot_cleanup
+    from utils.images.screen import screen_res_str
+
     ## check version ##
     current_version = "2.0.2"
     current_branch = "main"
@@ -234,9 +239,6 @@ if __name__ == "__main__":
 
     from utils.input.mouse import left_click
     from utils.input.keyboard import press_key
-
-    from utils.images.screenshots import screenshot_cleanup
-    from utils.images.screen import screen_res_str
 
     from utils.roblox.rejoin import rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused

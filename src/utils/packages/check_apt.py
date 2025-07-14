@@ -61,11 +61,23 @@ else:
             print("[check_apt_packages] All required system packages are installed.\n")
             return False
         
+        compiled = "__compiled__" in globals()
+        if compiled:
+            if current_os == "Linux":
+                try: subprocess.run(["notify-send", "-t", "15", "DIG Macro", f"You are required packages. Install them manually: {missing_packages}"])
+                except: pass
+
+            print(f"You are required packages. Install them manually: {missing_packages}")
+            return False
+        
         # get install command #
         base_install_cmd = []
         if current_os == "Linux":
             base_install_cmd = get_linux_app_install_cmd()
             if isinstance(base_install_cmd, str):
+                try: subprocess.run(["notify-send", "-t", "15", "DIG Macro", base_install_cmd])
+                except: pass
+                
                 print(base_install_cmd)
                 sys.exit(1)
 

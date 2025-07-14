@@ -1,4 +1,4 @@
-import re, time, threading, platform, logging
+import os, re, time, threading, platform, logging
 
 from pathlib import Path
 from watchdog.observers import Observer
@@ -145,6 +145,9 @@ class RobloxStatusHandler:
     def start_watchdog(self):
         logging.info("Starting watchdog...")
         self.stop_watchdog()
+
+        if not self.log_path.exists():
+            os.makedirs(str(self.log_path))
 
         self.current_log_observer = Observer()
         self.current_log_observer.schedule(self.observer_handler, path=self.log_path, recursive=False)
