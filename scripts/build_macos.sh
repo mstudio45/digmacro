@@ -75,11 +75,13 @@ for arch in "${ARCHS[@]}"; do
   cd dist
   cd macos_$arch
 
-  if [ ! -d "main.app" ]; then
-    echo "Error: digmacro_macos_$arch.app or main.app not found in dist/macos"
-    exit 1
-  else
-    mv main.app digmacro_macos_$arch.app
+  if [ ! -d "digmacro_macos_$arch.app" ]; then
+    if [ ! -d "main.app" ]; then
+      echo "Error: digmacro_macos_$arch.app or main.app not found in dist/macos"
+      exit 1
+    else
+      mv main.app digmacro_macos_$arch.app
+    fi
   fi
 
   PLIST="digmacro_macos_$arch.app/Contents/Info.plist"
@@ -111,6 +113,24 @@ fi
 
 UNIVERSAL_APP="output/digmacro_macos_universal.app"
 cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
+
+if [ ${#BUILT_APPS[@]} -eq 0 ]; then
+  UNIVERSAL_APP="${BUILT_APPS[0]}"
+  PLIST="$UNIVERSAL_APP/Contents/Info.plist"
+  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
+    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+  else
+    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
+  fi
+
+  codesign --force --deep --sign - "$UNIVERSAL_APP"
+  cd output
+  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+  cd ..
+  
+  echo "Single architecture app copied as universal: output/digmacro_macos_universal.zip"
+  exit 1
+fi
 
 find "$UNIVERSAL_APP" -type f -perm +111 | while read -r executable; do
   if file "$executable" | grep -q "Mach-O"; then
