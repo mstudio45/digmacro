@@ -85,9 +85,9 @@ for arch in "${ARCHS[@]}"; do
 
   PLIST="digmacro_macos_$arch.app/Contents/Info.plist"
   if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
-      /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
   else
-      /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
+    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
   fi
 
   BUILT_APPS+=("$(pwd)/digmacro_macos_$arch.app")
@@ -187,7 +187,10 @@ fi
 codesign --force --deep --sign - "$UNIVERSAL_APP"
 
 cd output
+
 ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+rm -rf digmacro_macos_universal.app
+
 cd ..
 
 echo "Built digmacro_macos_universal.zip successfully."
