@@ -1,6 +1,7 @@
 import time, platform
-import pynput
+import pynput, logging
 from variables import Variables
+from typing import Callable
 
 __all__ = ["press_key", "press_multiple_keys"]
 
@@ -9,6 +10,23 @@ current_os = platform.system()
 _pynput_keyboard_controller = pynput.keyboard.Controller()
 
 if current_os == "Darwin":
+    logging.info("Using 'Darwin' keyboard handler...")
+
+    import logging, re, threading
+    import Quartz # type: ignore
+    from Quartz import ( # type: ignore
+        CGEventTapCreate, CGEventTapEnable, CGEventGetFlags,
+        CGEventGetIntegerValueField,
+
+        CFMachPortCreateRunLoopSource, CFRunLoopAddSource, CFRunLoopGetCurrent,
+        CFRunLoopRun, CFRunLoopStop, CFRunLoopTimerCreate, CFRunLoopAddTimer, 
+        CFAbsoluteTimeGetCurrent, 
+        
+        kCGSessionEventTap, kCGHeadInsertEventTap, kCFRunLoopCommonModes,
+        kCGEventKeyDown, kCGEventTapOptionDefault, kCGKeyboardEventKeycode,
+        kCGEventTapDisabledByTimeout, kCGEventTapDisabledByUserInput
+    )
+
     def press_key(key, duration = 0):
         if not Variables.is_running: return
 
@@ -22,7 +40,118 @@ if current_os == "Darwin":
         for key in keys:             _pynput_keyboard_controller.press(key)
         if duration > 0: time.sleep(duration)
         for key in reversed(keys):   _pynput_keyboard_controller.release(key)
-else:
+
+    MODIFIER_FLAGS = {
+        'ctrl': Quartz.kCGEventFlagMaskControl,
+        'shift': Quartz.kCGEventFlagMaskShift,
+        'alt': Quartz.kCGEventFlagMaskAlternate,
+        'cmd': Quartz.kCGEventFlagMaskCommand
+    }
+
+    KEYCODE_MAP = {
+        'a': 0,  's': 1,  'd': 2,  'f': 3,  'h': 4,  'g': 5,  'z': 6,  'x': 7,
+        'c': 8,  'v': 9,  'b': 11, 'q': 12, 'w': 13, 'e': 14, 'r': 15, 'y': 16,
+        't': 17, '1': 18, '2': 19, '3': 20, '4': 21, '6': 22, '5': 23, '=': 24,
+        '9': 25, '7': 26, '-': 27, '8': 28, '0': 29, ']': 30, 'o': 31, 'u': 32,
+        '[': 33, 'i': 34, 'p': 35, 'return': 36, 'l': 37, 'j': 38, "'": 39,
+        'k': 40, ';': 41, '\\': 42, ',': 43, '/': 44, 'n': 45, 'm': 46, '.': 47,
+        'space': 49
+    }
+
+    def parse_hotkey(hotkey_str):
+        mods = 0
+        keys = re.findall(r'<(.*?)>', hotkey_str.lower())
+        key = re.sub(r'<.*?>\+?', '', hotkey_str).lower()
+
+        for mod in keys:
+            mods |= MODIFIER_FLAGS.get(mod, 0)
+
+        keycode = KEYCODE_MAP.get(key)
+        if keycode is None:
+            logging.critical(f"Unsupported key: {key}")
+            return 0, 47
+
+        return mods, keycode
+    
+    class EventTapHotkeyManager:
+        def __init__(self):
+            self.hotkeys = {}
+            
+            self._event_tap = None
+            self._runloop_thread = None
+            self._runloop_ref = None
+
+        def _tap_callback(self, proxy, type_, event, refcon):
+            try:
+                if type_ == kCGEventTapDisabledByTimeout or type_ == kCGEventTapDisabledByUserInput:
+                    CGEventTapEnable(self._event_tap, True)
+                    return event
+                
+                if type_ == kCGEventKeyDown:
+                    flags = CGEventGetFlags(event)
+                    keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
+
+                    for (mod_mask, key), callback in self.hotkeys.items():
+                        if key == keycode and (flags & mod_mask) == mod_mask:
+                            callback()
+                            break
+            except Exception as e:
+                logging.exception(f"Error in hotkey listener: {str(e)}")
+
+            return event
+
+        def start(self, hotkey_map: dict[str, Callable]):
+            for combo, callback in hotkey_map.items():
+                mods, keycode = parse_hotkey(combo)
+                self.hotkeys[(mods, keycode)] = callback
+
+            self._event_tap = CGEventTapCreate(
+                kCGSessionEventTap,
+                kCGHeadInsertEventTap,
+                kCGEventTapOptionDefault,
+                Quartz.CGEventMaskBit(kCGEventKeyDown),
+                self._tap_callback,
+                None
+            )
+
+            if not self._event_tap:
+                raise RuntimeError("Failed to create event tap. Input Monitoring permission is missing.")
+
+            def run_loop():
+                self._runloop_ref = CFRunLoopGetCurrent()
+                runloop_source = CFMachPortCreateRunLoopSource(None, self._event_tap, 0)
+
+                CFRunLoopAddSource(self._runloop_ref, runloop_source, kCFRunLoopCommonModes)
+                CGEventTapEnable(self._event_tap, True)
+                CFRunLoopRun()
+
+            self._runloop_thread = threading.Thread(target=run_loop, daemon=True)
+            self._runloop_thread.start()
+
+            while self._runloop_ref is None or not Variables.is_running: time.sleep(0.1)
+
+        def stop(self):
+            if self._runloop_ref:
+                def stop_callback(timer, info):
+                    CFRunLoopStop(self._runloop_ref)
+
+                timer = CFRunLoopTimerCreate(
+                    None,
+                    CFAbsoluteTimeGetCurrent(),
+                    0, 0, 0,
+                    stop_callback,
+                    None
+                )
+                CFRunLoopAddTimer(self._runloop_ref, timer, kCFRunLoopCommonModes)
+
+    def setup_global_hotkeys(hotkeys: dict[str, Callable]) -> EventTapHotkeyManager:
+        manager = EventTapHotkeyManager()
+        manager.start(hotkeys)
+        return manager
+
+elif current_os == "Windows":
+    logging.info("Using 'Windows' keyboard handler...")
+
     from_vk = pynput.keyboard.KeyCode.from_vk
     VK_CODE = {
         "backspace": from_vk(0x08),
@@ -187,3 +316,30 @@ else:
         for key in vk_keys:             _pynput_keyboard_controller.press(key)
         if duration > 0: time.sleep(duration)
         for key in reversed(vk_keys):   _pynput_keyboard_controller.release(key)
+
+    def setup_global_hotkeys(hotkeys: dict[str, Callable]) -> pynput.keyboard.GlobalHotKeys:
+        manager = pynput.keyboard.GlobalHotKeys(hotkeys)
+        manager.start()
+        return manager
+    
+else:
+    logging.info("Using 'General' keyboard handler...")
+
+    def press_key(key, duration = 0):
+        if not Variables.is_running: return
+
+        _pynput_keyboard_controller.press(key)
+        if duration > 0: time.sleep(duration)
+        _pynput_keyboard_controller.release(key)
+
+    def press_multiple_keys(keys, duration=0):
+        if not Variables.is_running: return
+
+        for key in keys:             _pynput_keyboard_controller.press(key)
+        if duration > 0: time.sleep(duration)
+        for key in reversed(keys):   _pynput_keyboard_controller.release(key)
+
+    def setup_global_hotkeys(hotkeys: dict[str, Callable]) -> pynput.keyboard.GlobalHotKeys:
+        manager = pynput.keyboard.GlobalHotKeys(hotkeys)
+        manager.start()
+        return manager  

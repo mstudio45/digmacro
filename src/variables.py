@@ -19,10 +19,13 @@ def resource_path(relative_path):
 class Variables:
     is_compiled = "__compiled__" in globals()
     is_running = True
-
-    session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     is_roblox_focused = True
     is_selecting_region = True
+
+    # macro settings #
+    session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    current_version = "2.0.2"
+    current_branch = "main"
 
     # minigame information #
     dig_count = 0

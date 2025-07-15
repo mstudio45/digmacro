@@ -101,9 +101,9 @@
             );
             await scaleContent(scale, width, height);
 
-            pywebview.api.get_session_id().then((id) => {
-                const credits = document.querySelector("#credit")
-                credits.textContent = credits.textContent + " | " + id
+            pywebview.api.get_macro_information().then((info) => {
+                const credits = document.querySelector("#credit");
+                credits.textContent = credits.textContent + " | " + info;
             });
         });
     </script>

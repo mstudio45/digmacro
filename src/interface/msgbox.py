@@ -5,6 +5,8 @@ __all__ = ["alert", "confirm"]
 current_os = platform.system()
 
 if current_os == "Darwin":
+    logging.info("Using 'Darwin' message box handler...")
+
     import subprocess
 
     def run_osascript(script):
@@ -49,6 +51,8 @@ if current_os == "Darwin":
 
         return None
 else:
+    logging.info("Using 'General' message box handler...")
+
     import tkinter as tk
     from tkinter import ttk, messagebox
     from utils.images.screen import logical_screen_region

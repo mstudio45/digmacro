@@ -5,6 +5,8 @@ current_os = platform.system()
 __all__ = ["take_screenshot", "cleanup"]
 
 if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
+    logging.info("Using 'bettercam' to take screenshots...\n")
+
     import bettercam # type: ignore
     camera = bettercam.create(output_idx=0, output_color="BGRA")
 
@@ -23,7 +25,8 @@ if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
         logging.info("Cleaning...")
         camera.release()
 
-else: # use mss if that if statement is false
+else: # use mss if that if statement is false #
+    logging.info("Using 'mss' to take screenshots...\n")
     import numpy as np
 
     def take_screenshot(region, sct):

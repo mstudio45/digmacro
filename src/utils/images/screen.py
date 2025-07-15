@@ -30,6 +30,8 @@ logical_screen_region = { "left": 0, "top": 0, "width": BASE_RESOLUTION[0], "hei
 class FailedToGetDiplayResolutionException(Exception): ...
 try:
     if current_os == "Darwin":
+        logging.info("Using 'PyObjC' to get monitor information...\n")
+
         import objc, subprocess # type: ignore
         from AppKit import NSScreen # type: ignore
 
@@ -136,6 +138,8 @@ try:
         }
 
     elif current_os == "Windows":
+        logging.info("Using 'ctypes' to get monitor information...\n")
+
         import ctypes, ctypes.wintypes
         
         MDT_EFFECTIVE_DPI = 0
@@ -208,6 +212,8 @@ try:
         }
 
     elif current_os == "Linux":
+        logging.info("Using 'screeninfo' to get monitor information...\n")
+
         from screeninfo import get_monitors
         monitors = get_monitors()
 

@@ -1,5 +1,5 @@
 import time, threading, platform
-import pynput
+import pynput, logging
 
 from config import Config
 from variables import Variables
@@ -10,6 +10,8 @@ __all__ = ["left_click", "move_mouse", "clicking_lock"]
 clicking_lock = threading.Lock() # using lock
 
 if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api": # (TO-DO: linux evdev)
+    logging.info("Using 'win32api' mouse handler...")
+
     import win32con, ctypes, autoit # type: ignore
 
     # setup user32 #
@@ -32,6 +34,7 @@ if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api": # (TO-D
         autoit.mouse_move(x, y)
     
 elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
+    logging.info("Using 'Quartz' mouse handler...")
     from Quartz import * # type: ignore
 
     def left_click_lock(click_delay=0):
@@ -71,6 +74,7 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
         CGEventPost(kCGHIDEventTap, mouse_move) # type: ignore
     
 else: # defaults to pynput
+    logging.info("Using 'pynput' mouse handler...")
     _pynput_mouse_controller = pynput.mouse.Controller()
 
     full_left_click = pynput.mouse.Button.left

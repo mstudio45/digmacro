@@ -23,8 +23,8 @@ class UIBase:
         self.window.resize(width, height)
         return "Done"
 
-    def get_session_id(self):
-        return Variables.session_id
+    def get_macro_information(self):
+        return f"{Variables.session_id} | {Variables.current_version} ({Variables.current_branch})"
     
     def get_scale_override(self):
         return Config.UI_SCALE_OVERRIDE
@@ -52,7 +52,7 @@ class UIBase:
             transparent=False, shadow=True,
             on_top=is_on_top, focus=True
         )
-        self.window.expose(self.resize_window, self.get_session_id, self.get_scale_override)
+        self.window.expose(self.resize_window, self.get_macro_information, self.get_scale_override)
         logging.debug("Window has been created.")
 
 class WebUI(UIBase):

@@ -8,6 +8,8 @@
     - [ ] Walking slowdown calculation
 - [ ] Discord Webhook Notifications
 - [ ] Config presets (allows you to setup multiple config files)
+- [ ] Adaptive dirt bar recognition (special effects, low saturation etc etc)
+- [ ] Pausing system (replace Exit button with -> Pause, Settings, Restart - also have keybinds)
 
 ---
 

@@ -43,7 +43,7 @@ if "--skip-install" not in sys.argv:
     if check_shutil_applications() or check_apt_packages() or check_pip_packages():
         restart_macro(["--skip-install"])
         sys.exit(0)
-else: logging.info("Package installation skipped.")
+else: print("Package installation skipped.")
 
 check_special_errors() # still required to run, fixes for tkinter on windows #
 
@@ -80,67 +80,6 @@ if current_os == "Windows":
             msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR, bypass=True)
 
 if __name__ == "__main__":
-    # macOS Permission Checks (thanks SalValichu) #
-    if current_os == "Darwin":
-        try:
-            from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
-            message_check = (
-                "This application requires '{permission}' permission to control mouse and keyboard.\n\n"
-                "Please go to:\nSystem Settings -> Privacy & Security -> {permission}\n" 
-                "Then, ensure this application (digmacro_macosarm64, digmacro_macosx86_64 or Python Launcher/Python) is enabled.\n\n" 
-                "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n" 
-                "If the permission is enabled and you are still being prompted with this notification, press 'Skip'"
-            )
-
-            # Check Accessibility #
-            if not AXIsProcessTrustedWithOptions({ kAXTrustedCheckOptionPrompt: True }): # this will also prompt the notification to allow the permission #
-                # if it goes here the user didn't select "Allow" # 
-                logging.info("[macOS Permissions] Accessibility access is required, prompting user to enable it.")
-                res = msgbox.confirm(
-                    message_check.replace("{permission}", "Accessibility"),
-                    title="DIGMacro - Permission Issue",
-                    buttons=("OK", "Skip", "Exit")
-                )
-
-                if res == "OK":
-                    restart_macro()
-                    sys.exit(0)
-                elif res == "Skip":
-                    print("Skipped...")
-                else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
-            else: logging.info("[macOS Permissions] Accessibility access is enabled.")
-
-            # Check Screen Recording (we will try to make an screenshot - mss should prompt that allow notification) #
-            try:
-                with mss.mss() as sct:
-                    monitor = sct.monitors[0]
-                    sct.grab(monitor)
-                    sct.close()
-                
-                logging.info("[macOS Permissions] Screen Recording check permission appears granted.")
-            except Exception as e:
-                logging.warning(f"[macOS Permissions] Screen Recording check failed: {e}")
-                logging.info("[macOS Permissions] Screen Recording access is required, prompting user to enable it.")
-
-                res = msgbox.confirm(
-                    message_check.replace("{permission}", "Screen Recording"),
-                    title="DIGMacro - Permission Issue",
-                    buttons=("OK", "Skip", "Exit")
-                )
-                
-                if res == "OK":
-                    restart_macro()
-                    sys.exit(0)
-                elif res == "Skip":
-                    print("Skipped...")
-                else: os.kill(os.getpid(), 9) # exit if user didnt select OK #
-
-            # we will skip input monitoring permission, the user needs to use their keyboard and mouse for the test to work #
-            # it will be pretty annoying for the user to do that each macro restart #
-            # pynput should however prompt that permission notification #
-        except ImportError:     logging.warning("[macOS Permissions] Could not import ApplicationServices for permission check. Skipping...")
-        except Exception as e:  logging.error(f"[macOS Permissions] Error during permission check: {e}")
-
     # create folders (on macOS it will prompt an allow 'folder' access notification) #
     print("Creating storage folder...")
     FileHandler.create_folder("storage")
@@ -155,14 +94,97 @@ if __name__ == "__main__":
     print("Loading logger...")
     setup_logger()
 
+    # macOS Permission Checks (thanks SalValichu) #
+    if current_os == "Darwin":
+        logging.info("[macOS Permissions] Checking permission...")
+
+        try:
+            from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
+            import objc # type: ignore
+            from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
+            from Quartz import CGEventTapCreate, kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventKeyDown, kCGEventTapOptionListenOnly # type: ignore # used for input monitoring
+
+            arch = platform.machine()
+            message_check = (
+                "This application requires '{permission}' permission to {why}.\n\n"
+
+                "Please go to: System Settings -> Privacy & Security -> {permission}\n"
+                f"Then, ensure this application (digmacro_macos{arch}) is enabled.\n"
+                "⚠ If you are opening the macro with Terminal (or any other application), ensure that application also have '{permission}' permission enabled. ⚠\n\n"
+
+                "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n"
+                "If the permission is enabled and you are still being prompted with this notification, press 'Skip'."
+            )
+
+            # Functions #
+            def has_accessibility_access(prompt=False):
+                options = { kAXTrustedCheckOptionPrompt: prompt }
+                return AXIsProcessTrustedWithOptions(options)
+            
+            def has_input_monitor_access():
+                def callback(proxy, type_, event, refcon): return event
+                tap = CGEventTapCreate(
+                    kCGHIDEventTap,
+                    kCGHeadInsertEventTap,
+                    kCGEventTapOptionListenOnly,
+                    (1 << kCGEventKeyDown),
+                    callback,
+                    None
+                )
+                return tap is not None
+            
+            def prompt_issue_msgbox(permission, why):
+                logging.info(f"[macOS Permissions] {permission} access is required, prompting user to enable it.")
+
+                # open the settings page #
+                try: subprocess.check_call(["open", "x-apple.systempreferences:com.apple.preference.security"])
+                except Exception as e: logging.warning(f"[macOS Permissions] Failed to open system preferences: {str(e)}")
+
+                # warn the user #
+                res = msgbox.confirm(
+                    message_check.replace("{permission}", permission).replace("{why}", why),
+                    title="DIGMacro - Permission Issue",
+                    buttons=("OK", "Skip", "Exit")
+                )
+
+                if res == "OK":
+                    restart_macro()
+                    sys.exit(0)
+                    return
+                elif res == "Skip":
+                    print("Skipped...")
+                else:
+                    os.kill(os.getpid(), 9)
+                    return
+
+            # Accessibility #
+            if has_accessibility_access(False): # only check #
+                logging.info("[macOS Permissions] Accessibility access is enabled.")
+            else:
+                # has_accessibility_access(True)
+                prompt_issue_msgbox("Accessibility", "control mouse and keyboard")
+
+            # Screen Recording #
+            if CGPreflightScreenCaptureAccess(): # only check #
+                logging.info("[macOS Permissions] Screen Recording access is enabled.")
+            else:
+                # CGRequestScreenCaptureAccess()
+                prompt_issue_msgbox("Screen Recording", "detect the minigame")
+            
+            # Input Monitoring #
+            if has_input_monitor_access(): # only check #
+                logging.info("[macOS Permissions] Input Monitoring access is enabled.")
+            else:
+                prompt_issue_msgbox("Input Monitoring", "enable global hotkeys")
+            
+        except ImportError:     logging.warning("[macOS Permissions] Could not import packages for permission check. Skipping...")
+        except Exception as e:  logging.error(f"[macOS Permissions] Error during permission check: {e}")
+
     logging.info("Loading screen information...")
     from utils.images.screenshots import screenshot_cleanup
     from utils.images.screen import screen_res_str
 
     ## check version ##
-    current_version = "2.0.2"
-    current_branch = "main"
-
     try:
         logging.info("Checking current version...")
 
@@ -171,13 +193,13 @@ if __name__ == "__main__":
         versions = json.loads(req.text)
 
         # check versions #
-        if current_branch not in versions: raise Exception(f"{current_branch} is not an valid branch.")
-        latest_branch_version = versions[current_branch]
-        is_outdated = check_package_version(latest_branch_version, current_version, check_if_equal=False)
+        if Variables.current_branch not in versions: raise Exception(f"{Variables.current_branch} is not an valid branch.")
+        latest_branch_version = versions[Variables.current_branch]
+        is_outdated = check_package_version(latest_branch_version, Variables.current_version, check_if_equal=False)
 
-        logging.info(f"Running on '{current_branch}' - {current_version} | Latest '{current_branch}' version: {latest_branch_version} | {latest_branch_version} > {current_version} = {is_outdated}")
+        logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {latest_branch_version} > {Variables.current_version} = {is_outdated}")
         if is_outdated:
-            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{current_version} -> {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
+            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} -> {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
             if res == "Yes":
                 try:
                     if current_os == "Windows":
@@ -245,7 +267,7 @@ if __name__ == "__main__":
     from utils.pathfinding import PathfingingHandler
 
     from utils.input.mouse import left_click
-    from utils.input.keyboard import press_key
+    from utils.input.keyboard import press_key, setup_global_hotkeys
 
     from utils.roblox.rejoin import rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
@@ -421,14 +443,17 @@ if __name__ == "__main__":
         # hotkeys #
         def setup_hotkeys(self):
             if not Variables.is_running: return
+            logging.info("Loading Global Hotkeys...")
 
-            if current_os == "Darwin": # macos will crash for some reason
-                logging.info("Global hotkeys disabled are currently disabled on macOS. You can stop the macro by closing the UI window.\n")
-                return
-            
             try:
-                self.hotkeys = pynput.keyboard.GlobalHotKeys({ "<ctrl>+e": lambda: setattr(Variables, "is_running", False) })
-                self.hotkeys.__enter__()
+                # functions #
+                def close_hotkey(): setattr(Variables, "is_running", False)
+
+                # start #
+                self.hotkeys = setup_global_hotkeys({ 
+                    "<ctrl>+e": close_hotkey,
+                    "<ctrl>+r": lambda: msgbox.alert("GET OUT", bypass=True)
+                })
 
                 logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.\n")
             except Exception as e:
@@ -495,7 +520,6 @@ if __name__ == "__main__":
             FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
             # TO-DO: switch to pause system
-            logging.info("Waiting for Roblox to be focused atleast once for the macro to start...")
             while not Variables.is_roblox_focused:
                 self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
                 if Variables.sleep(1): break
@@ -660,7 +684,7 @@ if __name__ == "__main__":
             if self.hotkeys:
                 try:
                     logging.info("Stopping hotkeys...")
-                    self.hotkeys.__exit__(None, None, None)
+                    self.hotkeys.stop()
                     logging.info("Hotkeys stopped.")
                 except Exception as e: logging.warning(f"Error stopping hotkeys: {traceback.format_exc()}")
 

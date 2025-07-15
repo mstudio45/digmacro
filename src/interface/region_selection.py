@@ -1,4 +1,4 @@
-import platform
+import platform, logging
 from utils.images.screen import screen_region
 from variables import Variables
 
@@ -6,6 +6,8 @@ current_os = platform.system()
 __all__ = ["RegionSelector"]
 
 if current_os == "Darwin":
+    logging.info("Using 'Darwin' region selector handler...")
+
     import objc # type: ignore
     from Foundation import * # type: ignore
     from AppKit import * # type: ignore
@@ -123,6 +125,8 @@ if current_os == "Darwin":
         def get_selection(self):
             return selected_rect
 else:
+    logging.info("Using 'General' region selector handler...")
+
     import tkinter as tk
 
     class RegionSelector:
