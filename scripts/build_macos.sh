@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHS=("x86_64" "x86_64h") # "arm64")
+ARCHS=("x86_64" "x86_64h" "arm64")
 BUILT_APPS=()
 
 if [ ! -d "env" ]; then
