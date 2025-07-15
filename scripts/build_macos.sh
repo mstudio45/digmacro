@@ -59,10 +59,7 @@ for arch in "${ARCHS[@]}"; do
     --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" \
     --enable-plugin=pyside6,tk-inter \
     --nofollow-import-to=cryptography,unittest,test,doctest \
-    --enable-plugin=numpy \
-    --include-package=numpy \
-    --include-data-dir=$(python3 -c "import numpy; print(numpy.__path__[0])")=numpy \
-    --include-data-dir=$(python3 -c "import cv2, os; print(os.path.dirname(cv2.__file__))")=cv2 \
+    --include-package=opencv-python,numpy \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
     --output-filename=digmacro_macos \
