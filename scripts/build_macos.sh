@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHS=("i386" "x86_64" "x86_64h" "arm64" "arm64e")
+ARCHS=("x86_64" "x86_64h") # "arm64")
 BUILT_APPS=()
 
 if [ ! -d "env" ]; then
@@ -24,7 +24,13 @@ for arch in "${ARCHS[@]}"; do
   echo "Building for architecture: $arch"
   echo "================================================="
 
-  CMD_PREFIX="arch $arch"
+  if ! arch -$arch /usr/bin/true 2>/dev/null; then
+    echo "Architecture $arch is not available on this system. Skipping..."
+    continue
+  fi
+
+  CMD_PREFIX="arch -$arch"
+  export ARCHFLAGS="-arch $arch"
 
   cd env/build
 
@@ -99,6 +105,33 @@ echo "================================================="
 echo "Creating universal binary..."
 echo "================================================="
 
+if [ ${#BUILT_APPS[@]} -eq 0 ]; then
+  echo "Error: No app bundles were successfully built"
+  exit 1
+fi
+
+if [ ${#BUILT_APPS[@]} -eq 1 ]; then
+  echo "Only one architecture built, copying as universal..."
+  UNIVERSAL_APP="output/digmacro_macos_universal.app"
+  cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
+  
+  # Sign and zip
+  codesign --force --deep --sign - "$UNIVERSAL_APP"
+  cd output
+  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+  cd ..
+
+  UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
+  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
+    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
+  else
+    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
+  fi
+  
+  echo "Single architecture app copied as universal: output/digmacro_macos_universal.zip"
+  exit 1
+fi
+
 UNIVERSAL_APP="output/digmacro_macos_universal.app"
 cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
 
@@ -144,7 +177,6 @@ done
 
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
-
 if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
     /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
 else
