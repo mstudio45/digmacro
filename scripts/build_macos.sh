@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ARCS=("x86_64" "arm64")
+ARCHS=("i386" "x86_64" "x86_64h" "arm64" "arm64e")
+BUILT_APPS=()
 
 if [ ! -d "env" ]; then
   mkdir env
@@ -18,16 +19,12 @@ if [ ! -d "output" ]; then
   mkdir output
 fi
 
-for arch in "${ARCS[@]}"; do
+for arch in "${ARCHS[@]}"; do
   echo "================================================="
   echo "Building for architecture: $arch"
   echo "================================================="
 
-  if [ "$arch" = "x86_64" ]; then
-    CMD_PREFIX="arch -x86_64"
-  else
-    CMD_PREFIX=""
-  fi
+  CMD_PREFIX="arch $arch"
 
   cd env/build
 
@@ -64,39 +61,30 @@ for arch in "${ARCS[@]}"; do
     --macos-signed-app-name="com.mstudio45.digmacro" \
     --macos-app-name="DIG Macro" \
     --macos-app-version="2.0.2" \
-    --macos-prohibit-multiple-instances \
-    --macos-app-protected-resource=NSAccessibilityUsageDescription:"DIG Macro needs Accessibility access to control mouse, keyboard inside Roblox." \
-    --macos-app-protected-resource=NSScreenCaptureUsageDescription:"DIG Macro needs Screen Recording access to take screenshots for computer vision (opencv)." \
-    --macos-app-protected-resource=NSInputMonitoringUsageDescription:"DIG Macro needs Input Monitoring access to monitor keyboard and mouse." \
     main.py
 
   cd dist
   cd macos_$arch
 
-  if [ ! -d "digmacro_macos$arch.app" ]; then
+  if [ ! -d "digmacro_macos_$arch.app" ]; then
     # then check for main.app in the current directory
     if [ ! -d "main.app" ]; then
-      echo "Error: digmacro_macos$arch.app or main.app not found in dist/macos"
+      echo "Error: digmacro_macos_$arch.app or main.app not found in dist/macos"
       exit 1
     else
-      mv main.app digmacro_macos$arch.app
+      mv main.app digmacro_macos_$arch.app
     fi
   fi
 
-  PLIST="digmacro_macos$arch.app/Contents/Info.plist"
+  PLIST="digmacro_macos_$arch.app/Contents/Info.plist"
   if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
       /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
   else
       /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
   fi
 
-  codesign --force --deep --sign - digmacro_macos$arch.app
-  ditto -c -k --sequesterRsrc --keepParent digmacro_macos$arch.app digmacro_macos$arch.zip
-
-  mv digmacro_macos$arch.zip ../../../output/digmacro_macos_$arch.zip
-  echo "Built digmacro_macos_$arch.zip successfully."
-  
-  rm -rf digmacro_macos$arch.app
+  BUILT_APPS+=("$(pwd)/digmacro_macos_$arch.app")
+  cp -R digmacro_macos_$arch.app ../../../output/
 
   cd ../../..
 
@@ -108,5 +96,74 @@ for arch in "${ARCS[@]}"; do
 done
 
 echo "================================================="
-echo "All builds completed. Output files are in the 'output' directory."
+echo "Creating universal binary..."
+echo "================================================="
+
+UNIVERSAL_APP="output/digmacro_macos_universal.app"
+cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
+
+find "$UNIVERSAL_APP" -type f -perm +111 | while read -r executable; do
+  if file "$executable" | grep -q "Mach-O"; then
+    echo "    - Merging executable: $executable"
+    
+    ARCH_EXECUTABLES=()
+    for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
+      arch_executable="${executable/$UNIVERSAL_APP/${BUILT_APPS[i]}}"
+      if [ -f "$arch_executable" ]; then
+        ARCH_EXECUTABLES+=("$arch_executable")
+      fi
+    done
+    
+    if [ ${#ARCH_EXECUTABLES[@]} -gt 1 ]; then
+      lipo -create "${ARCH_EXECUTABLES[@]}" -output "$executable"
+      echo "Created universal binary: $executable"
+    fi
+  fi
+done
+
+echo "================================================="
+echo "Merging libraries..."
+echo "================================================="
+
+find "$UNIVERSAL_APP" -name "*.dylib" -o -name "*.so" | while read -r library; do
+  echo "    - Merging library: $library"
+  
+  ARCH_LIBRARIES=()
+  for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
+    arch_library="${library/$UNIVERSAL_APP/${BUILT_APPS[i]}}"
+    if [ -f "$arch_library" ]; then
+      ARCH_LIBRARIES+=("$arch_library")
+    fi
+  done
+  
+  if [ ${#ARCH_LIBRARIES[@]} -gt 1 ]; then
+    lipo -create "${ARCH_LIBRARIES[@]}" -output "$library"
+    echo "Created universal library: $library"
+  fi
+done
+
+UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
+
+if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
+    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
+else
+    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
+fi
+
+codesign --force --deep --sign - "$UNIVERSAL_APP"
+
+cd output
+ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+cd ..
+
+echo "Built digmacro_macos_universal.zip successfully."
+
+echo "Individual architecture apps available in output directory:"
+for apppath in "${BUILT_APPS[@]}"; do
+  echo "  - $apppath"
+done
+
+echo "================================================="
+echo "Universal build completed!"
 echo "================================================="

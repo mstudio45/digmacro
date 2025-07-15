@@ -8,18 +8,6 @@ __all__ = [
 current_os = platform.system()
 current_arch = platform.machine()
 
-is_on_rosetta = False
-if current_os == "Darwin":
-    try:
-        result = subprocess.run(["sysctl", "-n", "sysctl.proc_translated"], capture_output=True, text=True)
-        is_on_rosetta = result.stdout.strip() == "1"
-    except:
-        is_on_rosetta = False
-    
-    if is_on_rosetta:
-        print("[install_pip_package] Detected running under Rosetta on ARM macOS, using x86_64 architecture for package installations.")
-    
-
 def install_pip_package(package):
     try: 
         if package["version"] != "all":
@@ -30,8 +18,9 @@ def install_pip_package(package):
         print(f"[install_pip_package] Installing package: {pip_spec}")
         
         command = [sys.executable, "-m", "pip", "install", pip_spec]
-        if current_os == "Darwin" and is_on_rosetta:
-            command = ["arch", "-x86_64", sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
+        if current_os == "Darwin":
+            print(f"Using arch -{current_arch} prefix...")
+            command = ["arch", f"-{current_arch}", sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
 
         subprocess.check_call(command)
     except Exception as e:
