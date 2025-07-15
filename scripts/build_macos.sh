@@ -42,11 +42,13 @@ for arch in "${ARCHS[@]}"; do
   
   cd ../..
 
+  $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir pip
   $CMD_PREFIX python3 src/main.py --only-install
 
   cd src
 
-  $CMD_PREFIX python3 -m pip install nuitka
+  $CMD_PREFIX python3 -m pip install --no-cache-dir nuitka
+  $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir nuitka setuptools
 
   $CMD_PREFIX python3 -m nuitka \
     --standalone \
@@ -116,12 +118,6 @@ if [ ${#BUILT_APPS[@]} -eq 1 ]; then
   echo "Only one architecture built, copying as universal..."
   UNIVERSAL_APP="output/digmacro_macos_universal.app"
   cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
-  
-  # Sign and zip
-  codesign --force --deep --sign - "$UNIVERSAL_APP"
-  cd output
-  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
-  cd ..
 
   UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
   if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
@@ -129,6 +125,11 @@ if [ ${#BUILT_APPS[@]} -eq 1 ]; then
   else
     /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
   fi
+
+  codesign --force --deep --sign - "$UNIVERSAL_APP"
+  cd output
+  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+  cd ..
   
   echo "Single architecture app copied as universal: output/digmacro_macos_universal.zip"
   exit 1
