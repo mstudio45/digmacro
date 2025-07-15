@@ -54,11 +54,11 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
 > Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
 > Administrator or sudo permissions may be required for some features on Linux/macOS.
 
-| Operating System          | Support Status     | Supported Versions                                                            | Tested On                             | Notes                                                                    |
-| ------------------------- | ------------------ | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                          | Windows 10, Windows 11                | Roblox UWP (Microsoft Store) is not supported                            |
-| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu/Debian, RHEL/Fedora, Arch, OpenSUSE)        | Linux Mint 22.1 (Cinnamon X11)        | Wayland is not supported, Requires [Sober](https://sober.vinegarhq.org/) |
-| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                   | Apple M3 16 GB, Sequoia 15.5 (Retina) | Macro might struggle with performance                                    |
+| Operating System          | Support Status     | Supported Versions                                                                         | Tested On                             | Notes                                                                    |
+| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------ |
+| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                                       | Windows 10, Windows 11                | Roblox UWP (Microsoft Store) is not supported                            |
+| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu 13 and newer/Debian, RHEL/Fedora, Arch, OpenSUSE)        | Linux Mint 22.1 (Cinnamon X11)        | Wayland is not supported, Requires [Sober](https://sober.vinegarhq.org/) |
+| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                                | Apple M3 16 GB, Sequoia 15.5 (Retina) | Macro might struggle with performance                                    |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 

@@ -60,7 +60,7 @@ for arch in "${ARCHS[@]}"; do
     --file-description="DIG Macro is a tool that automatically plays the minigame in the Roblox game DIG." \
     --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" \
     --enable-plugin=pyside6,tk-inter \
-    --nofollow-import-to=cryptography,unittest,test,doctest \
+    --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
     --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
@@ -94,7 +94,6 @@ for arch in "${ARCHS[@]}"; do
   fi
 
   BUILT_APPS+=("$(pwd)/digmacro_macos_$arch.app")
-  cp -R digmacro_macos_$arch.app ../../../output/
 
   cd ../../..
 
@@ -111,27 +110,6 @@ echo "================================================="
 
 if [ ${#BUILT_APPS[@]} -eq 0 ]; then
   echo "Error: No app bundles were successfully built"
-  exit 1
-fi
-
-if [ ${#BUILT_APPS[@]} -eq 1 ]; then
-  echo "Only one architecture built, copying as universal..."
-  UNIVERSAL_APP="output/digmacro_macos_universal.app"
-  cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
-
-  UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
-  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
-    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
-  else
-    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
-  fi
-
-  codesign --force --deep --sign - "$UNIVERSAL_APP"
-  cd output
-  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
-  cd ..
-  
-  echo "Single architecture app copied as universal: output/digmacro_macos_universal.zip"
   exit 1
 fi
 
