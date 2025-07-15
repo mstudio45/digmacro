@@ -19,7 +19,13 @@ def install_pip_package(package):
         
         command = [sys.executable, "-m", "pip", "install", pip_spec]
         if current_os == "Darwin":
-            print(f"Using arch -{current_arch} prefix...")
+            if package == "opencv-python":
+                macos_ver = platform.mac_ver()
+                if macos_ver is not None and macos_ver[0].startswith("12"):
+                    pip_spec = f"{package["pip"]}==4.10.0.84"
+                    print("Using an older version of opencv-python for faster install.")
+            
+            print(f"Using arch -{current_arch} prefix.")
             command = ["arch", f"-{current_arch}", sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
 
         subprocess.check_call(command)
