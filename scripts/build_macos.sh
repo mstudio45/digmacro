@@ -61,7 +61,7 @@ for arch in "${ARCHS[@]}"; do
     --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" \
     --enable-plugin=pyside6,tk-inter \
     --nofollow-import-to=cryptography,unittest,test,doctest \
-    --include-package=numpy \
+    --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
     --output-filename=digmacro_macos \
