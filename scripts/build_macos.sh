@@ -2,6 +2,7 @@
 
 ARCHS=("x86_64" "arm64")
 BUILT_APPS=()
+USED_ARCHS=()
 
 if [ ! -d "env" ]; then
   mkdir env
@@ -92,6 +93,7 @@ for arch in "${ARCHS[@]}"; do
   fi
 
   BUILT_APPS+=("$(pwd)/digmacro_macos_$arch.app")
+  USED_ARCHS+=("$arch")
 
   cd ../../..
 
@@ -111,11 +113,10 @@ if [ ${#BUILT_APPS[@]} -eq 0 ]; then
   exit 1
 fi
 
-UNIVERSAL_APP="output/digmacro_macos_universal.app"
-cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
-
 if [ ${#BUILT_APPS[@]} -eq 0 ]; then
-  UNIVERSAL_APP="${BUILT_APPS[0]}"
+  UNIVERSAL_APP="output/digmacro_macos_${USED_ARCHS[0]}.app"
+  cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
+
   PLIST="$UNIVERSAL_APP/Contents/Info.plist"
   if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
     /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
@@ -125,12 +126,15 @@ if [ ${#BUILT_APPS[@]} -eq 0 ]; then
 
   codesign --force --deep --sign - "$UNIVERSAL_APP"
   cd output
-  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
+  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_${USED_ARCHS[0]}.app digmacro_macos_${USED_ARCHS[0]}.zip
   cd ..
   
-  echo "Single architecture app copied as universal: output/digmacro_macos_universal.zip"
+  echo "Single architecture app: output/digmacro_macos_${USED_ARCHS[0]}.zip"
   exit 1
 fi
+
+UNIVERSAL_APP="output/digmacro_macos_universal.app"
+cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
 
 find "$UNIVERSAL_APP" -type f -perm +111 | while read -r executable; do
   if file "$executable" | grep -q "Mach-O"; then
