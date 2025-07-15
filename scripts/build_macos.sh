@@ -67,6 +67,7 @@ for arch in "${ARCHS[@]}"; do
     --macos-signed-app-name="com.mstudio45.digmacro" \
     --macos-app-name="DIG Macro" \
     --macos-app-version="2.0.2" \
+    --macos-target-arch=$arch \
     main.py
 
   cd dist
