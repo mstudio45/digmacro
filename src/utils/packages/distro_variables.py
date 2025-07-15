@@ -19,7 +19,7 @@ def install_pip_package(package):
         
         command = [sys.executable, "-m", "pip", "install", pip_spec]
         if current_os == "Darwin":
-            if package == "opencv-python":
+            if package["pip"] == "opencv-python":
                 macos_ver = platform.mac_ver()
                 if macos_ver is not None and macos_ver[0].startswith("12"):
                     pip_spec = f"{package["pip"]}==4.10.0.84"
