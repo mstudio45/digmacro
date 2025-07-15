@@ -192,9 +192,8 @@ cd ..
 
 echo "Built digmacro_macos_universal.zip successfully."
 
-echo "Individual architecture apps available in output directory:"
-for apppath in "${BUILT_APPS[@]}"; do
-  echo "  - $apppath"
+for app in "${BUILT_APPS[@]}"; do
+  rm -rf "$app"
 done
 
 echo "================================================="
