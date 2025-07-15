@@ -50,27 +50,27 @@ for arch in "${ARCHS[@]}"; do
   $CMD_PREFIX python3 -m pip install --no-cache-dir nuitka
   $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir nuitka setuptools
 
-  # $CMD_PREFIX python3 -m nuitka \
-  #   --standalone \
-  #   --follow-imports \
-  #   --assume-yes-for-downloads \
-  #   --company-name="mstudio45" \
-  #   --product-name="DIG Macro" \
-  #   --file-version="2.0.2" \
-  #   --file-description="DIG Macro is a tool that automatically plays the minigame in the Roblox game DIG." \
-  #   --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" \
-  #   --enable-plugin=pyside6,tk-inter \
-  #   --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
-  #   --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
-  #   --include-data-dir=assets=assets \
-  #   --output-dir=dist/macos_$arch \
-  #   --macos-create-app-bundle \
-  #   --macos-app-icon=assets/icons/macos_icon.icns \
-  #   --macos-signed-app-name="com.mstudio45.digmacro" \
-  #   --macos-app-name="DIG Macro" \
-  #   --macos-app-version="2.0.2" \
-  #   --macos-target-arch=$arch \
-  #   main.py
+  $CMD_PREFIX python3 -m nuitka \
+    --standalone \
+    --follow-imports \
+    --assume-yes-for-downloads \
+    --company-name="mstudio45" \
+    --product-name="DIG Macro" \
+    --file-version="2.0.2" \
+    --file-description="DIG Macro is a tool that automatically plays the minigame in the Roblox game DIG." \
+    --copyright="\xA9 mstudio45 2025 - https://github.com/mstudio45/digmacro" \
+    --enable-plugin=pyside6,tk-inter \
+    --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
+    --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
+    --include-data-dir=assets=assets \
+    --output-dir=dist/macos_$arch \
+    --macos-create-app-bundle \
+    --macos-app-icon=assets/icons/macos_icon.icns \
+    --macos-signed-app-name="com.mstudio45.digmacro" \
+    --macos-app-name="DIG Macro" \
+    --macos-app-version="2.0.2" \
+    --macos-target-arch=$arch \
+    main.py
 
   cd dist
   cd macos_$arch
