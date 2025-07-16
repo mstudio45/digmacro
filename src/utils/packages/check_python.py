@@ -61,32 +61,37 @@ else:
 
         # get missing packages #
         missing_packages = []
-        for package in relevant_packages:
-            pip_name = package["pip"]
-            import_name = package["import"]
-            min_version = package["version"]
 
-            # check pip freeze list #
-            if pip_name not in check_import_only:
-                installed_package = next((item for item in installed_packages if item[0] == pip_name), None)
-                if installed_package is None:
-                    print(f"[check_pip_packages] Package '{pip_name}' is not installed.")
-                    missing_packages.append(package)
-                    continue
+        if "--force-reinstall" in sys.argv:
+            missing_packages = relevant_packages
+            print("Reinstalling packages...")
+        else:
+            for package in relevant_packages:
+                pip_name = package["pip"]
+                import_name = package["import"]
+                min_version = package["version"]
 
-                if min_version != "all" and not check_package_version(installed_package[1], min_version):
-                    print(f"[check_pip_packages] Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
+                # check pip freeze list #
+                if pip_name not in check_import_only:
+                    installed_package = next((item for item in installed_packages if item[0] == pip_name), None)
+                    if installed_package is None:
+                        print(f"[check_pip_packages] Package '{pip_name}' is not installed.")
+                        missing_packages.append(package)
+                        continue
+
+                    if min_version != "all" and not check_package_version(installed_package[1], min_version):
+                        print(f"[check_pip_packages] Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
+                        missing_packages.append(package)
+                        continue
+                
+                # check import #
+                try: importlib.import_module(import_name)
+                except ImportError: 
+                    print(f"[check_pip_packages] Package '{pip_name}' didn't import properly.")
                     missing_packages.append(package)
-                    continue
-            
-            # check import #
-            try: importlib.import_module(import_name)
-            except ImportError: 
-                print(f"[check_pip_packages] Package '{pip_name}' didn't import properly.")
-                missing_packages.append(package)
 
         # install packages #
-        if len(missing_packages) == 0: 
+        if len(missing_packages) == 0:
             print("[check_pip_packages] All required packages are installed.\n")
             return False
 

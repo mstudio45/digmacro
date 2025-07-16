@@ -44,7 +44,7 @@ for arch in "${ARCHS[@]}"; do
   cd ../..
 
   $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir pip
-  $CMD_PREFIX python3 src/main.py --only-install
+  $CMD_PREFIX python3 src/main.py --only-install --force-reinstall
 
   cd src
 
