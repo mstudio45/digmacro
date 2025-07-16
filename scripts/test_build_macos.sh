@@ -59,7 +59,9 @@ else
     rm -rf "$TEMP_DIR"
     
     if command_exists shc; then
-      echo "shc installed successfully!"
+      echo "shc installed successfully! - Restart the building process..."
+      exit 0
+      return
     else
       echo "Installation failed."
       exit 1
