@@ -211,7 +211,25 @@ int main(int argc, char *argv[]) {
 }
 EOF
 
-clang "${USED_ARCHS[@]/#/-arch }" -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" output/launcher.c
+BUILDED_CLANG=()
+for curarch in "${USED_ARCHS[@]}"; do
+  clang -target "$curarch-apple-darwin" -o "output/$curarch-digmacro_macos" output/launcher.c
+  BUILDED_CLANG+=("output/$curarch-digmacro_macos")
+done
+
+if (( ${#BUILDED_CLANG[@]} == 1 )); then
+  mv "${BUILDED_CLANG[0]}" "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
+
+elif (( ${#BUILDED_CLANG[@]} > 1 )); then
+  lipo -create "${BUILDED_CLANG[@]}" -output "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
+
+  for buildedclang in "${BUILDED_CLANG[@]}"; do
+    rm -rf "$buildedclang"
+  done
+else
+  echo "No binaries were built, skipping lipo."
+fi
+
 rm -rf output/launcher.c
 
 echo "Fixing Info.plist..."

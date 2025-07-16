@@ -7,7 +7,6 @@ __all__ = ["press_key", "press_multiple_keys"]
 
 # SETUP KEYBOARD #
 current_os = platform.system()
-_pynput_keyboard_controller = pynput.keyboard.Controller()
 
 if current_os == "Darwin":
     logging.info("Using 'Darwin' keyboard handler...")
@@ -27,20 +26,6 @@ if current_os == "Darwin":
         kCGEventTapDisabledByTimeout, kCGEventTapDisabledByUserInput
     )
 
-    def press_key(key, duration = 0):
-        if not Variables.is_running: return
-
-        _pynput_keyboard_controller.press(key)
-        if duration > 0: time.sleep(duration)
-        _pynput_keyboard_controller.release(key)
-
-    def press_multiple_keys(keys, duration=0):
-        if not Variables.is_running: return
-
-        for key in keys:             _pynput_keyboard_controller.press(key)
-        if duration > 0: time.sleep(duration)
-        for key in reversed(keys):   _pynput_keyboard_controller.release(key)
-
     MODIFIER_FLAGS = {
         'ctrl': Quartz.kCGEventFlagMaskControl,
         'shift': Quartz.kCGEventFlagMaskShift,
@@ -49,15 +34,141 @@ if current_os == "Darwin":
     }
 
     KEYCODE_MAP = {
-        'a': 0,  's': 1,  'd': 2,  'f': 3,  'h': 4,  'g': 5,  'z': 6,  'x': 7,
-        'c': 8,  'v': 9,  'b': 11, 'q': 12, 'w': 13, 'e': 14, 'r': 15, 'y': 16,
-        't': 17, '1': 18, '2': 19, '3': 20, '4': 21, '6': 22, '5': 23, '=': 24,
-        '9': 25, '7': 26, '-': 27, '8': 28, '0': 29, ']': 30, 'o': 31, 'u': 32,
-        '[': 33, 'i': 34, 'p': 35, 'return': 36, 'l': 37, 'j': 38, "'": 39,
-        'k': 40, ';': 41, '\\': 42, ',': 43, '/': 44, 'n': 45, 'm': 46, '.': 47,
-        'space': 49
+        "backspace": 51,
+        "tab": 48,
+        "enter": 36,
+        "shift": 56,
+        "ctrl": 59,
+        "alt": 58,
+        "caps_lock": 57,
+        "esc": 53,
+        "spacebar": 49,
+        "page_up": 116,
+        "page_down": 121,
+        "end": 119,
+        "home": 115,
+        "left_arrow": 123,
+        "up_arrow": 126,
+        "right_arrow": 124,
+        "down_arrow": 125,
+        "ins": 114,
+        "del": 117,
+        "help": 114,
+        "0": 29,
+        "1": 18,
+        "2": 19,
+        "3": 20,
+        "4": 21,
+        "5": 23,
+        "6": 22,
+        "7": 26,
+        "8": 28,
+        "9": 25,
+        "a": 0,
+        "b": 11,
+        "c": 8,
+        "d": 2,
+        "e": 14,
+        "f": 3,
+        "g": 5,
+        "h": 4,
+        "i": 34,
+        "j": 38,
+        "k": 40,
+        "l": 37,
+        "m": 46,
+        "n": 45,
+        "o": 31,
+        "p": 35,
+        "q": 12,
+        "r": 15,
+        "s": 1,
+        "t": 17,
+        "u": 32,
+        "v": 9,
+        "w": 13,
+        "x": 7,
+        "y": 16,
+        "z": 6,
+        "numpad_0": 82,
+        "numpad_1": 83,
+        "numpad_2": 84,
+        "numpad_3": 85,
+        "numpad_4": 86,
+        "numpad_5": 87,
+        "numpad_6": 88,
+        "numpad_7": 89,
+        "numpad_8": 91,
+        "numpad_9": 92,
+        "multiply_key": 67,
+        "add_key": 69,
+        "subtract_key": 78,
+        "decimal_key": 65,
+        "divide_key": 75,
+        "F1": 122,
+        "F2": 120,
+        "F3": 99,
+        "F4": 118,
+        "F5": 96,
+        "F6": 97,
+        "F7": 98,
+        "F8": 100,
+        "F9": 101,
+        "F10": 109,
+        "F11": 103,
+        "F12": 111,
+        "F13": 105,
+        "F14": 107,
+        "F15": 113,
+        "F16": 106,
+        "F17": 64,
+        "F18": 79,
+        "F19": 80,
+        "F20": 90,
+        "left_shift": 56,
+        "right_shift": 60,
+        "left_control": 59,
+        "right_control": 62,
+        "left_menu": 58,   # Option #
+        "right_menu": 61,  # Right Option #
+        "volume_mute": 113,
+        "volume_Down": 114,
+        "volume_up": 115,
+        "clear_key": 71,   # NumPad Clear #
+        "+": 69,
+        ",": 43,
+        "-": 27,
+        ".": 47,
+        "/": 44,
+        "`": 50,
+        ";": 41,
+        "[": 33,
+        "\\": 42,
+        "]": 30,
+        "'": 39
     }
 
+    def key_event(key_code, key_down):
+        event = Quartz.CGEventCreateKeyboardEvent(None, key_code, key_down) # type: ignore
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event) # type: ignore
+
+    def press_key(key, duration = 0):
+        if not Variables.is_running: return
+        quartz_key = KEYCODE_MAP[key]
+
+        key_event(quartz_key, True)
+        if duration > 0: time.sleep(duration)
+        key_event(quartz_key, False)
+
+    def press_multiple_keys(keys, duration=0):
+        if not Variables.is_running: return
+        quartz_keys = [KEYCODE_MAP[key] for key in keys]
+
+        for key in quartz_keys:             key_event(key, True)
+        if duration > 0: time.sleep(duration)
+        for key in reversed(quartz_keys):   key_event(key, False)
+
+    # key listener #
     def parse_hotkey(hotkey_str):
         mods = 0
         keys = re.findall(r'<(.*?)>', hotkey_str.lower())
@@ -152,6 +263,7 @@ if current_os == "Darwin":
 elif current_os == "Windows":
     logging.info("Using 'Windows' keyboard handler...")
 
+    _pynput_keyboard_controller = pynput.keyboard.Controller()
     from_vk = pynput.keyboard.KeyCode.from_vk
     VK_CODE = {
         "backspace": from_vk(0x08),
@@ -324,6 +436,7 @@ elif current_os == "Windows":
     
 else:
     logging.info("Using 'General' keyboard handler...")
+    _pynput_keyboard_controller = pynput.keyboard.Controller()
 
     def press_key(key, duration = 0):
         if not Variables.is_running: return
