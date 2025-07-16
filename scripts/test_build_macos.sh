@@ -204,8 +204,8 @@ int main(int argc, char *argv[]) {
 
     char error_message[4096];
     snprintf(error_message, sizeof(error_message),
-        "Failed to launch DIG Macro.\nArch: %s\nPath: %s\nError: %s",
-        sysinfo.machine, binary_path, strerror(errno));
+        "Failed to launch DIG Macro.\nArch: %s\nPath: %s",
+        sysinfo.machine, binary_path);
     show_error(error_message);
     return 1;
 }
