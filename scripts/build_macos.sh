@@ -44,7 +44,7 @@ for arch in "${ARCHS[@]}"; do
   cd ../..
 
   $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir pip
-  $CMD_PREFIX python3 src/main.py --only-install
+  $CMD_PREFIX python3 src/main.py --only-install # --force-reinstall
 
   cd src
 
@@ -65,6 +65,7 @@ for arch in "${ARCHS[@]}"; do
     --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
+    --output-filename=digmacro_macos \
     --macos-create-app-bundle \
     --macos-app-icon=assets/icons/macos_icon.icns \
     --macos-signed-app-name="com.mstudio45.digmacro" \
@@ -113,69 +114,107 @@ if [ ${#BUILT_APPS[@]} -eq 0 ]; then
   exit 1
 fi
 
-if [ ${#BUILT_APPS[@]} -eq 0 ]; then
-  UNIVERSAL_APP="output/digmacro_macos_${USED_ARCHS[0]}.app"
-  cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
-
-  PLIST="$UNIVERSAL_APP/Contents/Info.plist"
-  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
-    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
-  else
-    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
-  fi
-
-  codesign --force --deep --sign - "$UNIVERSAL_APP"
-  cd output
-  ditto -c -k --sequesterRsrc --keepParent digmacro_macos_${USED_ARCHS[0]}.app digmacro_macos_${USED_ARCHS[0]}.zip
-  cd ..
-  
-  echo "Single architecture app: output/digmacro_macos_${USED_ARCHS[0]}.zip"
-  exit 1
-fi
-
 UNIVERSAL_APP="output/digmacro_macos_universal.app"
-cp -R "${BUILT_APPS[0]}" "$UNIVERSAL_APP"
+rm -rf "$UNIVERSAL_APP"
 
-find "$UNIVERSAL_APP" -type f -perm +111 | while read -r executable; do
-  if file "$executable" | grep -q "Mach-O"; then
-    echo "    - Merging executable: $executable"
-    
-    ARCH_EXECUTABLES=()
-    for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
-      arch_executable="${executable/$UNIVERSAL_APP/${BUILT_APPS[i]}}"
-      if [ -f "$arch_executable" ]; then
-        ARCH_EXECUTABLES+=("$arch_executable")
-      fi
-    done
-    
-    if [ ${#ARCH_EXECUTABLES[@]} -gt 1 ]; then
-      lipo -create "${ARCH_EXECUTABLES[@]}" -output "$executable"
-      echo "Created universal binary: $executable"
-    fi
-  fi
+mkdir -p "$UNIVERSAL_APP/Contents/MacOS"
+mkdir -p "$UNIVERSAL_APP/Contents/Resources"
+
+cp -R "${BUILT_APPS[0]}/Contents/Info.plist" "$UNIVERSAL_APP/Contents/"
+cp -R "${BUILT_APPS[0]}/Contents/Resources/"* "$UNIVERSAL_APP/Contents/Resources/"
+
+for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
+  arch="${USED_ARCHS[i]}"
+  echo "Copying $arch files to universal .app file..."
+
+  mkdir -p "$UNIVERSAL_APP/Contents/MacOS/$arch"
+  cp -R "${BUILT_APPS[i]}/Contents/MacOS/"* "$UNIVERSAL_APP/Contents/MacOS/$arch/"
 done
 
-echo "================================================="
-echo "Merging libraries..."
-echo "================================================="
+echo "Creating launch script..."
+cat > "output/launcher.c" << 'EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <libgen.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/utsname.h>
+#include <mach-o/dyld.h>
 
-find "$UNIVERSAL_APP" -name "*.dylib" -o -name "*.so" | while read -r library; do
-  echo "    - Merging library: $library"
-  
-  ARCH_LIBRARIES=()
-  for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
-    arch_library="${library/$UNIVERSAL_APP/${BUILT_APPS[i]}}"
-    if [ -f "$arch_library" ]; then
-      ARCH_LIBRARIES+=("$arch_library")
-    fi
-  done
-  
-  if [ ${#ARCH_LIBRARIES[@]} -gt 1 ]; then
-    lipo -create "${ARCH_LIBRARIES[@]}" -output "$library"
-    echo "Created universal library: $library"
-  fi
-done
+// dialog functions
+void show_applescript_dialog(const char *message, const char *icon) {
+    char command[1024];
+    snprintf(command, sizeof(command),
+             "osascript -e 'display dialog \"%s\" with title \"DIG Macro\" buttons {\"OK\"} default button \"OK\" with icon %s'",
+             message, icon);
+    system(command);
+}
 
+void show_error(const char *message) {
+    show_applescript_dialog(message, "stop");
+}
+
+void show_warning(const char *message) {
+    show_applescript_dialog(message, "caution");
+}
+
+// exists functions
+int file_exists(const char *path) {
+    struct stat buffer;
+    return (stat(path, &buffer) == 0);
+}
+
+int main(int argc, char *argv[]) {
+    char exe_path[4096];
+    uint32_t size = sizeof(exe_path);
+    if (_NSGetExecutablePath(exe_path, &size) != 0) {
+        show_error("Failed to get executable path.");
+        return 1;
+    }
+    char *dir = dirname(exe_path);
+
+    struct utsname sysinfo;
+    uname(&sysinfo);
+
+    char binary_path[4096] = {0};
+    if (strcmp(sysinfo.machine, "arm64") == 0) {
+        snprintf(binary_path, sizeof(binary_path), "%s/arm64/digmacro_macos", dir);
+
+    } else if (strcmp(sysinfo.machine, "x86_64") == 0) {
+        snprintf(binary_path, sizeof(binary_path), "%s/x86_64/digmacro_macos", dir);
+
+    } else {
+        char warn_message[512];
+        snprintf(warn_message, sizeof(warn_message),
+            "Your system architecture (%s) is not directly supported. Attempting to run x86_64 version.",
+            sysinfo.machine);
+        show_warning(warn_message);
+
+        snprintf(binary_path, sizeof(binary_path), "%s/x86_64/digmacro_macos", dir);
+    }
+
+    if (!file_exists(binary_path)) {
+        show_error("No compatible binary found for your system. Please reinstall the application.");
+        return 1;
+    }
+
+    execv(binary_path, argv);
+    perror("execv failed");
+
+    char error_message[4096];
+    snprintf(error_message, sizeof(error_message),
+        "Failed to launch DIG Macro.\nArch: %s\nPath: %s",
+        sysinfo.machine, binary_path);
+    show_error(error_message);
+    return 1;
+}
+EOF
+
+clang -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" output/launcher.c
+rm -rf output/launcher.c
+
+echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
 if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
@@ -183,7 +222,26 @@ if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2
 else
   /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
 fi
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable \"digmacro_macos\"" "$UNIVERSAL_PLIST"
 
+/usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
+if [ ${#USED_ARCHS[@]} -gt 1 ]; then
+  /usr/libexec/PlistBuddy -c "Add :LSArchitecturePriority array" "$UNIVERSAL_PLIST"
+  for arch in "${USED_ARCHS[@]}"; do
+    /usr/libexec/PlistBuddy -c "Add :LSArchitecturePriority:0 string $arch" "$UNIVERSAL_PLIST"
+  done
+fi
+
+for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
+  arch="${USED_ARCHS[i]}"
+  echo "Signing $arch binary..."
+  find "$UNIVERSAL_APP/Contents/MacOS/$arch" -type f -perm +111 | while read -r executable; do
+    codesign --force --sign - "$executable" 2>/dev/null || true
+  done
+done
+
+echo "Signing launch script and universal binary..."
+codesign --force --sign - "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
 codesign --force --deep --sign - "$UNIVERSAL_APP"
 
 cd output
