@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
 }
 EOF
 
-clang -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" output/launcher.c
+clang -arch arm64 -arch x86_64 -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" output/launcher.c
 rm -rf output/launcher.c
 
 echo "Fixing Info.plist..."
