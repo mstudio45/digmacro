@@ -14,6 +14,66 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
+# shc compiler #
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+if command_exists shc; then
+  echo "shc already installed"
+else
+  echo "Compiling shc from source..."
+
+  TEMP_DIR=$(mktemp -d)
+  cd "$TEMP_DIR"
+  
+  # download shc with wget or curl #
+  if command_exists wget; then
+    wget https://github.com/neurobin/shc/archive/refs/heads/master.zip -O shc.zip
+  elif command_exists curl; then
+    curl -L https://github.com/neurobin/shc/archive/refs/heads/master.zip -o shc.zip
+  else
+    echo "Error: Neither wget nor curl found. Cannot download shc source."
+    cd - > /dev/null
+    rm -rf "$TEMP_DIR"
+    exit 1
+    return
+  fi
+  
+  if command_exists unzip; then
+    unzip shc.zip
+    cd shc-master
+    
+    if [ -f "configure" ]; then
+      ./configure
+    else
+      echo "No configure script found. Trying direct compilation..."
+    fi
+    
+    make
+
+    echo "Installing shc to /usr/local/bin..."
+    sudo make install PREFIX=/usr/local
+    
+    cd - > /dev/null
+    rm -rf "$TEMP_DIR"
+    
+    if command_exists shc; then
+      echo "shc installed successfully!"
+    else
+      echo "Installation failed."
+      exit 1
+      return
+    fi
+  else
+    echo "Error: unzip not found. Cannot extract shc source."
+    cd - > /dev/null
+    rm -rf "$TEMP_DIR"
+    exit 1
+    return
+  fi
+fi
+
 cd ..
 
 if [ ! -d "output" ]; then
@@ -132,7 +192,7 @@ for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
 done
 
 echo "Creating launch script..."
-cat > "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" << 'EOF'
+cat > "output/launcher.sh" << 'EOF'
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ARCH=$(uname -m)
@@ -163,7 +223,8 @@ else
 fi
 EOF
 
-chmod +x "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
+shc -f /output/launcher.sh -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
+rm -rf /output/launcher.sh
 
 echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
