@@ -196,7 +196,7 @@ done
 echo "Creating launch script..."
 cat > "output/launcher.sh" << 'EOF'
 #!/bin/bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(dirname "$0")"
 ARCH=$(uname -m)
 
 show_error() {
@@ -206,6 +206,8 @@ show_error() {
 show_warning() {
     osascript -e "display dialog \"$1\" with title \"DIG Macro\" buttons {\"OK\"} default button \"OK\" with icon caution"
 }
+
+show_warning "$ARCH - $DIR"
 
 if [ "$ARCH" = "arm64" ] && [ -d "$DIR/arm64" ]; then
     exec "$DIR/arm64/digmacro_macos" "$@"
