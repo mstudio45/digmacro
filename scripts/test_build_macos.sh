@@ -65,6 +65,7 @@ for arch in "${ARCHS[@]}"; do
     --include-package=numpy --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
+    --output-filename=digmacro_macos \
     --macos-create-app-bundle \
     --macos-app-icon=assets/icons/macos_icon.icns \
     --macos-signed-app-name="com.mstudio45.digmacro" \
@@ -114,6 +115,8 @@ if [ ${#BUILT_APPS[@]} -eq 0 ]; then
 fi
 
 UNIVERSAL_APP="output/digmacro_macos_universal.app"
+rm -rf "$UNIVERSAL_APP"
+
 mkdir -p "$UNIVERSAL_APP/Contents/MacOS"
 mkdir -p "$UNIVERSAL_APP/Contents/Resources"
 
@@ -122,11 +125,14 @@ cp -R "${BUILT_APPS[0]}/Contents/Resources/"* "$UNIVERSAL_APP/Contents/Resources
 
 for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
   arch="${USED_ARCHS[i]}"
+  echo "Copying $arch files to universal .app file..."
+
   mkdir -p "$UNIVERSAL_APP/Contents/MacOS/$arch"
   cp -R "${BUILT_APPS[i]}/Contents/MacOS/"* "$UNIVERSAL_APP/Contents/MacOS/$arch/"
 done
 
-cat > "$UNIVERSAL_APP/Contents/MacOS/DIG Macro" << 'EOF'
+echo "Creating launch script..."
+cat > "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" << 'EOF'
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ARCH=$(uname -m)
@@ -140,15 +146,15 @@ show_warning() {
 }
 
 if [ "$ARCH" = "arm64" ] && [ -d "$DIR/arm64" ]; then
-    exec "$DIR/arm64/DIG Macro" "$@"
+    exec "$DIR/arm64/digmacro_macos" "$@"
 elif [ "$ARCH" = "x86_64" ] && [ -d "$DIR/x86_64" ]; then
-    exec "$DIR/x86_64/DIG Macro" "$@"
+    exec "$DIR/x86_64/digmacro_macos" "$@"
 else
     for arch_dir in "$DIR"/*/; do
         if [ -d "$arch_dir" ]; then
             arch_name=$(basename "$arch_dir")
             show_warning "Your system architecture ($ARCH) is not directly supported. Running in $arch_name mode."
-            exec "$arch_dir/DIG Macro" "$@"
+            exec "$arch_dir/digmacro_macos" "$@"
         fi
     done
     
@@ -157,8 +163,9 @@ else
 fi
 EOF
 
-chmod +x "$UNIVERSAL_APP/Contents/MacOS/DIG Macro"
+chmod +x "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
 
+echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
 if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
@@ -166,7 +173,7 @@ if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2
 else
   /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
 fi
-/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable \"DIG Macro\"" "$UNIVERSAL_PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable \"digmacro_macos\"" "$UNIVERSAL_PLIST"
 
 /usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
 if [ ${#USED_ARCHS[@]} -gt 1 ]; then
@@ -178,13 +185,14 @@ fi
 
 for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
   arch="${USED_ARCHS[i]}"
-  echo "Signing $arch binaries..."
+  echo "Signing $arch binary..."
   find "$UNIVERSAL_APP/Contents/MacOS/$arch" -type f -perm +111 | while read -r executable; do
     codesign --force --sign - "$executable" 2>/dev/null || true
   done
 done
 
-codesign --force --sign - "$UNIVERSAL_APP/Contents/MacOS/DIG Macro"
+echo "Signing launch script and universal binary..."
+codesign --force --sign - "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
 codesign --force --deep --sign - "$UNIVERSAL_APP"
 
 cd output
