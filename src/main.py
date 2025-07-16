@@ -82,7 +82,7 @@ if current_os == "Windows":
 if __name__ == "__main__":
     # create folders (on macOS it will prompt an allow 'folder' access notification) #
     print("Creating storage folder...")
-    FileHandler.create_folder("storage")
+    FileHandler.create_folder(StaticVariables.storage_folder)
 
     print("Creating logs folder...")
     FileHandler.create_folder(StaticVariables.logs_path)

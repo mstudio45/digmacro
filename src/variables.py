@@ -1,19 +1,27 @@
-import os, random, string, shutil, time
+import os, platform, random, string, shutil, time
 
 __all__ = ["Variables", "StaticVariables"]
+current_os = platform.system()
 
-# get onefile compiled path #
+# get compiled paths #
+resource_path_str = ""
+base_path_str = os.path.abspath(os.getcwd())
+
 if "__compiled__" in globals():
-    base_path = os.path.dirname(__file__)
     try:
         from __nuitka_binary_dir import __nuitka_binary_dir # type: ignore
-        base_path = __nuitka_binary_dir
+        resource_path_str = __nuitka_binary_dir
     except ImportError: pass
-else:
-    base_path = os.path.dirname(os.path.abspath(__file__))
 
-def resource_path(relative_path):
-    return os.path.join(base_path, relative_path)
+    # fix files being created inside .app file #
+    if current_os == "Darwin" and ".app/Contents/MacOS" in base_path_str: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
+
+# fix empty resource path #
+if resource_path_str.strip() == "": resource_path_str = os.path.dirname(os.path.abspath(__file__))
+
+# path funcs #
+def get_resource_path(*paths): return os.path.join(resource_path_str, *paths)
+def get_base_path    (*paths): return os.path.join(base_path_str,     *paths)
 
 # variables #
 class Variables:
@@ -56,15 +64,16 @@ class Variables:
         return Variables.is_running == False
 
 class StaticVariables:
-    ui_filepath                 = resource_path(os.path.join("assets", "ui", "ui.html"))
-    guide_ui_filepath           = resource_path(os.path.join("assets", "ui", "guide.html"))
-    region_example_imgpath      = resource_path(os.path.join("assets", "select_example.png"))
+    ui_filepath                 = get_resource_path("assets", "ui", "ui.html")
+    guide_ui_filepath           = get_resource_path("assets", "ui", "guide.html")
+    region_example_imgpath      = get_resource_path("assets", "select_example.png")
 
-    region_filepath = os.path.join("storage", "region.json")
-    config_filepath = os.path.join("storage", "config.ini")
-    pathfinding_macros_filepath = os.path.join("storage", "pathfinding_macros.json")
+    storage_folder              = get_base_path("storage")
+    region_filepath             = os.path.join(storage_folder, "region.json")
+    config_filepath             = os.path.join(storage_folder, "config.ini")
+    pathfinding_macros_filepath = os.path.join(storage_folder, "pathfinding_macros.json")
     
-    logs_path = os.path.join("storage", "logs")
+    logs_path                   = os.path.join(storage_folder, "logs")
 
-    screenshots_path = os.path.join("storage", "screenshots")
+    screenshots_path            = os.path.join(storage_folder, "screenshots")
     prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)
