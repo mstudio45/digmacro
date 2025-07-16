@@ -213,7 +213,7 @@ EOF
 
 BUILDED_CLANG=()
 for curarch in "${USED_ARCHS[@]}"; do
-  clang -target "$curarch-apple-darwin" -o "output/$curarch-digmacro_macos" output/launcher.c
+  clang -target "$curarch-apple-darwin" -mmacos-version-min=10.12 -o "output/$curarch-digmacro_macos" output/launcher.c
   BUILDED_CLANG+=("output/$curarch-digmacro_macos")
 done
 
