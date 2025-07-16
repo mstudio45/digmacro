@@ -13,10 +13,8 @@ if "__compiled__" in globals():
         resource_path_str = __nuitka_binary_dir
     except ImportError: pass
 
-    # fix files being created inside .app file #
-    if current_os == "Darwin" and ".app/Contents/MacOS" in base_path_str: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
-
-# fix empty resource path #
+# fix paths #
+if current_os == "Darwin" and ".app/Contents/MacOS" in __file__: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
 if resource_path_str.strip() == "": resource_path_str = os.path.dirname(os.path.abspath(__file__))
 
 # path funcs #
