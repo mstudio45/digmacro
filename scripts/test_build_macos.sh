@@ -225,8 +225,9 @@ else
 fi
 EOF
 
-shc -f /output/launcher.sh -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
-rm -rf /output/launcher.sh
+shc -f output/launcher.sh -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
+rm -rf output/launcher.sh
+rm -rf output/launcher.sh.x.c
 
 echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
