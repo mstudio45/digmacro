@@ -14,68 +14,6 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
-# shc compiler #
-command_exists() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-if command_exists shc; then
-  echo "shc already installed"
-else
-  echo "Compiling shc from source..."
-
-  TEMP_DIR=$(mktemp -d)
-  cd "$TEMP_DIR"
-  
-  # download shc with wget or curl #
-  if command_exists wget; then
-    wget https://github.com/neurobin/shc/archive/refs/heads/master.zip -O shc.zip
-  elif command_exists curl; then
-    curl -L https://github.com/neurobin/shc/archive/refs/heads/master.zip -o shc.zip
-  else
-    echo "Error: Neither wget nor curl found. Cannot download shc source."
-    cd - > /dev/null
-    rm -rf "$TEMP_DIR"
-    exit 1
-    return
-  fi
-  
-  if command_exists unzip; then
-    unzip shc.zip
-    cd shc-master
-    
-    if [ -f "configure" ]; then
-      ./configure
-    else
-      echo "No configure script found. Trying direct compilation..."
-    fi
-    
-    make
-
-    echo "Installing shc to /usr/local/bin..."
-    sudo make install PREFIX=/usr/local
-    
-    cd - > /dev/null
-    rm -rf "$TEMP_DIR"
-    
-    if command_exists shc; then
-      echo "shc installed successfully! - Restart the building process..."
-      exit 0
-      return
-    else
-      echo "Installation failed."
-      exit 1
-      return
-    fi
-  else
-    echo "Error: unzip not found. Cannot extract shc source."
-    cd - > /dev/null
-    rm -rf "$TEMP_DIR"
-    exit 1
-    return
-  fi
-fi
-
 cd ..
 
 if [ ! -d "output" ]; then
@@ -194,42 +132,87 @@ for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
 done
 
 echo "Creating launch script..."
-cat > "output/launcher.sh" << 'EOF'
-#!/bin/bash
-DIR="$(dirname "$0")"
-ARCH=$(uname -m)
+cat > "output/launcher.c" << 'EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <libgen.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/utsname.h>
+#include <mach-o/dyld.h>
 
-show_error() {
-    osascript -e "display dialog \"$1\" with title \"DIG Macro\" buttons {\"OK\"} default button \"OK\" with icon stop"
+// dialog functions
+void show_applescript_dialog(const char *message, const char *icon) {
+    char command[1024];
+    snprintf(command, sizeof(command),
+             "osascript -e 'display dialog \"%s\" with title \"DIG Macro\" buttons {\"OK\"} default button \"OK\" with icon %s'",
+             message, icon);
+    system(command);
 }
 
-show_warning() {
-    osascript -e "display dialog \"$1\" with title \"DIG Macro\" buttons {\"OK\"} default button \"OK\" with icon caution"
+void show_error(const char *message) {
+    show_applescript_dialog(message, "stop");
 }
 
-show_warning "$ARCH - $DIR"
+void show_warning(const char *message) {
+    show_applescript_dialog(message, "caution");
+}
 
-if [ "$ARCH" = "arm64" ] && [ -d "$DIR/arm64" ]; then
-    exec "$DIR/arm64/digmacro_macos" "$@"
-elif [ "$ARCH" = "x86_64" ] && [ -d "$DIR/x86_64" ]; then
-    exec "$DIR/x86_64/digmacro_macos" "$@"
-else
-    for arch_dir in "$DIR"/*/; do
-        if [ -d "$arch_dir" ]; then
-            arch_name=$(basename "$arch_dir")
-            show_warning "Your system architecture ($ARCH) is not directly supported. Running in $arch_name mode."
-            exec "$arch_dir/digmacro_macos" "$@"
-        fi
-    done
-    
-    show_error "No compatible architecture found for your system ($ARCH). Try reinstalling the application."
-    exit 1
-fi
+// exists functions
+int file_exists(const char *path) {
+    struct stat buffer;
+    return (stat(path, &buffer) == 0);
+}
+
+int main(int argc, char *argv[]) {
+    char exe_path[4096];
+    uint32_t size = sizeof(exe_path);
+    if (_NSGetExecutablePath(exe_path, &size) != 0) {
+        show_error("Failed to get executable path.");
+        return 1;
+    }
+    char *dir = dirname(exe_path);
+
+    struct utsname sysinfo;
+    uname(&sysinfo);
+
+    char binary_path[4096] = {0};
+    if (strcmp(sysinfo.machine, "arm64") == 0) {
+        snprintf(binary_path, sizeof(binary_path), "%s/arm64/digmacro_macos", dir);
+
+    } else if (strcmp(sysinfo.machine, "x86_64") == 0) {
+        snprintf(binary_path, sizeof(binary_path), "%s/x86_64/digmacro_macos", dir);
+
+    } else {
+        char warn_message[512];
+        snprintf(warn_message, sizeof(warn_message),
+            "Your system architecture (%s) is not directly supported. Attempting to run x86_64 version.",
+            sysinfo.machine);
+        show_warning(warn_message);
+
+        snprintf(binary_path, sizeof(binary_path), "%s/x86_64/digmacro_macos", dir);
+    }
+
+    if (!file_exists(binary_path)) {
+        show_error("No compatible binary found for your system. Please reinstall the application.");
+        return 1;
+    }
+
+    execv(binary_path, argv);
+    perror("execv failed");
+
+    char error_message[4096];
+    snprintf(error_message, sizeof(error_message),
+        "Failed to launch DIG Macro.\nArch: %s\nPath: %s\nError: %s",
+        sysinfo.machine, binary_path, strerror(errno));
+    show_error(error_message);
+    return 1;
+}
 EOF
 
-shc -f output/launcher.sh -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos"
-rm -rf output/launcher.sh
-rm -rf output/launcher.sh.x.c
+clang -o "$UNIVERSAL_APP/Contents/MacOS/digmacro_macos" output/launcher.c
+rm -rf output/launcher.c
 
 echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
