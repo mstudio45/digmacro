@@ -1,21 +1,26 @@
 # v2.0.2
 ```diff
 [New Features]
++ Added Pausing
++ Added "Gradient" detection method that will be more stable for certain computers
 + Added DIRT_DETECTION, UI_ON_TOP and UI_SCALE_OVERRIDE configurations
 + Added a macOS permission checker for Screen Recording and Accessibility
-+ Added "Gradient" detection method that will be more stable for certain computers
 
 [Changes]
 + Changed saved region format (OS leftxtop heightxwidth)
++ Added more buttons to the UI (Pause, Configuration, Restart)
++ Removed "Sobel" method since it was slow and unreliable
 
 [Improvements]
-+ Improved Auto Rejoin system
++ Better performance
 + Macro loading now waits until Roblox is focused for 1 second before starting
 + Enhanced the minigame recognition system (if it is active or not)
 + Improved prediction screenshot configuration (found and clicked frames are now saved when the setting is enabled)
 + Message boxes now appear above all other windows (Linux and Windows only)
++ Global Hotkeys are now supported on macOS
 
 [Fixes]
++ Fixed Auto Rejoin and Auto Start Minigame
 + Fixed pathfinding on macOS
 + Fixed UI resizing issues on monitors with different resolutions
 + Fixed the version checker

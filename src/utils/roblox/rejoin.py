@@ -60,6 +60,7 @@ def launch_protocol(protocol):
 
 def rejoin_dig():
     if not Config.AUTO_REJOIN: return
+    if Variables.is_paused: logging.debug("Paused, skipping..."); return
     if not Variables.is_idle(): return
 
     logging.info("Rejoining...")

@@ -23,6 +23,7 @@ class PathfingingHandler:
         return next_key, duration, was_last_key
     
     def start_walking(self):
+        if Variables.is_paused:     logging.debug("Paused, skipping..."); return
         if not Variables.is_idle(): logging.debug("Not idle, skipping..."); return
 
         logging.info("Walking started...")

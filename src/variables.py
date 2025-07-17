@@ -25,6 +25,8 @@ def get_base_path    (*paths): return os.path.join(base_path_str,     *paths)
 class Variables:
     is_compiled = "__compiled__" in globals()
     is_running = True
+    is_paused = True
+
     is_roblox_focused = True
     is_selecting_region = True
 

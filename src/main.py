@@ -148,7 +148,7 @@ if __name__ == "__main__":
                 )
 
                 if res == "OK":
-                    restart_macro()
+                    restart_macro(["--skip-install"])
                     sys.exit(0)
                     return
                 elif res == "Skip":
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             if has_input_monitor_access(): # only check #
                 logging.info("[macOS Permissions] Input Monitoring access is enabled.")
             else:
-                prompt_issue_msgbox("Input Monitoring", "enable global hotkeys")
+                prompt_issue_msgbox("Input Monitoring", "allow global hotkeys")
             
         except ImportError:     logging.warning("[macOS Permissions] Could not import packages for permission check. Skipping...")
         except Exception as e:  logging.error(f"[macOS Permissions] Error during permission check: {e}")
@@ -210,13 +210,23 @@ if __name__ == "__main__":
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
 
-    run_config = False
+    # selection handler #
+    run_config = "--open-config" in sys.argv
 
     if "--skip-selection" in sys.argv or "--region-check" in sys.argv:
         logging.info("Skipping config/start selection.")
     else:
-        res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
-        if res == "Edit the configuration":
+        if run_config == False:
+            res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
+            if res == "Edit the configuration":
+                run_config = True
+            elif res == "Exit" or res == "": 
+                os.kill(os.getpid(), 9)
+            else: 
+                logging.info("Starting the macro...")
+
+        # start configuration #
+        if run_config == True:
             # config ui #
             logging.info("Loading Config GUI...")
             if current_os == "Linux":
@@ -234,9 +244,7 @@ if __name__ == "__main__":
             # exit or restart #
             if config_ui.start_macro_now == True: restart_macro()
             else:                                 os.kill(os.getpid(), 9)
-        
-        elif res == "Exit" or res == "": os.kill(os.getpid(), 9)
-        else: logging.info("Starting the macro...")
+    #############################################################################
 
     # log opencv info #
     logging.info("===============================")
@@ -263,7 +271,8 @@ if __name__ == "__main__":
 
     # main loader #
     logging.info("Importing libraries...")
-    from utils.finder import MainHandler, SellUI
+    from utils.detectors.handler import MainHandler
+    from utils.sellinv import SellUI
     from utils.pathfinding import PathfingingHandler
 
     from utils.input.mouse import left_click
@@ -448,11 +457,12 @@ if __name__ == "__main__":
             try:
                 # functions #
                 def close_hotkey(): setattr(Variables, "is_running", False)
+                def pause_hotkey(): self.ui.pause()
 
                 # start #
                 self.hotkeys = setup_global_hotkeys({ 
                     "<ctrl>+e": close_hotkey,
-                    "<ctrl>+r": lambda: msgbox.alert("GET OUT", bypass=True)
+                    "<ctrl>+p": pause_hotkey
                 })
 
                 logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.\n")
@@ -479,128 +489,160 @@ if __name__ == "__main__":
             self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
             self.sell_handler.sell_items(Variables.dig_count)
 
-        def start_minigame(self, equipped=False):
-            if Variables.is_minigame_active: return
-            if not Variables.is_roblox_focused: return
+        def start_minigame(self, failed_do_equip=False):
+            if Variables.is_minigame_active:     
+                logging.info("Minigame is already active, skipping...")
+                return
+            else:
+                if self.total_idle_time < 0.2:
+                    logging.info("Not inactive for long enough, skipping...")
+                    return
+            
+            if not Variables.is_roblox_focused:  logging.info("Roblox is not focused, skipping..."); return
 
             logging.info("Starting minigame...")
             self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count}", "green")
 
-            # start minigame #
-            time.sleep(0.1)
+            # handle shovel re-equipping #
+            if failed_do_equip == True:
+                press_key("1") # equip the shovel #
+                time.sleep(1.75) # wait #
+            else: 
+                time.sleep(0.125)
+
+            # start the minigame #
+            if Variables.is_minigame_active:
+                logging.info("Minigame started successfully!")
+                return
+            
             left_click()
             
-            # waiting of max 1.5 sec #
-            start = time.time()
-            timed_out = False
+            # wait for the minigame to start #
+            start_time = time.time()
             while Variables.is_running and Variables.is_roblox_focused:
-                time.sleep(0)
-
-                timed_out = (time.time() - start) > 1.5
-                if Variables.is_minigame_active == True or timed_out: break
-            
-            logging.info(f"Timed out: {(time.time() - start) > 1.5} | Active: {Variables.is_minigame_active} | Equipped: {equipped}")
-            if not Variables.is_running or not Variables.is_roblox_focused: return
-            
-            if timed_out == True and Variables.is_minigame_active == False:
-                if equipped == True:
-                    self.update_window_status("Error", "Failed to start the minigame in the second try, waiting...", "red")
-                    time.sleep(2.5)
-                    return
+                if Variables.is_minigame_active: break
                 
-                self.update_window_status("Error", "Failed to start the minigame!", "red")
+                # check for timeout #
+                elapsed_time = time.time() - start_time
+                if elapsed_time > 1.75:
+                    logging.warning(f"Minigame start timed out after {elapsed_time:.2f}s...")
+                    break
+                    
+                time.sleep(0.01)
 
-                logging.info("Equipping shovel...")
-                press_key("1") # equip the shovel #
-                time.sleep(0.8)
-                return self.start_minigame(equipped=True)
+            # re-check the current state #
+            if Variables.is_minigame_active:
+                logging.info("Minigame started successfully!")
+                return
+            
+            if not Variables.is_running or not Variables.is_roblox_focused:
+                logging.info("Roblox is no longer focused or the macro is stopping, aborting...")
+                return
+            
+            if failed_do_equip == True:
+                self.update_window_status("Error", "Failed to start minigame after the second try...", "red")
+                return
+            
+            # restart the function to equip #
+            logging.info("First attempt failed, trying to equip shovel...")
+            self.update_window_status("Minigame", "Equipping shovel...", "yellow")
+            time.sleep(0.5)
+
+            return self.start_minigame(failed_do_equip=True)
 
         def main_loop(self, _):
             logging.info("Creating screenshot folders...")
             FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
             # TO-DO: switch to pause system
-            while not Variables.is_roblox_focused:
-                self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
-                if Variables.sleep(1): break
-                continue
+            # while not Variables.is_roblox_focused:
+            #     self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
+            #     if Variables.sleep(1): break
+            #     continue
             
-            time.sleep(0.5)
-            if Variables.is_running: 
-                while Variables.is_running:
-                    time.sleep(0.25)
+            while Variables.is_running:
+                time.sleep(0.1)
 
-                    # handle idle_time, and skip if not in idle #
-                    if not Variables.is_idle():
-                        if Variables.is_minigame_active:
-                            self.update_window_status("Minigame", "Completing minigame...", "green")
-                        
-                        self.total_idle_time = 0
-                    else: # main handler #
+                # handle idle_time, and skip if not in idle #
+                if Variables.is_paused == True:
+                    self.update_window_status("Paused", "Resume to continue...", "gray")
+                    self.total_idle_time = 0
+                    time.sleep(0.5)
 
-                        if Config.AUTO_REJOIN:
-                            if Variables.is_rejoining: continue
+                elif Variables.is_minigame_active or not Variables.is_idle():
+                    if Variables.is_minigame_active:
+                        self.update_window_status("Minigame", "Completing minigame...", "green")
+                        time.sleep(0.5)
+                    else:
+                        self.update_window_status("Idle", "Waiting for minigame...", "yellow")
+                    
+                    self.total_idle_time = 0
+                
+                else: # main handler #
+                    if Config.AUTO_REJOIN:
+                        if Variables.is_rejoining: continue
 
-                            if can_rejoin(self.total_idle_time):
-                                self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
+                        if can_rejoin(self.total_idle_time):
+                            self.update_window_status("Rejoining...", "Waiting for Roblox to load...", "yellow")
 
-                                self.total_idle_time = 0
-                                rejoin_dig()
-                                continue
-
-                        # skip main loop if roblox is not focused #
-                        if not Variables.is_roblox_focused:
-                            self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
-                            time.sleep(0.5)
+                            self.total_idle_time = 0
+                            rejoin_dig()
                             continue
 
-                        # handling dig_count and if digging finished #
-                        digging_finished = False
-                        if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
-                            last_interact = int(Variables.last_minigame_interaction) / 1000
+                    # skip main loop if roblox is not focused #
+                    if not Variables.is_roblox_focused:
+                        self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
+                        time.sleep(0.5)
+                        continue
 
-                            if last_interact > 0 and (time.time() - last_interact) >= 1.5:
-                                Variables.dig_count = Variables.dig_count + 1
-                                Variables.last_minigame_interaction = None
+                    # handling dig_count and if digging finished #
+                    digging_finished = False
+                    if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
+                        last_interact = int(Variables.last_minigame_interaction) / 1000
 
-                                logging.debug("Added 1 to dig_count, waiting..."); 
-                                digging_finished = True
+                        if last_interact > 0 and (time.time() - last_interact) >= 1.5:
+                            Variables.dig_count = Variables.dig_count + 1
+                            Variables.last_minigame_interaction = None
 
-                                if Variables.sleep(0.75): break
-                        else: digging_finished = True
+                            logging.debug("Added 1 to dig_count, waiting..."); 
+                            digging_finished = True
 
-                        # skip if digging didnt finish #
-                        if not digging_finished: continue
+                            if Variables.sleep(0.75): break
+                    else: digging_finished = True
 
-                        self.finder.debug_img = None
-                        self.total_idle_time += 0.25
+                    # skip if digging didnt finish #
+                    if not digging_finished: continue
 
-                        # no dirt bar #
-                        if self.finder.minigame_detected_by_avg == False:
-                            self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
+                    self.finder.debug_img = None
+                    self.total_idle_time += 0.1
 
-                        elif self.finder.DirtBar.clickable_position is None:
-                            self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
+                    # no dirt bar #
+                    if self.finder.minigame_detected_by_avg == False:
+                        self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
 
-                        elif self.finder.PlayerBar.current_position is None:
-                            self.update_window_status("Minigame", "Waiting for player bar...", "yellow")
+                    elif self.finder.DirtBar.clickable_position is None:
+                        self.update_window_status("Minigame", "Waiting for dirt bar...", "yellow")
 
-                        else:
-                            self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
+                    elif self.finder.PlayerBar.current_position is None:
+                        self.update_window_status("Minigame", "Waiting for player bar...", "yellow")
 
-                        # pathfinding handler #
-                        was_last_key = False
-                        if Config.PATHFINDING == True:
-                            self.update_window_status("Pathfinding", "Walking to the next point...", "green")
-                            was_last_key = self.pathfinding.start_walking()
-                        
-                        # auto sell #
-                        if Config.AUTO_SELL == True: 
-                            self.sell_all_items(was_last_key=was_last_key)
+                    else:
+                        self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
 
-                        # minigame handler #
-                        if Config.AUTO_START_MINIGAME == True: 
-                            self.start_minigame()
+                    # pathfinding handler #
+                    was_last_key = False
+                    if Config.PATHFINDING == True:
+                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")
+                        was_last_key = self.pathfinding.start_walking()
+                    
+                    # auto sell #
+                    if Config.AUTO_SELL == True: 
+                        self.sell_all_items(was_last_key=was_last_key)
+
+                    # minigame handler #
+                    if Config.AUTO_START_MINIGAME == True: 
+                        self.start_minigame()
+                    
             ###############################################################################################
             logging.info("Main loop has successfully ended.")
             self.ui.stop_window()
@@ -748,6 +790,12 @@ if __name__ == "__main__":
         logging.info("Loading UI...")
         macro.ui.start(macro.main_loop)
         macro.exit_macro()
+        if macro.ui.open_config == True:
+            restart_macro(["--open-config", "--skip-install"])
+            pass
+        elif macro.ui.restart_macro == True:
+            restart_macro(["--skip-selection", "--skip-install"])
+            pass
     
     logging.info("----------------- STOPPED ------------------")
     os.kill(os.getpid(), 9)

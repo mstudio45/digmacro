@@ -61,6 +61,9 @@ class WebUI(UIBase):
 
         self.finder = finder
         self.next_logic_thread = None
+        self.open_config = False
+        self.restart_macro = False
+
         self._stop_event = threading.Event() # for some reason that shows up on linux bin, so lets just add it
     
     # api functions #
@@ -83,10 +86,28 @@ class WebUI(UIBase):
         if self.next_logic_thread: self.next_logic_thread.join()
         self.stop_window()
 
+    def go_to_config(self):
+        self.open_config = True
+        self.close()
+
+    def restart(self):
+        self.restart_macro = True
+        self.close()
+
+    def pause(self):
+        setattr(Variables, "is_paused", not Variables.is_paused)
+
+        if Variables.is_paused:
+            self.window.evaluate_js('updateStatus("Paused", "Resume to continue...", "gray")')
+            self.window.evaluate_js('document.querySelector("#pausebtn").textContent = "Resume"')
+        else:
+            self.window.evaluate_js('updateStatus("Idle", "Waiting for minigame...", "yellow")')
+            self.window.evaluate_js('document.querySelector("#pausebtn").textContent = "Pause"')
+
     # main handler #
     def start(self, next_logic=None):
         self.create_window()
-        self.window.expose(self.close, self.open_link)
+        self.window.expose(self.close, self.go_to_config, self.restart, self.pause, self.open_link)
 
         # threads #
         threading.Thread(target=self.update, daemon=True).start()
@@ -102,7 +123,9 @@ class WebUI(UIBase):
     def update(self):
         if not Config.SHOW_COMPUTER_VISION:
             self.window.evaluate_js("removeComputerVision()")
-            self._stop_event.wait()
+            while not self._stop_event.is_set():
+                self.window.evaluate_js(f'updateFps("{self.finder.current_fps:.2f}")')
+                time.sleep(0.01)
         else:
             if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(10)")
 
@@ -111,11 +134,11 @@ class WebUI(UIBase):
                 frame_start = time.perf_counter()
                 
                 try:
-                    if self.finder.debug_img is not None:
+                    if self.finder.debug_img is not None and Variables.is_paused == False:
                         self.window.evaluate_js(f'updateImage("{image_to_base64(self.finder.debug_img)}", "{self.finder.current_fps:.2f}")')
                     else:
                         self.window.evaluate_js("clearImage()")
-                except Exception as e: pass
+                except: pass
                 
                 elapsed = time.perf_counter() - frame_start
                 sleep_time = max(0, frame_time - elapsed)

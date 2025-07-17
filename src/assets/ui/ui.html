@@ -48,7 +48,7 @@
                 </button>
             </header>
 
-            <main id="computervision">
+            <main>
                 <div class="flex justify-between items-center mb-2 gap-1">
                     <h2 id="debugtitle" class="text-sm font-medium text-gray-300">Computer Vision</h2>
                     <div class="flex items-center cursor-pointer" onclick='pywebview.api.open_url("https://github.com/mstudio45/digmacro")'>
@@ -67,16 +67,20 @@
 
             <footer class="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
                 <div class="flex gap-3">
+                    <button id="pausebtn" onclick="pywebview.api.pause()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Resume
+                    </button>
+
+                    <button id="configbtn" onclick="pywebview.api.go_to_config()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                        Configuration
+                    </button>
+                    
                     <button id="continuenbtn" style="display: none;" onclick="pywebview.api.region_okay()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
                         Continue
                     </button>
 
-                    <button id="restartbtn" style="display: none;" onclick="pywebview.api.restart()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
+                    <button id="restartbtn" onclick="pywebview.api.restart()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
                         Restart
-                    </button>
-
-                    <button id="closebtn" onclick="pywebview.api.close()" class="bg-gray-200 text-black text-sm font-semibold px-4 py-2 rounded-md transition-colors hover:bg-white hover:shadow-md transition-all duration-200">
-                        Exit
                     </button>
                 </div>
             
@@ -94,8 +98,13 @@
 
     <script>
         let img = document.querySelector("#debugimg");
-        let computervision = document.querySelector("#computervision")
+        let debugdiv = document.querySelector("#debugdiv")
         let debugtitle = document.querySelector("#debugtitle")
+
+        function updateFps(fps) { // only ran when debugdiv is removed //
+            if (debugtitle == undefined) debugtitle = document.querySelector("#debugtitle")
+            debugtitle.textContent = "FPS: " + fps
+        }
 
         function updateImage(src, fps) {
             if (img == undefined) img = document.querySelector("#debugimg");
@@ -119,7 +128,7 @@
         }
 
         function removeComputerVision() {
-            computervision.style.display = "none"
+            debugdiv.style.display = "none"
         }
     </script>
     
@@ -138,8 +147,11 @@
         // region selector //
         function showRegionSelectButtons() {
             document.querySelector("#continuenbtn").style.display = "";
+
+            // default buttons //
             document.querySelector("#restartbtn").style.display = "";
-            document.querySelector("#closebtn").style.display = "none";
+            document.querySelector("#pausebtn").style.display = "none";
+            document.querySelector("#configbtn").style.display = "none";
         }
     </script>
 

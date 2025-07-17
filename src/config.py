@@ -96,21 +96,14 @@ settings_table = {
         "tooltip": """
 Gradient: Fastest and recommended. Uses numpy to find the player bar by the 'gradient' outline.
 Canny: Faster, works only for certain CPUs. Might not work on certain brightness and saturation.
-Sobel: Slower than every method, requires a very good CPU. Only works on 720p and higher.
 """,
-        "items": ["Gradient", "Canny", "Canny + GaussianBlur", "Sobel"]
+        "items": ["Gradient", "Canny"]
     },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
         "tooltip": "The width of the player bar.",
         "min": 2,
         "max": 10
-    },
-    "PLAYER_BAR_SOBEL_THRESHOLD": {
-        "widget": "QSpinBox",
-        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Sobel detection).",
-        "min": 0,
-        "max": 255
     },
     "PLAYER_BAR_CANNY_THRESHOLD": {
         "widget": "QSpinBox",
@@ -309,13 +302,12 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
-                "PLAYER_BAR_DETECTION": "Gradient", # "Sobel" if current_os == "Darwin" else "Canny",
+                "PLAYER_BAR_DETECTION": "Gradient",
                 "PLAYER_BAR_WIDTH": 5,
-                "PLAYER_BAR_SOBEL_THRESHOLD": 25,
                 "PLAYER_BAR_CANNY_THRESHOLD": 100,
 
                 "DIRT_DETECTION": "Kernels",
-                "DIRT_CLICKABLE_WIDTH": 0.125,
+                "DIRT_CLICKABLE_WIDTH": 0.1,
                 "DIRT_THRESHOLD": 25,
             },
 
@@ -333,7 +325,7 @@ class ConfigManager:
             },
 
             "PREDICTION": {
-                "USE_PREDICTION": True,
+                "USE_PREDICTION": False,
 
                 "PREDICTION_MAX_TIME_AHEAD": 0.05,
                 "PREDICTION_MIN_VELOCITY": 300,
@@ -353,7 +345,7 @@ class ConfigManager:
                 "UI_SCALE_OVERRIDE": 1.0,
                 "SHOW_COMPUTER_VISION": True,
                 "SHOW_DEBUG_MASKS": False,
-                "DEBUG_IMAGE_FPS": 120
+                "DEBUG_IMAGE_FPS": 60
             },
 
             "DEBUG SCREENSHOTS": {

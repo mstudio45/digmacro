@@ -26,6 +26,7 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
     - [Running on macOS](#-macos-setup)
     - [Permissions on macOS](#-permissions-on-macos)
 - [How to Stop the Macro](#%EF%B8%8F-how-to-stop-the-macro)
+- [Global Hotkeys](#-global-hotkeys)
 - [Editing the Configuration](#%EF%B8%8F-editing-the-configuration)
   - [How to Open the Configuration](#-how-to-open-the-configuration)
 - [Pathfinding Macros (Movement Patterns)](#%EF%B8%8F-pathfinding-macros-movement-patterns)
@@ -153,11 +154,18 @@ open digmacro_macos.app
 
 ## ⏹️ How to Stop the Macro
 
-> [!NOTE]
-> Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
+- **Close the Macro Window:** Just click the `close (X)` button or press `Ctrl+E`.
 
-- **Close the Macro Window:** Just click the `close (X)` button or `Exit` button.
-- **Keyboard Shortcuts:** Hold `Ctrl+E` or press `Ctrl+C` in the terminal window where the macro is running.
+---
+
+## ⌨ Global Hotkeys
+
+These keyboard shortcuts can be used at any time while the macro is running, regardless of which application is focused:
+
+- `Ctrl+E` - **Exit**
+  - The hotkey will immediately stops and closes the macro.
+- `Ctrl+P` - **Pause/Resume**
+  - This hotkey will pause/resume the macro. Useful if you need to do something without closing the macro.
 
 ---
 
