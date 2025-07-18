@@ -14,7 +14,9 @@ if "__compiled__" in globals():
     except ImportError: pass
 
 # fix paths #
-if current_os == "Darwin" and ".app/Contents/MacOS" in __file__: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
+if current_os == "Darwin" and ".app/Contents/MacOS" in __file__:
+    base_path_str = os.path.abspath(os.path.join(__file__[:__file__.find(".app/") + len(".app")], ".."))
+
 if resource_path_str.strip() == "": resource_path_str = os.path.dirname(os.path.abspath(__file__))
 
 # path funcs #
