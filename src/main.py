@@ -48,8 +48,15 @@ else: print("Package installation skipped.")
 check_special_errors() # still required to run, fixes for tkinter on windows #
 
 # load config and logging #
+from variables import Variables, StaticVariables
 from config import Config
+
 from utils.logs import setup_logger, disable_spammy_loggers
+import utils.general.filehandler as FileHandler
+
+# create folders (on macOS it will prompt an allow 'folder' access notification) #
+FileHandler.create_folder(StaticVariables.storage_folder)
+FileHandler.create_folder(StaticVariables.logs_path)
 
 Config.load_config() # default_config_loaded
 setup_logger()
@@ -59,12 +66,6 @@ import logging, threading
 import cv2, webbrowser
 import pyautogui, mss
 import interface.msgbox as msgbox
-
-# variables # 
-from variables import Variables, StaticVariables
-
-# utils #
-import utils.general.filehandler as FileHandler
 
 # unslow packages #
 pyautogui.PAUSE = 0
@@ -86,13 +87,6 @@ if current_os == "Windows":
             msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR)
 
 if __name__ == "__main__":
-    # create folders (on macOS it will prompt an allow 'folder' access notification) #
-    print("Creating storage folder...")
-    FileHandler.create_folder(StaticVariables.storage_folder)
-
-    print("Creating logs folder...")
-    FileHandler.create_folder(StaticVariables.logs_path)
-
     # macOS Permission Checks (thanks SalValichu) #
     if current_os == "Darwin":
         logging.info("[macOS Permissions] Checking permission...")
