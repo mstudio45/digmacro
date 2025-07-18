@@ -801,6 +801,10 @@ if __name__ == "__main__":
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
         Config.AUTO_SELL = False
 
+    if current_os != "Windows" and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+        msgbox.alert(f"Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
+        Config.PATHFINDING = False
+
     if Config.AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.PATHFINDING == True:
         if Config.PATHFINDING_MACRO != "risk_spin" and Config.PATHFINDING_MACRO in Config.PathfindingMacros:
             Config.AUTO_SELL_REQUIRED_ITEMS = len(Config.PathfindingMacros[Config.PATHFINDING_MACRO]) + 1
