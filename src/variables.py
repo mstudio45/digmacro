@@ -38,9 +38,11 @@ class Variables:
     # minigame information #
     dig_count = 0
     click_count = 0
+    failed_minigame_attempts = 0
+    failed_rejoin_attempts = 0
     
     minigame_region = { "left": 0, "top": 0, "height": 100, "width": 100 }
-    last_minigame_interaction = None
+    last_minigame_detection = None
 
     # macro states #
     is_minigame_active = False

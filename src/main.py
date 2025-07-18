@@ -47,14 +47,20 @@ else: print("Package installation skipped.")
 
 check_special_errors() # still required to run, fixes for tkinter on windows #
 
+# load config and logging #
+from config import Config
+from utils.logs import setup_logger, disable_spammy_loggers
+
+Config.load_config() # default_config_loaded
+setup_logger()
+
 # imports #
 import logging, threading
 import cv2, webbrowser
-import pyautogui, pynput, mss
+import pyautogui, mss
 import interface.msgbox as msgbox
 
-# config and variables # 
-from config import Config
+# variables # 
 from variables import Variables, StaticVariables
 
 # utils #
@@ -77,7 +83,7 @@ if current_os == "Windows":
             ctypes.windll.user32.SetProcessDPIAware()
             logging.info("SetProcessDPIAware to System Aware")
         except Exception as e:
-            msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR, bypass=True)
+            msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR)
 
 if __name__ == "__main__":
     # create folders (on macOS it will prompt an allow 'folder' access notification) #
@@ -86,13 +92,6 @@ if __name__ == "__main__":
 
     print("Creating logs folder...")
     FileHandler.create_folder(StaticVariables.logs_path)
-
-    print("Loading config...")
-    Config.load_config() # default_config_loaded
-
-    from utils.logs import setup_logger, disable_spammy_loggers
-    print("Loading logger...")
-    setup_logger()
 
     # macOS Permission Checks (thanks SalValichu) #
     if current_os == "Darwin":
@@ -182,7 +181,7 @@ if __name__ == "__main__":
 
     logging.info("Loading screen information...")
     from utils.images.screenshots import screenshot_cleanup
-    from utils.images.screen import screen_res_str
+    from utils.images.screen import screen_res_str, screen_region
 
     ## check version ##
     try:
@@ -208,7 +207,7 @@ if __name__ == "__main__":
                         subprocess.run([Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"])
                 except Exception as e: logging.error(f"Failed to open link: {e}")
     except Exception as e:
-        msgbox.alert(f"Failed to check for new updates. {str(e)}", bypass=True)
+        msgbox.alert(f"Failed to check for new updates. {str(e)}")
 
     # selection handler #
     run_config = "--open-config" in sys.argv
@@ -275,7 +274,7 @@ if __name__ == "__main__":
     from utils.sellinv import SellUI
     from utils.pathfinding import PathfingingHandler
 
-    from utils.input.mouse import left_click
+    from utils.input.mouse import left_click, move_mouse, _pynput_mouse_controller
     from utils.input.keyboard import press_key, setup_global_hotkeys
 
     from utils.roblox.rejoin import rejoin_dig, can_rejoin
@@ -310,6 +309,9 @@ if __name__ == "__main__":
             self.guide_ui = WebUI.GuideUI()
             self.region_check_ui = WebUI.RegionCheckUI(self.finder)
             self.ui = WebUI.WebUI(self.finder)
+
+            # risk spin :boom: #
+            self.risk_spin_tuple = None
 
         # thread handler #
         def add_thread(self, name, thread):
@@ -377,7 +379,7 @@ if __name__ == "__main__":
             if "--region-check" in sys.argv:
                 logging.info("Loading region check...")
                 if region is None:
-                    msgbox.alert("Invalid region, you need to have a saved region.", bypass=True)
+                    msgbox.alert("Invalid region, you need to have a saved region.")
                     self.exit_macro()
                     sys.exit(1)
 
@@ -467,52 +469,47 @@ if __name__ == "__main__":
 
                 logging.info("Global hotkeys enabled. Press Ctrl+E to stop the macro.\n")
             except Exception as e:
-                msgbox.alert(f"Failed to setup global hotkeys: {str(e)}", bypass=True)
+                msgbox.alert(f"Failed to setup global hotkeys: {str(e)}")
                 logging.info("You can stop the macro by closing the UI window.\n")
 
         # main function #
-        def sell_all_items(self, was_last_key=False):
-            if Config.PATHFINDING == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True:
-                if was_last_key:
-                    logging.info("Selling items...")
-                    self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
-
-                    self.sell_handler.sell_items(Variables.dig_count)
-                return
-
+        def sell_all_items(self):
             not_sold = max(1, Variables.dig_count - self.sell_handler.total_sold)
             required = max(2, Config.AUTO_SELL_REQUIRED_ITEMS)
             can_sell = not_sold % required == 0
-            if not can_sell: return
 
-            logging.info(f"Selling items... {not_sold} % {required}")
-            self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
-            self.sell_handler.sell_items(Variables.dig_count)
+            if can_sell:
+                logging.info(f"Auto Sell Information: {not_sold} % {required} == 0 -> {can_sell}")
+                self.update_window_status("Selling items...", f"Total selling attempts: {self.sell_handler.total_sold}", "green")
+                self.sell_handler.sell_items(Variables.dig_count)
+
+        def re_equip_shovel(self):
+            press_key("2") # equip something else #
+            time.sleep(0.75) # wait #
+            press_key("1") # equip the shovel #
+            time.sleep(0.75) # wait #
 
         def start_minigame(self, failed_do_equip=False):
             if Variables.is_minigame_active:     
                 logging.info("Minigame is already active, skipping...")
                 return
-            else:
-                if self.total_idle_time < 0.2:
-                    logging.info("Not inactive for long enough, skipping...")
-                    return
+            # else:
+            #     if self.total_idle_time < 0.2:
+            #         logging.info("Not inactive for long enough, skipping...")
+            #         return
             
-            if not Variables.is_roblox_focused:  logging.info("Roblox is not focused, skipping..."); return
+            if not Variables.is_roblox_focused: logging.info("Roblox is not focused, skipping..."); return
 
             logging.info("Starting minigame...")
             self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count}", "green")
 
             # handle shovel re-equipping #
-            if failed_do_equip == True:
-                press_key("1") # equip the shovel #
-                time.sleep(1.75) # wait #
-            else: 
-                time.sleep(0.125)
+            if failed_do_equip == True: self.re_equip_shovel()
 
             # start the minigame #
             if Variables.is_minigame_active:
                 logging.info("Minigame started successfully!")
+                time.sleep(0.25)
                 return
             
             left_click()
@@ -533,6 +530,7 @@ if __name__ == "__main__":
             # re-check the current state #
             if Variables.is_minigame_active:
                 logging.info("Minigame started successfully!")
+                time.sleep(0.25)
                 return
             
             if not Variables.is_running or not Variables.is_roblox_focused:
@@ -540,13 +538,14 @@ if __name__ == "__main__":
                 return
             
             if failed_do_equip == True:
+                Variables.failed_minigame_attempts = Variables.failed_minigame_attempts + 1
                 self.update_window_status("Error", "Failed to start minigame after the second try...", "red")
                 return
             
             # restart the function to equip #
             logging.info("First attempt failed, trying to equip shovel...")
             self.update_window_status("Minigame", "Equipping shovel...", "yellow")
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             return self.start_minigame(failed_do_equip=True)
 
@@ -554,12 +553,7 @@ if __name__ == "__main__":
             logging.info("Creating screenshot folders...")
             FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
 
-            # TO-DO: switch to pause system
-            # while not Variables.is_roblox_focused:
-            #     self.update_window_status("Waiting for Roblox Window Focus", "Focus Roblox to start the macro...", "yellow")
-            #     if Variables.sleep(1): break
-            #     continue
-            
+            failed_risk_attemps = 0
             while Variables.is_running:
                 time.sleep(0.1)
 
@@ -567,17 +561,29 @@ if __name__ == "__main__":
                 if Variables.is_paused == True:
                     self.update_window_status("Paused", "Resume to continue...", "gray")
                     self.total_idle_time = 0
-                    time.sleep(0.5)
 
-                elif Variables.is_minigame_active or not Variables.is_idle():
-                    if Variables.is_minigame_active:
-                        self.update_window_status("Minigame", "Completing minigame...", "green")
-                        time.sleep(0.5)
-                    else:
-                        self.update_window_status("Idle", "Waiting for minigame...", "yellow")
+                    while Variables.is_paused: 
+                        if Variables.sleep(1): break
+                    if not Variables.is_running: break
+
+                elif Variables.is_minigame_active:
+                    self.update_window_status("Minigame", "Completing minigame...", "green")
+
+                    while Variables.is_running:
+                        first_int = Variables.last_minigame_detection
+                        if Variables.sleep(1): break
+
+                        if first_int == Variables.last_minigame_detection: break # ended
+                        if not Variables.is_minigame_active: break
+
+                    if not Variables.is_running: break
+                    failed_risk_attemps = 0
                     
+                elif not Variables.is_idle():
+                    self.update_window_status("Idle", "Waiting for minigame...", "yellow")
                     self.total_idle_time = 0
-                
+                    time.sleep(0.75)
+
                 else: # main handler #
                     if Config.AUTO_REJOIN:
                         if Variables.is_rejoining: continue
@@ -597,21 +603,21 @@ if __name__ == "__main__":
 
                     # handling dig_count and if digging finished #
                     digging_finished = False
-                    if Variables.last_minigame_interaction is not None and Variables.last_minigame_interaction != -1:
-                        last_interact = int(Variables.last_minigame_interaction) / 1000
-
-                        if last_interact > 0 and (time.time() - last_interact) >= 1.5:
+                    if Variables.last_minigame_detection is not None and Variables.last_minigame_detection != -1:
+                        last_interact = int(Variables.last_minigame_detection) / 1000
+                        if last_interact > 0 and (time.time() - last_interact) >= 1.0:
                             Variables.dig_count = Variables.dig_count + 1
-                            Variables.last_minigame_interaction = None
+                            Variables.last_minigame_detection = None
 
-                            logging.debug("Added 1 to dig_count, waiting..."); 
+                            logging.info("Added 1 to dig_count, waiting..."); 
                             digging_finished = True
-
                             if Variables.sleep(0.75): break
+
                     else: digging_finished = True
 
                     # skip if digging didnt finish #
                     if not digging_finished: continue
+                    logging.info("========= STARTING AUTO HANDLERS =========")
 
                     self.finder.debug_img = None
                     self.total_idle_time += 0.1
@@ -629,15 +635,37 @@ if __name__ == "__main__":
                     else:
                         self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
 
-                    # pathfinding handler #
-                    was_last_key = False
-                    if Config.PATHFINDING == True:
-                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")
-                        was_last_key = self.pathfinding.start_walking()
-                    
                     # auto sell #
                     if Config.AUTO_SELL == True: 
-                        self.sell_all_items(was_last_key=was_last_key)
+                        self.sell_all_items()
+
+                    # pathfinding handler #
+                    if Config.PATHFINDING == True:
+                        self.update_window_status("Pathfinding", "Walking to the next point...", "green")   
+
+                        if self.pathfinding.current_macro == "risk_spin":
+                            if self.risk_spin_tuple is None:
+                                self.risk_spin_tuple = (screen_region["width"] // 2, screen_region["height"] // 2, 100 * (screen_region["width"] / 1280))
+                                # 100 pixel is only for 2560x1440 so get scale factor for that #
+
+                            middle_x, middle_y, offset = self.risk_spin_tuple
+
+                            _pynput_mouse_controller.position = (middle_x, middle_y)
+                            move_mouse(middle_x + offset, middle_y, delay=0.0125)
+                            left_click()
+                            move_mouse(middle_x - offset, middle_y, delay=0.005)
+                            time.sleep(1)
+
+                            failed_risk_attemps = failed_risk_attemps + 1 # let's assume its not working, if minigame starts it gets reset to 0 #
+                            if failed_risk_attemps >= 5:
+                                logging.info("Failed to do risk spin, adding 1 to failed_minigame_attempts and re-equipping the shovel...")
+                                Variables.failed_minigame_attempts = Variables.failed_minigame_attempts + 1
+                                failed_risk_attemps = 0
+                                self.re_equip_shovel()
+                            
+                            continue
+                        else:
+                            self.pathfinding.start_walking()
 
                     # minigame handler #
                     if Config.AUTO_START_MINIGAME == True: 
@@ -770,8 +798,20 @@ if __name__ == "__main__":
 
     # verify configuration #
     if Config.AUTO_SELL == True and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
-        msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.", bypass=True)
+        msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
         Config.AUTO_SELL = False
+
+    if Config.AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.PATHFINDING == True:
+        if Config.PATHFINDING_MACRO != "risk_spin" and Config.PATHFINDING_MACRO in Config.PathfindingMacros:
+            Config.AUTO_SELL_REQUIRED_ITEMS = len(Config.PathfindingMacros[Config.PATHFINDING_MACRO]) + 1
+            logging.info(f"Auto Sell (After Pathfinding) enabled, will sell after: {Config.AUTO_SELL_REQUIRED_ITEMS} items (amount of keys + 1)")
+
+    if Config.AUTO_START_MINIGAME == False and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+        msgbox.alert("You need to have 'AUTO_START_MINIGAME' minigame enabled to use 'risk_spin' pathfinding macro. Pathfinding has been disabled.")
+        Config.PATHFINDING = False
+
+    if Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+        msgbox.alert("Make sure shiftlock is enabled for the pahtfinding macro to work correctly!")
 
     # region #
     macro.setup_finder_thread()

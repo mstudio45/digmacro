@@ -14,6 +14,8 @@ from variables import StaticVariables
 import utils.general.filehandler as FileHandler
 from utils.images.screen import scale_x, scale_y
 
+import interface.msgbox
+
 class QMousePicker(QWidget):
     valueChanged = Signal(str)
 
@@ -81,6 +83,7 @@ class ConfigUI(QWidget):
         self.create_ui()
         self.load_current_settings()
         self.setup_change_handler()
+        self.config_loaded = True
     
     # closing #
     def closeEvent(self, event):
@@ -211,6 +214,7 @@ class ConfigUI(QWidget):
                     # special stuff #
                     if key == "PATHFINDING_MACRO":
                         items = Config.PathfindingMacros.keys()
+                        widget.currentTextChanged.connect(self.pathfinding_macro_change)
 
                     widget.addItems(items)
           
@@ -254,6 +258,9 @@ class ConfigUI(QWidget):
 
     # on change handler #
     def on_change_made(self): self.changes_made = True
+    def pathfinding_macro_change(self, text):
+        if hasattr(self, "config_loaded") == True and text == "risk_spin":
+            interface.msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
 
     def setup_change_handler(self):
         for section, options in Config.config.items():

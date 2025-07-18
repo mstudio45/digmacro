@@ -1,5 +1,5 @@
 import os, json, platform
-import configparser
+import configparser, collections
 
 from variables import StaticVariables
 from utils.general.filehandler import read, write
@@ -42,10 +42,6 @@ settings_table = {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable log files."
     },
-    "MSGBOX_ENABLED": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable the error message boxes."
-    },
 
     # DISCORD WEBHOOK OPTIONS #
     # "DISCORD_NOTIFICATIONS": {
@@ -72,6 +68,22 @@ settings_table = {
         "min": 0.0,
         "max": 10.0,
         "step": 0.1
+    },
+    "AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS": {
+        "widget": "QSpinBox",
+        "tooltip": "The number of failed start minigame attempts required to rejoin.",
+        "min": 15,
+        "max": 200
+    },
+    "AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK": {
+        "widget": "QCheckBox",
+        "tooltip": "If enabled, the Auto Rejoin will be able to join public servers using 'AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC'.",
+    },
+    "AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC": {
+        "widget": "QSpinBox",
+        "tooltip": "The number of failed rejoins to your private server required to join a public server.",
+        "min": 2,
+        "max": 10
     },
     
     # MINIGAME OPTIONS #
@@ -157,16 +169,9 @@ Canny: Faster, works only for certain CPUs. Might not work on certain brightness
         "min": 1,
         "max": 1000
     },
-    "AUTO_SELL_BUTTON_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Confidence level for detecting the sell button.",
-        "min": 0.35,
-        "max": 1.0,
-        "step": 0.01
-    },
     "AUTO_SELL_AFTER_PATHFINDING_MACRO": {
         "widget": "QCheckBox",
-        "tooltip": "This setting will ignore 'AUTO_SELL_REQUIRED_ITEMS' and will sell after the pathfinding macro has finished."
+        "tooltip": "This option ignores 'AUTO_SELL_REQUIRED_ITEMS' and will sell when the pathfinding macro finishes."
     },
 
     # PREDICTION OPTIONS #
@@ -271,7 +276,6 @@ class ConfigManager:
 
         self.config = {}
         self.PathfindingMacros = {}
-        self.MSGBOX_ENABLED = True
 
         self._set_default_config()
         # self.load_config()
@@ -281,8 +285,7 @@ class ConfigManager:
             "SYSTEM": {
                 "TARGET_FPS": 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
-                "LOGGING_ENABLED": True,
-                "MSGBOX_ENABLED": False
+                "LOGGING_ENABLED": True
             },
 
             # "DISCORD": {
@@ -293,7 +296,13 @@ class ConfigManager:
             "ROBLOX": {
                 "AUTO_REJOIN": False,
                 "PRIVATE_SERVER_CODE": "",
+
                 "AUTO_REJOIN_INACTIVITY_TIMEOUT": 2.5,
+
+                "AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS": 15,
+
+                "AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK": True,
+                "AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC": 5,
             },
 
             "MINIGAME": {
@@ -319,8 +328,8 @@ class ConfigManager:
             "AUTO SELL": {
                 "AUTO_SELL": False,
                 "AUTO_SELL_BUTTON_POSITION": (0, 0),
+
                 "AUTO_SELL_REQUIRED_ITEMS": 15,
-                "AUTO_SELL_BUTTON_CONFIDENCE": 0.75,
                 "AUTO_SELL_AFTER_PATHFINDING_MACRO": False
             },
 
@@ -416,6 +425,8 @@ class ConfigManager:
     def _format_pathfinding_macros(self):
         macro_strings = []
         for name, keys in self.PathfindingMacros.items():
+           if name == "risk_spin": continue
+
            keys_string = json.dumps(keys)[1:][:-1]
            macro_strings.append(f'    "{name}": [\n        {keys_string}\n    ]')
 
@@ -425,6 +436,8 @@ class ConfigManager:
         return final_json_string
 
     def load_config(self):
+        print("Loading config...")
+        
         if not os.path.exists(self.config_file):
             print(f"[ConfigManager.load_config] Config file '{self.config_file}' not found. Using default settings.")
 
@@ -479,10 +492,16 @@ class ConfigManager:
         # load PathfindingMacros #
         if os.path.isfile(StaticVariables.pathfinding_macros_filepath):
             try:
-                self.PathfindingMacros = json.loads(read(StaticVariables.pathfinding_macros_filepath))
+                data = json.loads(read(StaticVariables.pathfinding_macros_filepath))
+
+                new_data = collections.OrderedDict()
+                new_data["risk_spin"] = [] # one place dig #
+                new_data.update(data)
+
+                self.PathfindingMacros = new_data
             except json.JSONDecodeError:
                 print("[ConfigManager.load_config] Warning: Could not decode 'PathfindingMacros' from config file. Using defaults.")
-
+        
         return False
 
     def save_config(self):

@@ -4,6 +4,8 @@ from variables import Variables, StaticVariables
 from config import Config
 
 def setup_logger():
+    print("Loading logger...")
+    
     fmt = "[{asctime}] [{levelname}] [{module}.{funcName}:{lineno}]: {message}"
     datefmt = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(fmt=fmt, datefmt=datefmt, style="{")
@@ -33,7 +35,7 @@ def setup_logger():
     logger.addHandler(console_handler)
 
     # loaded #
-    logging.debug("Logger loaded!")
+    logging.info("Logger loaded!")
 
 def disable_spammy_loggers():
     logging.info("Disabling spammy loggers...")

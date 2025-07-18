@@ -7,6 +7,8 @@ from config import Config
 from utils.input.mouse import left_click, move_mouse
 import utils.input.keyboard as Keyboard
 
+from utils.images.screen import screen_region
+
 class SellUI:
     def __init__(self):
         self.total_sold = 0
@@ -22,13 +24,15 @@ class SellUI:
         Variables.is_selling = True
 
         # sell items #
+        move_mouse(screen_region["width"] // 2, screen_region["height"] // 2)
+
         self.toggle_shop()
         time.sleep(0.5)
 
         move_mouse(*Config.AUTO_SELL_BUTTON_POSITION)
-        time.sleep(0.15)
+        time.sleep(0.35)
         left_click()
-        time.sleep(0.15)
+        time.sleep(0.5)
         self.toggle_shop()
 
         self.total_sold = total_sold_add

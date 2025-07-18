@@ -22,22 +22,19 @@ if current_os == "Darwin":
             logging.error(f"AppleScript error: {e.stderr}")
             return None
 
-    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
-        if not message:
-            return
-
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
+        if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
-        if Config.MSGBOX_ENABLED or bypass:
-            # Determine the type of alert
-            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-                icon = "stop"
-            elif log_level == logging.WARNING:
-                icon = "caution"
-            else:
-                icon = "note"
 
-            script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
-            run_osascript(script)
+        if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+            icon = "stop"
+        elif log_level == logging.WARNING:
+            icon = "caution"
+        else:
+            icon = "note"
+
+        script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
+        run_osascript(script)
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         btn_list = ", ".join(f'"{btn}"' for btn in buttons)
@@ -57,30 +54,28 @@ else:
     from tkinter import ttk, messagebox
     from utils.images.screen import logical_screen_region
 
-    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
-
         logging.log(level=log_level, msg=message, stacklevel=2)
-        if Config.MSGBOX_ENABLED or bypass:
-            root = tk.Tk()
-            root.withdraw()
-            root.wm_attributes("-topmost", True)
 
-            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-                messagebox.showerror(title=title + " - Message", message=message, parent=root)
-            elif log_level == logging.WARNING:
-                messagebox.showwarning(title=title + " - Message", message=message, parent=root)
-            else:
-                messagebox.showinfo(title=title + " - Message", message=message, parent=root)
-            
-            root.destroy()
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes("-topmost", True)
+
+        if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+            messagebox.showerror(title=title + " - Message", message=message, parent=root)
+        elif log_level == logging.WARNING:
+            messagebox.showwarning(title=title + " - Message", message=message, parent=root)
+        else:
+            messagebox.showinfo(title=title + " - Message", message=message, parent=root)
+        
+        root.destroy()
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         # create dialog #
         dialog = tk.Tk()
 
         if current_os == "Linux": dialog.wait_visibility(dialog)
-        else: dialog.overrideredirect(True)
         dialog.wm_attributes("-topmost", True)
 
         result = tk.StringVar()

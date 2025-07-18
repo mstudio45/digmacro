@@ -132,14 +132,15 @@ class MainHandler:
         if not Variables.is_minigame_active: return
 
         current_time_ms = int(time.time() * 1000)
+        vars = Variables
+
+        vars.last_minigame_detection = current_time_ms
         if current_time_ms < self.click_cooldown or clicking_lock.locked():
             return # early exit, we are on a cooldown #
 
-        # cahce to local #
-        vars = Variables  
+        # positions #
         player_bar = self.PlayerBar
 
-        # positions #
         player_bar_center = player_bar.current_position
         clickable_part = self.DirtBar.clickable_position
 
@@ -183,9 +184,7 @@ class MainHandler:
             threading.Thread(target=left_click_lock, args=(click_delay,)).start()
 
             self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL # + click_delay
-
             vars.click_count += 1
-            vars.last_minigame_interaction = current_time_ms
 
             # screenshot handler #
             pred_ss, ss_click = Config.PREDICTION_SCREENSHOTS, Config.SCREENSHOT_EVERY_CLICK

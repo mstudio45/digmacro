@@ -15,6 +15,7 @@ current_os = platform.system()
 # rejoin stuff #
 roblox_status_handler = RobloxStatusHandler()
 roblox_status_handler.start()
+time.sleep(0.5)
 
 def can_rejoin(total_idle_time):
     if not RobloxWindow.is_roblox_running(): 
@@ -37,9 +38,17 @@ def can_rejoin(total_idle_time):
     else:
         logging.critical("Auto Rejoin cannot use dynamic status handler (detecting Disconnect, Game leaving etc) through log files -> Roblox 'logs' folder was not found.")
 
-    if Config.AUTO_REJOIN_INACTIVITY_TIMEOUT > 0.1 and total_idle_time >= (Config.AUTO_REJOIN_INACTIVITY_TIMEOUT * 60): return True
+    if Variables.failed_minigame_attempts >= Config.AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS:
+        logging.info(f"Rejoining: Failed attemps ({Variables.failed_minigame_attempts} >= {Config.AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS}).")
+        return True
 
-def create_rotocol(): 
+    if Config.AUTO_REJOIN_INACTIVITY_TIMEOUT > 0.1 and total_idle_time >= (Config.AUTO_REJOIN_INACTIVITY_TIMEOUT * 60): 
+        logging.info(f"Rejoining: Inactivity ({total_idle_time} >= {Config.AUTO_REJOIN_INACTIVITY_TIMEOUT * 60}).")
+        return True
+
+def create_rotocol(use_public=False):
+    if use_public == True:
+        return "roblox://experiences/start?placeId=126244816328678"
     return "roblox://experiences/start?placeId=126244816328678&linkCode=" + str(Config.PRIVATE_SERVER_CODE)
 
 def launch_protocol(protocol):
@@ -65,7 +74,7 @@ def rejoin_dig():
 
     logging.info("Rejoining...")
     Variables.is_rejoining = True
-    protocol = create_rotocol()
+    protocol = create_rotocol(Variables.failed_rejoin_attempts >= Config.AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC)
 
     # leave the current game #
     if RobloxWindow.is_roblox_running():
@@ -91,11 +100,9 @@ def rejoin_dig():
             start = time.time()
             while roblox_status_handler.game_left == False: # loop until game_left is not False #
                 if (time.time() - start) >= 2:
-                    if roblox_status_handler.disconnected: 
-                        break # successfully disconnected #
+                    if roblox_status_handler.disconnected: break # successfully disconnected #
                 
-                if Variables.sleep(0.5): 
-                    break # macro stopped #
+                if Variables.sleep(0.5): break # macro stopped #
             if not Variables.is_running: return
 
             logging.info("Successfully left the game, waiting for a moment before rejoining...")
@@ -111,7 +118,14 @@ def rejoin_dig():
         if not Variables.is_roblox_focused: RobloxWindow.focus_roblox()
         if roblox_status_handler.playing: break # rejoined!
 
-        if time.time() - start_time > 45: # if it still didnt find the shop btn for over 45 seconds, restart the process
+        if time.time() - start_time > 45:
+            Variables.failed_rejoin_attempts = Variables.failed_rejoin_attempts + 1
+
+            if Config.AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK == True and Variables.failed_rejoin_attempts >= Config.AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC:
+                logging.info(f"Failed to join the private server after {Variables.failed_rejoin_attempts} attempts, joining a public server...")
+                protocol = create_rotocol(True)
+                Variables.failed_rejoin_attempts = 0
+            
             launch_protocol(protocol)
             start_time = time.time()
         
@@ -131,7 +145,7 @@ def rejoin_dig():
     Variables.is_minigame_active = False
     Variables.is_walking = False
     Variables.is_selling = False
-    Variables.last_minigame_interaction = None
+    Variables.last_minigame_detection = None
 
     time.sleep(0.1)
     logging.info("Successfully rejoined.")

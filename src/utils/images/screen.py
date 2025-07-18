@@ -98,7 +98,7 @@ try:
                                 continue # invalid format
                                 
                 except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
-                    msgbox.alert(f"Could not retrieve macOS display info via fallback: {str(e)}", bypass=True)
+                    msgbox.alert(f"Could not retrieve macOS display info via fallback: {str(e)}")
             return None
         
         macos_screen_info = get_macos_display_info()
