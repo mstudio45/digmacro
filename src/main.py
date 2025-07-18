@@ -811,6 +811,31 @@ if __name__ == "__main__":
     if Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("Make sure shiftlock is enabled for the pahtfinding macro to work correctly!")
 
+        if current_os == "Windows":
+            import ctypes
+            def switch_mouse_acceleration(turn_on=False):
+                turn_on = int(turn_on == True)
+                pv_param = (ctypes.c_int * 3)()
+
+                if not ctypes.windll.user32.SystemParametersInfoW(0x0003, 0, pv_param, 0): return False # SPI_GETMOUSE
+                if pv_param[2] == turn_on: return True # already set to what we want #
+                
+                # set the state #
+                pv_param[2] = turn_on
+                if not ctypes.windll.user32.SystemParametersInfoW(0x0004, 0, pv_param, 0x0002): return False # SPI_SETMOUSE, SPIF_SENDCHANGE
+
+                return True
+
+            logging.info("Disabling Mouse Acceleration/Enhance pointer precision...")
+            if switch_mouse_acceleration(False) == False:
+                msgbox.alert(f"Failed to disable 'Mouse Acceleration/Enhance pointer precision', disable it manually. Pathfinding has been disabled.")
+                Config.PATHFINDING = False
+            else:
+                logging.info("Mouse Acceleration/Enhance disabled.")
+        else:
+            msgbox.alert(f"Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
+            Config.PATHFINDING = False
+
     # region #
     macro.setup_finder_thread()
     macro.setup_region_setter()
