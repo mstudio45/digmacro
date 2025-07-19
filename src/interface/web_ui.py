@@ -1,6 +1,13 @@
 import sys, time, threading, logging, traceback
-import cv2, webbrowser
+import webbrowser
 import webview, platform, subprocess
+
+try: import cv2
+except ImportError as e:
+    if "numpy" in str(e):
+        import numpy as np
+        import cv2
+    else: raise e
 
 from config import Config
 from utils.images.screen import image_to_base64

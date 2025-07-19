@@ -1,5 +1,6 @@
 import os, time, threading, logging
-import cv2, numpy as np
+import numpy as np
+import cv2
 
 # file imports #
 from variables import Variables, StaticVariables

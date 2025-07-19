@@ -1,9 +1,9 @@
-import sys, traceback
-import numpy as np
-import logging
-import cv2, base64, io
+import sys, traceback, logging, platform
+import base64, io
 from PIL import Image
-import platform
+
+import numpy as np
+import cv2
 
 current_os = platform.system()
 import interface.msgbox as msgbox

@@ -63,9 +63,16 @@ setup_logger()
 
 # imports #
 import logging, threading
-import cv2, webbrowser
+import webbrowser
 import pyautogui, mss
 import interface.msgbox as msgbox
+
+try: import cv2
+except ImportError as e:
+    if "numpy" in str(e):
+        import numpy as np
+        import cv2
+    else: raise e
 
 # unslow packages #
 pyautogui.PAUSE = 0
