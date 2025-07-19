@@ -127,6 +127,7 @@ class MainHandler:
         # enable the minigame #
         vars.is_minigame_active = True
         if self.computer_vision: self.create_debug_image(screenshot_np) # debug_img will be overwritten #
+        return True
 
     def handle_click(self):
         if not Variables.is_minigame_active: return

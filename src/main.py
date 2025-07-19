@@ -693,8 +693,8 @@ if __name__ == "__main__":
                         frame_start = time.perf_counter()
            
                         # update state and click #
-                        finder.update_state(sct)
-                        finder.handle_click()
+                        if finder.update_state(sct) == True:
+                            finder.handle_click()
                         
                         fps_counter.accumulate_frame_time(frame_start)
                         finder.current_fps = fps_counter.get_fps()
