@@ -603,7 +603,8 @@ if __name__ == "__main__":
                             Variables.dig_count = Variables.dig_count + 1
                             Variables.last_minigame_detection = None
 
-                            logging.info("Added 1 to dig_count, waiting..."); 
+                            logging.info("Added 1 to dig_count, waiting...")
+                            logging.info("========= STARTING AUTO HANDLERS =========")
                             digging_finished = True
                             if Variables.sleep(0.75): break
 
@@ -611,7 +612,6 @@ if __name__ == "__main__":
 
                     # skip if digging didnt finish #
                     if not digging_finished: continue
-                    logging.info("========= STARTING AUTO HANDLERS =========")
 
                     self.finder.debug_img = None
                     self.total_idle_time += 0.1
