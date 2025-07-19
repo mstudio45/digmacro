@@ -62,7 +62,7 @@ for arch in "${ARCHS[@]}"; do
     --copyright="© mstudio45 2025 - https://github.com/mstudio45/digmacro" \
     --enable-plugin=pyside6,tk-inter \
     --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
-    --include-package=cv2 --nofollow-import-to=cv2.test --nofollow-import-to=cv2.tests \
+    --include-package=cv2 --include-package-data=cv2 --nofollow-import-to=cv2.test --nofollow-import-to=cv2.tests \
     --include-package=numpy --nofollow-import-to=numpy.testing --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
