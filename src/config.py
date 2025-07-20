@@ -9,18 +9,22 @@ current_os = platform.system()
 # this shit pmo fr #
 default_screenshot_package, screenshot_packages = "", []
 default_mouse_input_package, mouse_input_packages = "", []
+defualt_keyboard_input_package, keyboard_input_packages = "", []
 
 if current_os == "Windows":
     default_screenshot_package, screenshot_packages = "bettercam", ["bettercam", "mss"]
     default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
+    defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
 elif current_os == "Darwin":
     default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "Quartz", ["Quartz", "pynput"]
+    defualt_keyboard_input_package, keyboard_input_packages = "Quartz", ["Quartz", "pynput"]
 
 elif current_os == "Linux":
     default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
+    defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
 settings_table = {
     # SYSTEM OPTIONS #
@@ -159,6 +163,11 @@ Canny: Faster, works only for certain CPUs. Might not work on certain brightness
         "widget": "QCheckBox",
         "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
     },
+    "AUTO_SELL_MODE": {
+        "widget": "QComboBox",
+        "tooltip": "UI Navigation: Uses Roblox UI Navigation enabled by '\\' key.\nMouse Movement: Uses mouse to click the button (less reliable, semi breaks 'risk_spin', requires AUTO_SELL_BUTTON_POSITION)",
+        "items": ["UI Navigation", "Mouse Movement"]
+    },
     "AUTO_SELL_BUTTON_POSITION": {
         "widget": "QMousePicker",
         "tooltip": "X and Y position of the 'Sell Inventory' button."
@@ -219,6 +228,11 @@ Canny: Faster, works only for certain CPUs. Might not work on certain brightness
         "widget": "QComboBox",
         "tooltip": "Select the mouse input package to use.",
         "items": mouse_input_packages
+    },
+    "KEYBOARD_INPUT_PACKAGE": {
+        "widget": "QComboBox",
+        "tooltip": "Select the keyboard input package to use.",
+        "items": keyboard_input_packages
     },
     "SCREENSHOT_PACKAGE": {
         "widget": "QComboBox",
@@ -327,6 +341,7 @@ class ConfigManager:
 
             "AUTO SELL": {
                 "AUTO_SELL": False,
+                "AUTO_SELL_MODE": "UI Navigation",
                 "AUTO_SELL_BUTTON_POSITION": (0, 0),
 
                 "AUTO_SELL_REQUIRED_ITEMS": 15,
@@ -346,6 +361,7 @@ class ConfigManager:
 
             "PACKAGES": {
                 "MOUSE_INPUT_PACKAGE": default_mouse_input_package,
+                "KEYBOARD_INPUT_PACKAGE": defualt_keyboard_input_package,
                 "SCREENSHOT_PACKAGE": default_screenshot_package,
             },
 

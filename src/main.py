@@ -271,12 +271,12 @@ if __name__ == "__main__":
 
     # main loader #
     logging.info("Importing libraries...")
+    from utils.input.mouse import left_click, move_mouse, _pynput_mouse_controller
+    from utils.input.keyboard import press_key, setup_global_hotkeys
+
     from utils.detectors.handler import MainHandler
     from utils.sellinv import SellUI
     from utils.pathfinding import PathfingingHandler
-
-    from utils.input.mouse import left_click, move_mouse, _pynput_mouse_controller
-    from utils.input.keyboard import press_key, setup_global_hotkeys
 
     from utils.roblox.rejoin import rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
@@ -651,7 +651,7 @@ if __name__ == "__main__":
 
                             middle_x, middle_y, offset = self.risk_spin_tuple
 
-                            _pynput_mouse_controller.position = (middle_x, middle_y)
+                            move_mouse(middle_x, middle_y, steps=1)
                             move_mouse(middle_x + offset, middle_y, delay=0.0125)
                             left_click()
                             move_mouse(middle_x - offset, middle_y, delay=0.005)
@@ -798,7 +798,7 @@ if __name__ == "__main__":
     macro = MacroHandler()
 
     # verify configuration #
-    if Config.AUTO_SELL == True and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
+    if Config.AUTO_SELL == True and Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
         Config.AUTO_SELL = False
 
