@@ -88,12 +88,8 @@ for arch in "${ARCHS[@]}"; do
   fi
 
   PLIST="digmacro_macos_$arch.app/Contents/Info.plist"
-  if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$PLIST" 2>/dev/null; then
-    /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
-  else
-    /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST"
-  fi
-
+  /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST"
+  
   BUILT_APPS+=("$(pwd)/digmacro_macos_$arch.app")
   USED_ARCHS+=("$arch")
 
@@ -236,20 +232,15 @@ rm -rf output/launcher.c
 echo "Fixing Info.plist..."
 UNIVERSAL_PLIST="$UNIVERSAL_APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
-if ! /usr/libexec/PlistBuddy -c "Print :NSAppSleepDisabled" "$UNIVERSAL_PLIST" 2>/dev/null; then
-  /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
-else
-  /usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
-fi
-/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable \"digmacro_macos\"" "$UNIVERSAL_PLIST"
-
-/usr/libexec/PlistBuddy -c "Delete :LSArchitecturePriority" "$UNIVERSAL_PLIST" 2>/dev/null || true
 if [ ${#USED_ARCHS[@]} -gt 1 ]; then
   /usr/libexec/PlistBuddy -c "Add :LSArchitecturePriority array" "$UNIVERSAL_PLIST"
   for arch in "${USED_ARCHS[@]}"; do
     /usr/libexec/PlistBuddy -c "Add :LSArchitecturePriority:0 string $arch" "$UNIVERSAL_PLIST"
   done
 fi
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable \"digmacro_macos\"" "$UNIVERSAL_PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable \"digmacro_macos\"" "$UNIVERSAL_PLIST"
+
+/usr/libexec/PlistBuddy -c "Set :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$UNIVERSAL_PLIST"
 
 for ((i=0; i<${#BUILT_APPS[@]}; i++)); do
   arch="${USED_ARCHS[i]}"
