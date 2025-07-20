@@ -115,15 +115,16 @@ if __name__ == "__main__":
         logging.info("[macOS Permissions] Checking permission...")
 
         try:
+            import pyobjc # type: ignore
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
-            import objc # type: ignore
+            import Quartz # type: ignore
             from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
             from Quartz import ( # type: ignore
                 CGEventMaskBit, CGEventTapCreate, CGEventTapEnable,
                 CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
-                CFRunLoopGetCurrent, CFRunLoopRunInMode,
+                CFRunLoopGetCurrent, CFRunLoopRunInMode, CFRunLoopRemoveSource,
 
-                kCGHeadInsertEventTap, kCFRunLoopCommonModes,
+                kCGHeadInsertEventTap, kCFRunLoopDefaultMode,
 
                 kCGEventKeyDown, 
                 kCGEventKeyUp,
@@ -156,46 +157,48 @@ if __name__ == "__main__":
             
             def has_input_monitor_access():
                 disabled_by_timeout = False
-                
+
+                @Quartz.CGEventTapCallBack
                 def callback(proxy, type_, event, refcon):
                     nonlocal disabled_by_timeout
-                    
+
                     if type_ == kCGEventTapDisabledByTimeout:
                         disabled_by_timeout = True
-                    
+
                     return event
+
+                event_mask = (
+                    CGEventMaskBit(kCGEventKeyDown) |
+                    CGEventMaskBit(kCGEventKeyUp) |
+                    CGEventMaskBit(kCGEventMouseMoved) |
+                    CGEventMaskBit(kCGEventLeftMouseDown) |
+                    CGEventMaskBit(kCGEventRightMouseDown) |
+                    CGEventMaskBit(kCGEventOtherMouseDown) |
+                    CGEventMaskBit(kCGEventOtherMouseDragged)
+                )
 
                 tap = CGEventTapCreate(
                     kCGSessionEventTap,
                     kCGHeadInsertEventTap,
                     kCGEventTapOptionDefault,
-                    (
-                        CGEventMaskBit(kCGEventKeyDown) |
-                        CGEventMaskBit(kCGEventKeyUp) |
-                        CGEventMaskBit(kCGEventMouseMoved) |
-                        CGEventMaskBit(kCGEventLeftMouseDown) |
-                        CGEventMaskBit(kCGEventRightMouseDown) |
-                        CGEventMaskBit(kCGEventOtherMouseDown) |
-                        CGEventMaskBit(kCGEventOtherMouseDragged)
-                    ),
+                    event_mask,
                     callback,
                     None
                 )
+                if not tap: return False
 
-                if not tap or tap is None:
-                    return False
-                
                 try:
                     run_loop_source = CFMachPortCreateRunLoopSource(None, tap, 0)
-                    if not run_loop_source or run_loop_source is None:
-                        return False
-                    
+                    if not run_loop_source: return False
+
                     run_loop = CFRunLoopGetCurrent()
-                    CFRunLoopAddSource(run_loop, run_loop_source, kCFRunLoopCommonModes)
+                    CFRunLoopAddSource(run_loop, run_loop_source, kCFRunLoopDefaultMode)
                     CGEventTapEnable(tap, True)
-                    
-                    result = CFRunLoopRunInMode(kCFRunLoopCommonModes, 0.1, False) # if timeout we assume the permission is not enabled #
+
+                    result = CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, False)
+
                     CGEventTapEnable(tap, False)
+                    CFRunLoopRemoveSource(run_loop, run_loop_source, kCFRunLoopDefaultMode)
 
                     return disabled_by_timeout or result != kCFRunLoopRunTimedOut
                 except Exception as e:
