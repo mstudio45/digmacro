@@ -249,7 +249,7 @@ except Exception as e:
     sys.exit(1)
 
 # DEBUG INFO
-logging.info(f"=== SCALING DEBUG INFO ===")
+logging.info("=== SCALING DEBUG INFO ===")
 
 # res #
 logging.info(f"Base Resolution (resolution that was used for asset images): {BASE_RESOLUTION}")
@@ -264,7 +264,7 @@ logging.info(f"Image Finder Scale Factor: {1.0 / scale_factor:.5f}")
 logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}\n")
 
 logging.info(f"Screenshot package: {Config.SCREENSHOT_PACKAGE}")
-logging.info(f"========================\n")
+logging.info("========================\n")
 
 black_pixel = np.zeros((1, 1, 3), dtype=np.uint8)
 def stack_images_with_dividers(images, margin_thickness=2):

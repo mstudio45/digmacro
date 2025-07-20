@@ -803,7 +803,7 @@ if __name__ == "__main__":
         Config.AUTO_SELL = False
 
     if current_os != "Windows" and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
-        msgbox.alert(f"Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
+        msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
         Config.PATHFINDING = False
 
     if Config.AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.PATHFINDING == True:
@@ -835,12 +835,12 @@ if __name__ == "__main__":
 
             logging.info("Disabling Mouse Acceleration/Enhance pointer precision...")
             if switch_mouse_acceleration(False) == False:
-                msgbox.alert(f"Failed to disable 'Mouse Acceleration/Enhance pointer precision', disable it manually. Pathfinding has been disabled.")
+                msgbox.alert("Failed to disable 'Mouse Acceleration/Enhance pointer precision', disable it manually. Pathfinding has been disabled.")
                 Config.PATHFINDING = False
             else:
                 logging.info("Mouse Acceleration/Enhance disabled.")
         else:
-            msgbox.alert(f"Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
+            msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
             Config.PATHFINDING = False
 
     # region #

@@ -106,13 +106,13 @@ class RobloxStatusHandler:
 
     def process_log_line(self, line):
         if self.keyword_game_joining in line:
-            logging.info(f"Game joining detected")
+            logging.info("Game joining detected")
             self.reset_state()
             self.joining = True
             return
         
         if self.keyword_game_joined in line:
-            logging.info(f"Game joined")
+            logging.info("Game joined")
             self.reset_state()
             self.playing = True
             return
@@ -130,13 +130,13 @@ class RobloxStatusHandler:
             return
         
         if self.keyword_game_leaving in line:
-            logging.info(f"User Left")
+            logging.info("User Left")
             self.reset_state()
             self.game_left = True
             return
         
         if self.keyword_roblox_closing in line:
-            logging.info(f"Roblox Closed")
+            logging.info("Roblox Closed")
             self.reset_state()
             self.roblox_closed = True
             return
@@ -179,7 +179,7 @@ class RobloxStatusHandler:
 
     # start/stop handler #
     def start(self):
-        logging.info(f"Starting Roblox Player log monitoring...")
+        logging.info("Starting Roblox Player log monitoring...")
         
         # create threads #
         log_finder_thread = threading.Thread(target=self.start_log_finder, daemon=True)
