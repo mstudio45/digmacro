@@ -254,6 +254,7 @@ if current_os == "Darwin":
             self._runloop_thread = None
             self._runloop_ref = None
 
+        @Quartz.CGEventTapCallBack
         def _tap_callback(self, proxy, type_, event, refcon):
             try:
                 if type_ == kCGEventTapDisabledByTimeout or type_ == kCGEventTapDisabledByUserInput:
