@@ -43,6 +43,7 @@ def restart_macro(args=["--skip-selection"]):
     return
 
 # install requirements #
+from utils.packages.distro_variables import log_install, close_log_file
 from utils.packages.check_apt import check_apt_packages
 from utils.packages.check_errors import check_special_errors
 from utils.packages.check_python import check_pip_packages
@@ -50,18 +51,25 @@ from utils.packages.check_shutil import check_shutil_applications
 from utils.packages.versions import check_package_version
 
 if "--skip-install" not in sys.argv:
-    if "--only-install" in sys.argv: 
+    if "--only-install" in sys.argv:
+        log_install("Only installing packages...")
+
         check_shutil_applications()
         check_apt_packages()
         check_pip_packages()
+
+        close_log_file()
         os.kill(os.getpid(), 9)
 
     if check_shutil_applications() or check_apt_packages() or check_pip_packages():
+        close_log_file()
+
         restart_macro(["--skip-install"])
         sys.exit(0)
-else: print("Package installation skipped.")
+else: log_install("Package installation skipped.")
 
 check_special_errors() # still required to run, fixes for tkinter on windows #
+close_log_file()
 
 # load config and logging #
 from variables import Variables, StaticVariables

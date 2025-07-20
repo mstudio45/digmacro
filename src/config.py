@@ -170,7 +170,7 @@ Canny: Faster, works only for certain CPUs. Might not work on certain brightness
     },
     "AUTO_SELL_BUTTON_POSITION": {
         "widget": "QMousePicker",
-        "tooltip": "X and Y position of the 'Sell Inventory' button."
+        "tooltip": "X and Y position of the 'Sell Inventory' button. (requried for 'Mouse Movement' mode)"
     },
     "AUTO_SELL_REQUIRED_ITEMS": {
         "widget": "QSpinBox",

@@ -43,13 +43,13 @@ for arch in "${ARCHS[@]}"; do
   
   cd ../..
 
-  $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir pip
-  $CMD_PREFIX python3 src/main.py --only-install # --force-reinstall
+  # ensure correct arch wheel #
+  $CMD_PREFIX pip install --upgrade --no-cache-dir pip 
+  $CMD_PREFIX pip install --upgrade --no-cache-dir setuptools wheel
+  $CMD_PREFIX pip install --upgrade --no-cache-dir nuitka
+  $CMD_PREFIX python3 src/main.py --only-install --force-reinstall --force-$arch
 
   cd src
-
-  $CMD_PREFIX python3 -m pip install --no-cache-dir nuitka
-  $CMD_PREFIX python3 -m pip install --upgrade --no-cache-dir nuitka setuptools
 
   $CMD_PREFIX python3 -m nuitka \
     --standalone \

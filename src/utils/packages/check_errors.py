@@ -1,5 +1,6 @@
 import os, sys, subprocess, platform, traceback
-from utils.packages.distro_variables import install_pip_package, current_os
+
+from utils.packages.distro_variables import log_install, install_pip_package, current_os
 from variables import Variables
 
 def get_python():
@@ -24,7 +25,7 @@ def get_python():
 installed_something = False
 def check_special_errors(import_error=False):
     global installed_something
-    print("[check_special_errors] Checking for errors...")
+    log_install("[check_special_errors] Checking for errors...")
 
     # check tkinter tcl issues #
     import tkinter as tk
@@ -35,7 +36,7 @@ def check_special_errors(import_error=False):
     except (tk.TclError, ImportError) as e:
         if isinstance(e, ImportError):
             if import_error == True:
-                print(f"[check_special_errors] Failed to properly install tkinter: {str(e)}")
+                log_install(f"[check_special_errors] Failed to properly install tkinter: {str(e)}")
                 sys.exit(1)
             else:
                 installed_something = True
@@ -45,12 +46,14 @@ def check_special_errors(import_error=False):
         
         err_ = "Please setup the 'TCL_LIBRARY' and 'TK_LIBRARY' env variables manually and try again."
         if current_os != "Windows":
-            print("[check_special_errors] " + err_)
+            log_install("[check_special_errors] " + err_)
             sys.exit(1)
 
         valid_python_exe, valid_python_path = get_python()
+        log_install(f"[check_special_errors] Valid Python path: {valid_python_path}, exe: {valid_python_exe}")
+
         if valid_python_path == "" or valid_python_exe == "":
-            print(f"[check_special_errors] Failed to find the valid python path. {err_}")
+            log_install(f"[check_special_errors] Failed to find the valid python path. {err_}")
             sys.exit(1)
 
         # get tcl version from exe #
@@ -60,14 +63,15 @@ def check_special_errors(import_error=False):
         tcl_path = os.path.join(valid_python_path, "tcl", "tcl" + str(tcl_version_output))
         tk_path = os.path.join(valid_python_path, "tcl", "tk" + str(tcl_version_output))
 
+        log_install(f"[check_special_errors] Detected TCL path: {tcl_path}, TK path: {tk_path}")
         if os.path.isdir(tcl_path) == False or os.path.isdir(tk_path) == False:
-            print(f"[check_special_errors] Failed to find the valid tcl/tk path. {err_}")
+            log_install(f"[check_special_errors] Failed to find the valid tcl/tk path. {err_}")
             sys.exit(1)
 
         os.environ["TCL_LIBRARY"] = tcl_path
         os.environ["TK_LIBRARY"]  = tk_path
     except Exception as e:
-        print(f"[check_special_errors] Failed to properly fix tkinter TCL and TK issue: {traceback.format_exc()}")
+        log_install(f"[check_special_errors] Failed to properly fix tkinter TCL and TK issue: {traceback.format_exc()}")
 
-    print("[check_special_errors] Done.\n")
+    log_install("[check_special_errors] Done.\n")
     return installed_something
