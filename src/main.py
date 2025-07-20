@@ -118,27 +118,31 @@ if __name__ == "__main__":
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
             import objc # type: ignore
             from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
-            from Quartz import ( # type: ignore 
-                CGEventTapCreate, 
-                kCGHIDEventTap, 
-                kCGHeadInsertEventTap, 
+            from Quartz import ( # type: ignore
+                CGEventMaskBit, CGEventTapCreate, CGEventTapEnable,
+                CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
+                CFRunLoopGetCurrent, CFRunLoopRunInMode,
+
+                kCGHeadInsertEventTap, kCFRunLoopCommonModes,
+
+                kCGEventKeyDown, 
+                kCGEventKeyUp,
+                kCGEventMouseMoved,
+                kCGEventLeftMouseDown,
+                kCGEventRightMouseDown,
+                kCGEventOtherMouseDown,
+                kCGEventOtherMouseDragged,
+                
                 kCGEventTapOptionDefault,
-                kCGEventKeyDown,
-                CFRunLoopGetCurrent,
-                CFRunLoopAddSource,
-                kCFRunLoopCommonModes,
-                CGEventTapCreateRunLoopSource,
-                CGEventTapEnable,
-                CFRunLoopRunInMode,
-                kCFRunLoopRunTimedOut
+                kCGSessionEventTap, kCFRunLoopRunTimedOut, kCGEventTapDisabledByTimeout
             ) # used for input monitoring
 
-            arch = platform.machine()
+            # arch = platform.machine()
             message_check = (
                 "This application requires '{permission}' permission to {why}.\n\n"
 
                 "Please go to: System Settings -> Privacy & Security -> {permission}\n"
-                f"Then, ensure this application (digmacro_macos{arch}) is enabled.\n"
+                f"Then, ensure this application (digmacro_macos_universal) is enabled.\n"
                 "⚠ If you are opening the macro with Terminal (or any other application), ensure that application also have '{permission}' permission enabled. ⚠\n\n"
 
                 "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n"
@@ -151,13 +155,29 @@ if __name__ == "__main__":
                 return AXIsProcessTrustedWithOptions(options)
             
             def has_input_monitor_access():
-                def callback(proxy, type_, event, refcon): return event
+                disabled_by_timeout = False
+                
+                def callback(proxy, type_, event, refcon):
+                    nonlocal disabled_by_timeout
+                    
+                    if type_ == kCGEventTapDisabledByTimeout:
+                        disabled_by_timeout = True
+                    
+                    return event
 
                 tap = CGEventTapCreate(
-                    kCGHIDEventTap,
+                    kCGSessionEventTap,
                     kCGHeadInsertEventTap,
                     kCGEventTapOptionDefault,
-                    (1 << kCGEventKeyDown),
+                    (
+                        CGEventMaskBit(kCGEventKeyDown) |
+                        CGEventMaskBit(kCGEventKeyUp) |
+                        CGEventMaskBit(kCGEventMouseMoved) |
+                        CGEventMaskBit(kCGEventLeftMouseDown) |
+                        CGEventMaskBit(kCGEventRightMouseDown) |
+                        CGEventMaskBit(kCGEventOtherMouseDown) |
+                        CGEventMaskBit(kCGEventOtherMouseDragged)
+                    ),
                     callback,
                     None
                 )
@@ -166,17 +186,18 @@ if __name__ == "__main__":
                     return False
                 
                 try:
-                    run_loop_source = CGEventTapCreateRunLoopSource(None, tap, 0)
+                    run_loop_source = CFMachPortCreateRunLoopSource(None, tap, 0)
                     if not run_loop_source or run_loop_source is None:
                         return False
                     
                     run_loop = CFRunLoopGetCurrent()
                     CFRunLoopAddSource(run_loop, run_loop_source, kCFRunLoopCommonModes)
                     CGEventTapEnable(tap, True)
+                    
                     result = CFRunLoopRunInMode(kCFRunLoopCommonModes, 0.1, False) # if timeout we assume the permission is not enabled #
                     CGEventTapEnable(tap, False)
 
-                    return result != kCFRunLoopRunTimedOut
+                    return disabled_by_timeout or result != kCFRunLoopRunTimedOut
                 except Exception as e:
                     logging.info(f"[macOS Permissions] Could not create Input Monitoring handler, assume Input Monitoring is not enabled: {str(e)}")
                     return False
