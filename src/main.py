@@ -115,7 +115,7 @@ if __name__ == "__main__":
         logging.info("[macOS Permissions] Checking permission...")
 
         try:
-            import pyobjc # type: ignore
+            import objc # type: ignore
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
             import Quartz # type: ignore
             from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
