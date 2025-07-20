@@ -225,8 +225,8 @@ if __name__ == "__main__":
             else:
                 prompt_issue_msgbox("Input Monitoring", "allow global hotkeys")
             
-        except ImportError:     logging.warning("[macOS Permissions] Could not import packages for permission check. Skipping...")
-        except Exception as e:  logging.error(f"[macOS Permissions] Error during permission check: {e}")
+        except ImportError as e: logging.warning(f"[macOS Permissions] Could not import packages for permission check. Skipping... {str(e)}")
+        except Exception as e:   logging.error(f"[macOS Permissions] Error during permission check: {str(e)}")
 
     logging.info("Loading screen information...")
     from utils.images.screenshots import screenshot_cleanup
