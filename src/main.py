@@ -10,12 +10,28 @@ compiled = "__compiled__" in globals()
 def restart_macro(args=["--skip-selection"]):
     final_exe, final_args = "", []
 
-    if compiled:
+    if current_os == "Darwin":
         final_exe = sys.argv[0]
         final_args = args
+    
+        if ".app/Contents/MacOS" in __file__:
+            try:
+                from AppKit import NSBundle # type: ignore
+                bundle = NSBundle.mainBundle()
+
+                if bundle and bundle.executablePath():
+                    final_exe = str(bundle.executablePath())
+                    final_args = args
+            except: 
+                final_exe = sys.argv[0]
+                final_args = args
     else:
-        final_exe = sys.executable
-        final_args = [sys.executable, os.path.abspath(__file__)] + args
+        if compiled:
+            final_exe = sys.argv[0]
+            final_args = args
+        else:
+            final_exe = sys.executable
+            final_args = [sys.executable, os.path.abspath(__file__)] + args
 
     print(f"Restarting: {final_exe} {final_args}")
     try:
