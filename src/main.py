@@ -119,24 +119,12 @@ if __name__ == "__main__":
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
             import Quartz # type: ignore
             from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
-            from Quartz import ( # type: ignore
-                CGEventMaskBit, CGEventTapCreate, CGEventTapEnable,
-                CFMachPortCreateRunLoopSource, CFRunLoopAddSource,
-                CFRunLoopGetCurrent, CFRunLoopRunInMode, CFRunLoopRemoveSource,
-
-                kCGHeadInsertEventTap, kCFRunLoopDefaultMode,
-
-                kCGEventKeyDown, 
-                kCGEventKeyUp,
-                kCGEventMouseMoved,
-                kCGEventLeftMouseDown,
-                kCGEventRightMouseDown,
-                kCGEventOtherMouseDown,
-                kCGEventOtherMouseDragged,
-                
-                kCGEventTapOptionDefault,
-                kCGSessionEventTap, kCFRunLoopRunTimedOut, kCGEventTapDisabledByTimeout
-            ) # used for input monitoring
+            
+            # used for input monitoring #
+            kIOHIDRequestTypeListenEvent = 1
+            kIOHIDAccessTypeGranted = 0
+            kIOHIDAccessTypeDenied = 1
+            kIOHIDAccessTypeUnknown = 2
 
             # arch = platform.machine()
             message_check = (
@@ -155,55 +143,14 @@ if __name__ == "__main__":
                 options = { kAXTrustedCheckOptionPrompt: prompt }
                 return AXIsProcessTrustedWithOptions(options)
             
-            def has_input_monitor_access():
-                disabled_by_timeout = False
-
-                @Quartz.CGEventTapCallBack
-                def callback(proxy, type_, event, refcon):
-                    nonlocal disabled_by_timeout
-
-                    if type_ == kCGEventTapDisabledByTimeout:
-                        disabled_by_timeout = True
-
-                    return event
-
-                event_mask = (
-                    CGEventMaskBit(kCGEventKeyDown) |
-                    CGEventMaskBit(kCGEventKeyUp) |
-                    CGEventMaskBit(kCGEventMouseMoved) |
-                    CGEventMaskBit(kCGEventLeftMouseDown) |
-                    CGEventMaskBit(kCGEventRightMouseDown) |
-                    CGEventMaskBit(kCGEventOtherMouseDown) |
-                    CGEventMaskBit(kCGEventOtherMouseDragged)
-                )
-
-                tap = CGEventTapCreate(
-                    kCGSessionEventTap,
-                    kCGHeadInsertEventTap,
-                    kCGEventTapOptionDefault,
-                    event_mask,
-                    callback,
-                    None
-                )
-                if not tap: return False
-
+            def has_input_monitor_access(): # macOS 10.15+
                 try:
-                    run_loop_source = CFMachPortCreateRunLoopSource(None, tap, 0)
-                    if not run_loop_source: return False
-
-                    run_loop = CFRunLoopGetCurrent()
-                    CFRunLoopAddSource(run_loop, run_loop_source, kCFRunLoopDefaultMode)
-                    CGEventTapEnable(tap, True)
-
-                    result = CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, False)
-
-                    CGEventTapEnable(tap, False)
-                    CFRunLoopRemoveSource(run_loop, run_loop_source, kCFRunLoopDefaultMode)
-
-                    return disabled_by_timeout or result != kCFRunLoopRunTimedOut
+                    import ctypes
+                    iokit = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
+                    return iokit.IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
                 except Exception as e:
-                    logging.info(f"[macOS Permissions] Could not create Input Monitoring handler, assume Input Monitoring is not enabled: {str(e)}")
-                    return False
+                    logging.info(f"Failed to check Input Monitoring: {str(e)}")
+                    return True # just assume its enabled #
             
             def prompt_issue_msgbox(permission, why):
                 logging.info(f"[macOS Permissions] {permission} access is required, prompting user to enable it.")
