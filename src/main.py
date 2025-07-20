@@ -118,7 +118,20 @@ if __name__ == "__main__":
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
             import objc # type: ignore
             from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
-            from Quartz import CGEventTapCreate, kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventKeyDown, kCGEventTapOptionListenOnly # type: ignore # used for input monitoring
+            from Quartz import ( # type: ignore 
+                CGEventTapCreate, 
+                kCGHIDEventTap, 
+                kCGHeadInsertEventTap, 
+                kCGEventTapOptionDefault,
+                kCGEventKeyDown,
+                CFRunLoopGetCurrent,
+                CFRunLoopAddSource,
+                kCFRunLoopCommonModes,
+                CGEventTapCreateRunLoopSource,
+                CGEventTapEnable,
+                CFRunLoopRunInMode,
+                kCFRunLoopRunTimedOut
+            ) # used for input monitoring
 
             arch = platform.machine()
             message_check = (
@@ -139,15 +152,34 @@ if __name__ == "__main__":
             
             def has_input_monitor_access():
                 def callback(proxy, type_, event, refcon): return event
+
                 tap = CGEventTapCreate(
                     kCGHIDEventTap,
                     kCGHeadInsertEventTap,
-                    kCGEventTapOptionListenOnly,
+                    kCGEventTapOptionDefault,
                     (1 << kCGEventKeyDown),
                     callback,
                     None
                 )
-                return tap is not None
+
+                if not tap or tap is None:
+                    return False
+                
+                try:
+                    run_loop_source = CGEventTapCreateRunLoopSource(None, tap, 0)
+                    if not run_loop_source or run_loop_source is None:
+                        return False
+                    
+                    run_loop = CFRunLoopGetCurrent()
+                    CFRunLoopAddSource(run_loop, run_loop_source, kCFRunLoopCommonModes)
+                    CGEventTapEnable(tap, True)
+                    result = CFRunLoopRunInMode(kCFRunLoopCommonModes, 0.1, False) # if timeout we assume the permission is not enabled #
+                    CGEventTapEnable(tap, False)
+
+                    return result != kCFRunLoopRunTimedOut
+                except Exception as e:
+                    logging.info(f"[macOS Permissions] Could not create Input Monitoring handler, assume Input Monitoring is not enabled: {str(e)}")
+                    return False
             
             def prompt_issue_msgbox(permission, why):
                 logging.info(f"[macOS Permissions] {permission} access is required, prompting user to enable it.")
