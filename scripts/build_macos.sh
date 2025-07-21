@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHS=("x86_64" "arm64")
+ARCHS=("$(uname -m)") # ("x86_64" "arm64") just built for the current architecture, x86_64 will break if builded on arm64 (i just dont know why)
 BUILT_APPS=()
 USED_ARCHS=()
 
@@ -64,6 +64,7 @@ for arch in "${ARCHS[@]}"; do
     --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
     --include-package=cv2 --include-package-data=cv2 --nofollow-import-to=cv2.test --nofollow-import-to=cv2.tests \
     --include-package=numpy --include-package-data=numpy --nofollow-import-to=numpy.testing --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
+    --include-package=PIL --include-package-data=PIL \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
     --output-filename=digmacro_macos \
