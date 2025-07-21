@@ -1,9 +1,29 @@
 @echo off
-call env\dev\Windows\Scripts\activate
+
+if not exist "env" (
+    mkdir env
+)
+
+cd env
+
+if not exist "build" (
+    mkdir build
+)
+
+cd build
+
+if not exist "Windows" (
+    py -m venv Windows
+)
+
+cd ..
+cd ..
 
 if not exist "output" (
     mkdir output
 )
+
+call env\build\Windows\Scripts\activate
 
 cd src
 

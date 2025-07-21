@@ -1,9 +1,29 @@
 #!/bin/bash
-. env/dev/Linux/bin/activate
+
+if [ ! -d "env" ]; then
+  mkdir env
+fi
+
+cd env
+
+if [ ! -d "build" ]; then
+  mkdir build
+fi
+
+cd build
+
+if [ ! -d "Linux" ]; then
+  python3 -m venv Linux
+fi
+
+cd ..
+cd ..
 
 if [ ! -d "output" ]; then
   mkdir output
 fi
+
+. env/build/Linux/bin/activate
 
 cd src
 
