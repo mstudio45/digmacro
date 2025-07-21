@@ -5,6 +5,7 @@ from variables import StaticVariables
 from utils.general.filehandler import read, write
 
 current_os = platform.system()
+current_arch = platform.machine()
 
 # this shit pmo fr #
 default_screenshot_package, screenshot_packages = "", []
@@ -110,10 +111,18 @@ settings_table = {
     "PLAYER_BAR_DETECTION": {
         "widget": "QComboBox",
         "tooltip": """
-Gradient: Fastest and recommended. Uses numpy to find the player bar by the 'gradient' outline.
-Canny: Faster, works only for certain CPUs. Might not work on certain brightness and saturation.
+ZerosLike: 
+    - Recommended for Windows, Intel MacBooks. 
+    - Uses 'zeros like' mask to find the player bar using numpy.
+Gradient: 
+    - Recommended for Linux, Apple Silicon MacBooks.
+    - Uses gradient mask to find the player bar using numpy.
+Canny: 
+    - Slower than other methods, less false detections when the cooldown icon is present.
+    - Uses Canny edge detection to find the player bar using OpenCV.
+    [ Might not work on certain CPUs, brightness and saturation settings. ]
 """,
-        "items": ["Gradient", "Canny"]
+        "items": ["ZerosLike", "Gradient", "Canny"]
     },
     "PLAYER_BAR_WIDTH": {
         "widget": "QSpinBox",
@@ -325,7 +334,7 @@ class ConfigManager:
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 50,
 
-                "PLAYER_BAR_DETECTION": "Gradient",
+                "PLAYER_BAR_DETECTION": "ZerosLike" if current_os == "Windows" or current_arch == "x86_64" else "Gradient",
                 "PLAYER_BAR_WIDTH": 5,
                 "PLAYER_BAR_CANNY_THRESHOLD": 100,
 

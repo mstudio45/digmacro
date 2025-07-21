@@ -79,6 +79,35 @@ class PlayerBar:
                     break
                     
             self.update_values(player_bar_center, clickable_position)
+    
+    elif Config.PLAYER_BAR_DETECTION == "ZerosLike":
+        logging.info("Using 'ZerosLike' method for player bar.")
+        def find_bar(self, 
+            screenshot, 
+            region_left,
+            clickable_position
+        ):
+            if not clickable_position:
+                self.current_position = None
+                self.bar_in_clickable = False
+                return
+            
+            screenshot = screenshot.astype(np.float32) # convert to np float32 array (more accurate for gradient finder) #
+            
+            # find horizontal gradients by central difference #
+            grad_x = np.zeros_like(screenshot)
+            grad_x[:, 1:-1] = (screenshot[:, 2:] - screenshot[:, :-2]) / 2.0
+            grad_mag = np.abs(grad_x) # absolute gradient to highlight edges #
+            
+            column_strength = grad_mag.sum(axis=0) # sum of gradients along vertical axis #
+            best_x = np.argmax(column_strength) # use the one line with maximum edge strenght #
+            direction_score = grad_x[:, best_x].mean() # get direction for margin offset to put the position in the middle of the player bar #
+            
+            if direction_score > 0:
+                self.update_values(region_left + best_x - self.margin_offset, clickable_position)
+            else:
+                self.update_values(region_left + best_x + self.margin_offset, clickable_position)
+    
     else:
         logging.info("Using 'Gradient' method for player bar.")
         def find_bar(self, 
@@ -106,22 +135,6 @@ class PlayerBar:
             else:
                 self.update_values(region_left + best_x + self.margin_offset, clickable_position)
 
-            # screenshot = screenshot.astype(np.float32) # convert to np float32 array (more accurate for gradient finder) #
-            # 
-            # # find horizontal gradients by central difference #
-            # grad_x = np.zeros_like(screenshot)
-            # grad_x[:, 1:-1] = (screenshot[:, 2:] - screenshot[:, :-2]) / 2.0
-            # grad_mag = np.abs(grad_x) # absolute gradient to highlight edges #
-            # 
-            # column_strength = grad_mag.sum(axis=0) # sum of gradients along vertical axis #
-            # best_x = np.argmax(column_strength) # use the one line with maximum edge strenght #
-            # direction_score = grad_x[:, best_x].mean() # get direction for margin offset to put the position in the middle of the player bar #
-            # 
-            # if direction_score > 0:
-            #     self.update_values(region_left + best_x - self.margin_offset, clickable_position)
-            # else:
-            #     self.update_values(region_left + best_x + self.margin_offset, clickable_position)
-    
     # Prediction system # 
     def update_values(self, current_left, clickable_position):
         if current_left is None:

@@ -48,6 +48,7 @@ for arch in "${ARCHS[@]}"; do
   cd env/build
 
   if [ ! -d "Darwin_$arch" ]; then
+    echo "Creating virtual environment..."
     $CMD_PREFIX python3 -m venv Darwin_$arch
   fi
 
@@ -56,6 +57,7 @@ for arch in "${ARCHS[@]}"; do
   cd ../..
 
   # ensure correct arch wheel #
+  echo "Installing dependencies..."
   $CMD_PREFIX pip install --upgrade --no-cache-dir pip 
   $CMD_PREFIX pip install --upgrade --no-cache-dir setuptools wheel
   $CMD_PREFIX pip install --upgrade --no-cache-dir nuitka
