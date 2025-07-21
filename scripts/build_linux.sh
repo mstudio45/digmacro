@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "Creating environment directories..."
 if [ ! -d "env" ]; then
   mkdir env
 fi
@@ -13,6 +14,7 @@ fi
 cd build
 
 if [ ! -d "Linux" ]; then
+  echo "Creating virtual environment..."
   python3 -m venv Linux
 fi
 
@@ -27,6 +29,7 @@ fi
 
 cd src
 
+echo "Installing dependencies..."
 python3 main.py --only-install --force-reinstall
 
 if ! python3 -m nuitka --version >/dev/null 2>&1; then

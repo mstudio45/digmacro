@@ -1,5 +1,7 @@
 @echo off
 
+echo Creating environment directories...
+
 if not exist "env" (
     mkdir env
 )
@@ -13,6 +15,7 @@ if not exist "build" (
 cd build
 
 if not exist "Windows" (
+    echo Creating virtual environment...
     py -m venv Windows
 )
 
@@ -27,6 +30,7 @@ call env\build\Windows\Scripts\activate
 
 cd src
 
+echo Installing dependencies...
 py main.py --only-install --force-reinstall
 
 py -m nuitka --version >nul 2>&1
