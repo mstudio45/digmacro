@@ -1,0 +1,50 @@
+name: Build Binaries
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x64, arm64, x86]
+        exclude:
+          - os: windows-latest
+            arch: arm64 # Windows runners do not support arm64
+          - os: macos-latest
+            arch: x86 # macOS runners do not support 32-bit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
+
+      - name: Install packages for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python3 src/main.py --only-install --force-reinstall
+          bash scripts/build_linux.sh ${{ matrix.arch }}
+
+      - name: Install packages for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          python src/main.py --only-install --force-reinstall
+          scripts\build_win.bat ${{ matrix.arch }}
+
+      - name: Install packages for macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          python3 src/main.py --only-install --force-reinstall --force-${{ matrix.arch }}
+          bash scripts/build_macos.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-binaries
+          path: output/
