@@ -15,7 +15,6 @@ required_packages = {
         { "pip": "requests",        "import": "requests",       "version": "all"   },
         { "pip": "PySide6",         "import": "PySide6",        "version": "all"   },
         { "pip": "psutil",          "import": "psutil",         "version": "all"   },
-        { "pip": "logging",         "import": "logging",        "version": "all"   },
         { "pip": "pillow",          "import": "PIL",            "version": "all"   },
         { "pip": "watchdog",        "import": "watchdog",       "version": "all"   },
     ],
