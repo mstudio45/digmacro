@@ -17,6 +17,8 @@ __all__ = [
     "scale_x_1080p", "scale_y_1080p"
 ]
 
+logging.info("=== SCALING DEBUG INFO ===")
+
 # get the display resolution to support all window sizes #
 BASE_RESOLUTION = (1920, 1080)
 screen_res_str = "0x0 1920x1080"
@@ -51,6 +53,7 @@ try:
                     monitor_left = int(logical_frame.origin.x)
                     monitor_top = int(logical_frame.origin.y)
 
+                    logging.info(f"macOS Display Backing Scale: {backing_scale})")
                     return {
                         "left": monitor_left,
                         "top": monitor_top,
@@ -122,6 +125,7 @@ try:
 
                 "scale_factor": override_scale
             }
+            logging.info(f"Using custom macOS display scale override: {override_scale:.2f} ({logical_width}x{logical_height}) -> ({macos_screen_info["physical_width"]}x{macos_screen_info["physical_height"]})")
 
         # set variables #
         screen_region = {
@@ -156,6 +160,8 @@ try:
                 system_dpi = 96.0 
                 scale_factor_x = dpi_x.value / system_dpi
                 scale_factor_y = dpi_y.value / system_dpi
+
+                logging.info(f"Windows DPI Scale Factor: {scale_factor_x:.2f}x{scale_factor_y:.2f}")
 
                 logical_width = ctypes.windll.user32.GetSystemMetrics(0) # SM_CXSCREEN #
                 logical_height = ctypes.windll.user32.GetSystemMetrics(1) # SM_CYSCREEN #
@@ -247,9 +253,6 @@ except FailedToGetDiplayResolutionException as e:
 except Exception as e:
     msgbox.alert(f"Failed to get the correct Display Resolution: {traceback.format_exc()}")
     sys.exit(1)
-
-# DEBUG INFO
-logging.info("=== SCALING DEBUG INFO ===")
 
 # res #
 logging.info(f"Base Resolution (resolution that was used for asset images): {BASE_RESOLUTION}")

@@ -52,21 +52,20 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
 ## 💻 Supported Operating Systems
 
 > [!NOTE]
-> Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
-> Administrator or sudo permissions may be required for some features on Linux/macOS.
+> Only 64-bit and arm64 systems are supported.
 
-| Operating System          | Support Status     | Supported Versions                                                                         | Tested On                             | Notes                                                                    |
-| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                                       | Windows 10, Windows 11                | Roblox UWP (Microsoft Store) is not supported                            |
-| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu 13 and newer/Debian, RHEL/Fedora, Arch, OpenSUSE)        | Linux Mint 22.1 (Cinnamon X11)        | Wayland is not supported, Requires [Sober](https://sober.vinegarhq.org/) |
-| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                                | Apple M3 16 GB, Sequoia 15.5 (Retina) | Macro might struggle with performance                                    |
+| Operating System          | Support Status     | Supported Versions                                                                         | Tested On                                   | Notes                                                                    |
+| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------ |
+| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                                       | Windows 10, Windows 11                      | Roblox UWP (Microsoft Store) is not supported                            |
+| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu 13 and newer/Debian, RHEL/Fedora, Arch, OpenSUSE)        | Linux Mint 22.1 (Cinnamon X11)              | Wayland is not supported, Requires [Sober](https://sober.vinegarhq.org/) |
+| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                                | MacBook Air M3 16 GB, MacBook Pro Intel i7  | Macro might struggle with performance                                    |
 
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
 ###  **macOS Stability Issues**
 | OS Version                  | RAM                 | CPU                 | Support Status      | Notes                                                                                             |
 | --------------------------- | ------------------- | ------------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | **M3 chip** works better with external monitors                                                   |
+| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | Nothing here...                                                                                   |
 | Big Sur 11.7+               | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires a lot of config changes to make macro work properly       |
 
 ---

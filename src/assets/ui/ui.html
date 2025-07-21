@@ -177,7 +177,8 @@
 
                 await window.pywebview.api.resize_window(
                     Math.ceil(width * scale * window.devicePixelRatio), 
-                    Math.ceil(height * scale * window.devicePixelRatio)
+                    Math.ceil(height * scale * window.devicePixelRatio),
+                    window.devicePixelRatio
                 );
                 await scaleContent(scale, width, height);
             }, 250);

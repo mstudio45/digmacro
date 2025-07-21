@@ -25,8 +25,13 @@ class UIBase:
         self.html = open(ui_path, "r", encoding="utf-8").read()
     
     # api functions #
-    def resize_window(self, width, height):
+    def resize_window(self, width, height, device_pixel_ratio=None):
         width, height = int(width), int(height)
+        if device_pixel_ratio is not None:
+            logging.info(f"Resizing window: ({width}, {height}) | Scale: {device_pixel_ratio}")
+        else:
+            logging.info(f"Resizing window: ({width}, {height})")
+
         self.window.resize(width, height)
         return "Done"
 

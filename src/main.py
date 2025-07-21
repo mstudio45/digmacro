@@ -846,6 +846,8 @@ if __name__ == "__main__":
         msgbox.alert("Make sure shiftlock is enabled for the pahtfinding macro to work correctly!")
 
         if current_os == "Windows":
+            logging.info("Disabling Mouse Acceleration/Enhance pointer precision...")
+
             import ctypes
             def switch_mouse_acceleration(turn_on=False):
                 turn_on = int(turn_on == True)
@@ -869,6 +871,20 @@ if __name__ == "__main__":
         else:
             msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
             Config.PATHFINDING = False
+
+    # notify user #
+    # arch = platform.machine()
+    # if current_os == "Darwin" and (arch == "i386" or arch == "x86_64"):
+    #     msgbox.alert(
+    #         "For best performance, keep Roblox FPS locked at 60 FPS.\n\n"
+    #         "Inside Roblox Settings: (Roblox icon in top left corner)\n"
+    #         "   → set 'Maximum Frame Rate' to '60 FPS'\n"
+    #         "   → set 'Graphics Mode' to 'Manual'\n" 
+    #         "   → set 'Graphics Quality' to 'Low (levels 1–3)'\n"
+    # 
+    #         "Inside DIG: (cogwheel icon)\n"
+    #         "   → enable 'Low Graphics' mode"
+    #     )
 
     # region #
     macro.setup_finder_thread()

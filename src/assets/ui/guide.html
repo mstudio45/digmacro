@@ -93,14 +93,17 @@
             document.querySelector("#example").src = img;
 
             const scale = await pywebview.api.get_scale_override()
-            const width = wrapper.offsetWidth;
-            const height = wrapper.offsetHeight;
-
-            await window.pywebview.api.resize_window(
-                Math.ceil(width * scale * window.devicePixelRatio), 
-                Math.ceil(height * scale * window.devicePixelRatio)
-            );
-            await scaleContent(scale, width, height);
+            setTimeout(async () => {
+                const width = wrapper.offsetWidth;
+                const height = wrapper.offsetHeight;
+    
+                await window.pywebview.api.resize_window(
+                    Math.ceil(width * scale * window.devicePixelRatio), 
+                    Math.ceil(height * scale * window.devicePixelRatio),
+                    window.devicePixelRatio
+                );
+                await scaleContent(scale, width, height);
+            }, 100);
 
             pywebview.api.get_macro_information().then((info) => {
                 const credits = document.querySelector("#credit");
