@@ -12,6 +12,9 @@ jobs:
           - os: ubuntu-latest
             arch: x64
             runs_on: ubuntu-latest
+          - os: ubuntu-latest
+            arch: arm64
+            runs_on: ubuntu-latest-arm64
           - os: windows-latest
             arch: x64
             runs_on: windows-latest

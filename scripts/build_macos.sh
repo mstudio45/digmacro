@@ -3,8 +3,16 @@
 if [ "$#" -eq 0 ]; then
   ARCHS=("$(uname -m)")
 else
-  ARCHS=("$@")
+  ARCHS=()
+  for arg in "$@"; do
+    if [ "$arg" = "x64" ]; then
+      ARCHS+=("x86_64")
+    else
+      ARCHS+=("$arg")
+    fi
+  done
 fi
+
 BUILT_APPS=()
 USED_ARCHS=()
 
