@@ -7,6 +7,8 @@ fi
 
 cd src
 
+python3 main.py --only-install --force-reinstall
+
 if ! python3 -m nuitka --version >/dev/null 2>&1; then
   echo "Installing nuitka..."
   python3 -m pip install nuitka

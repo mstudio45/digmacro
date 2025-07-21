@@ -7,6 +7,8 @@ if not exist "output" (
 
 cd src
 
+py main.py --only-install --force-reinstall
+
 py -m nuitka --version >nul 2>&1
 if errorlevel 1 (
   echo Installing nuitka...
