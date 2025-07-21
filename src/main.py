@@ -222,11 +222,11 @@ if __name__ == "__main__":
         # check versions #
         if Variables.current_branch not in versions: raise Exception(f"{Variables.current_branch} is not an valid branch.")
         latest_branch_version = versions[Variables.current_branch]
-        is_outdated = is_version_outdated(latest_branch_version, Variables.current_version)
+        is_outdated = is_version_outdated(Variables.current_version, latest_branch_version)
 
         logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {latest_branch_version} > {Variables.current_version} = {is_outdated}")
         if is_outdated:
-            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} -> {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
+            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
             if res == "Yes":
                 try:
                     if current_os == "Windows":
