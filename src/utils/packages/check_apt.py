@@ -68,10 +68,11 @@ else:
         compiled = "__compiled__" in globals()
         if compiled:
             if current_os == "Linux":
-                try: subprocess.run(["notify-send", "-t", "15", "DIG Macro", f"You are required packages. Install them manually: {missing_packages}"])
+                try: subprocess.run(["notify-send", "-t", "15", "DIG Macro", f"You are missing required packages. Install them manually: {missing_packages}"])
                 except: pass
 
-            log_install(f"You are required packages. Install them manually: {missing_packages}")
+            log_install(f"You are missing required packages. Install them manually: {missing_packages}")
+            sys.exit(1)
             return False
         
         # get install command #
