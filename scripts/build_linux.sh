@@ -30,6 +30,11 @@ fi
 cd src
 
 echo "Installing dependencies..."
+
+# for pywebview[gtk] #
+sudo apt-get update
+sudo apt-get install -y libcairo2-dev pkg-config python3-dev
+
 python3 main.py --only-install --force-reinstall
 
 if ! python3 -m nuitka --version >/dev/null 2>&1; then
