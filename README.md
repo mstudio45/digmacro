@@ -85,6 +85,9 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 #### Source version
 
+> [!NOTE]
+> **Python 3.12.8 and later** is required.
+
 1. **Download the latest version:**
    - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
 2. **Extract the ZIP File:**
