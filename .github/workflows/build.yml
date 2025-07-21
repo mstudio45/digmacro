@@ -15,6 +15,8 @@ jobs:
             arch: arm64 # Windows runners do not support arm64
           - os: macos-latest
             arch: x86 # macOS runners do not support 32-bit
+          - os: ubuntu-latest
+            arch: x86 # no python 3.13 for 32-bit on Ubuntu
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,23 +27,20 @@ jobs:
           python-version: '3.13'
           architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
 
-      - name: Install packages for Linux
+      - name: Build for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          python3 src/main.py --only-install --force-reinstall
-          bash scripts/build_linux.sh ${{ matrix.arch }}
+          sh scripts/build_linux.sh ${{ matrix.arch }}
 
-      - name: Install packages for Windows
+      - name: Build for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          python src/main.py --only-install --force-reinstall
           scripts\build_win.bat ${{ matrix.arch }}
 
-      - name: Install packages for macOS
+      - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: |
-          python3 src/main.py --only-install --force-reinstall --force-${{ matrix.arch }}
-          bash scripts/build_macos.sh
+          sh scripts/build_macos.sh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
