@@ -9,21 +9,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            arch: x64
-            runs_on: ubuntu-latest
-          - os: windows-latest
-            arch: x64
-            runs_on: windows-latest
-          - os: windows-latest
-            arch: x86
-            runs_on: windows-2019
           - os: macos-latest
             arch: x64
             runs_on: macos-latest
-          - os: macos-latest
-            arch: arm64
-            runs_on: macos-14
 
     steps:
       - name: Checkout code

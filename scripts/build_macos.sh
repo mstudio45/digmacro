@@ -77,6 +77,7 @@ for arch in "${ARCHS[@]}"; do
     --nofollow-import-to=cryptography,unittest,test,doctest,pytest \
     --include-package=cv2 --include-package-data=cv2 --nofollow-import-to=cv2.test --nofollow-import-to=cv2.tests \
     --include-package=numpy --include-package-data=numpy --nofollow-import-to=numpy.testing --nofollow-import-to=numpy.tests --nofollow-import-to="numpy.*.tests" \
+    --include-package=pillow --include-package-data=pillow \
     --include-data-dir=assets=assets \
     --output-dir=dist/macos_$arch \
     --output-filename=digmacro_macos \
