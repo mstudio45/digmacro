@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ startsWith(matrix.os, 'windows') && '3.12.8' || '3.13.0' }}
-          architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
+          architecture: ${{ matrix.arch }}
 
       - name: Build for Linux
         if: startsWith(matrix.os, 'ubuntu')
@@ -49,5 +49,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: digmacro-${{ matrix.os == 'ubuntu-latest' && 'linux' || replace(matrix.os, '-latest', '') }}-${{ matrix.arch }}
+          name: digmacro-${{ startsWith(matrix.os, 'ubuntu') && 'linux' || (startsWith(matrix.os, 'windows') && 'windows' || 'macos') }}-${{ matrix.arch }}
           path: output/
