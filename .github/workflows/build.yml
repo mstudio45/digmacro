@@ -16,7 +16,7 @@ jobs:
           - os: macos-latest
             arch: x86 # macOS runners do not support 32-bit
           - os: ubuntu-latest
-            arch: x86 # no python 3.13 for 32-bit on Ubuntu
+            arch: x86 # no python for 32-bit on Ubuntu
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.os == 'windows-latest' && '3.12.8' || '3.13.0' }}
           architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
 
       - name: Build for Linux
