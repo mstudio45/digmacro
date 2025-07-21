@@ -1,10 +1,7 @@
 name: Build Binaries
 
 on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,7 +22,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.0'
+          python-version: '3.13'
+          architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
 
       - name: Install packages for Linux
         if: matrix.os == 'ubuntu-latest'
