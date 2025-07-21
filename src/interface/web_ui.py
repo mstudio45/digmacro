@@ -26,10 +26,12 @@ class UIBase:
     
     # api functions #
     def resize_window(self, width, height, device_pixel_ratio=None):
-        width, height = int(width), int(height)
-        if device_pixel_ratio is not None:
+        if device_pixel_ratio is not None and current_os == "Windows":
+            width, height = int(width * device_pixel_ratio), int(height * device_pixel_ratio)
             logging.info(f"Resizing window: ({width}, {height}) | Scale: {device_pixel_ratio}")
+        
         else:
+            width, height = int(width), int(height)
             logging.info(f"Resizing window: ({width}, {height})")
 
         self.window.resize(width, height)
