@@ -1,6 +1,10 @@
 #!/bin/bash
 
-ARCHS=("$(uname -m)") # ("x86_64" "arm64") just built for the current architecture, x86_64 will break if builded on arm64 (i just dont know why)
+if [ "$#" -eq 0 ]; then
+  ARCHS=("$(uname -m)")
+else
+  ARCHS=("$@")
+fi
 BUILT_APPS=()
 USED_ARCHS=()
 
@@ -52,6 +56,7 @@ for arch in "${ARCHS[@]}"; do
   cd src
 
   $CMD_PREFIX python3 -m nuitka \
+    --show-progress \
     --standalone \
     --follow-imports \
     --assume-yes-for-downloads \

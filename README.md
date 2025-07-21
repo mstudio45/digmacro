@@ -66,8 +66,8 @@ _If you have improvements or patches for additional (or currently supported) ope
 ###  **macOS Stability Issues**
 | OS Version                  | RAM                 | CPU                 | Support Status      | Notes                                                                                             |
 | --------------------------- | ------------------- | ------------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| Catalina 10.15.7+           | 8GB or more         | Apple Silicon       | ✅ Full Support     | **M3 chip** works better with external monitors                                                   |
-| Catalina 10.15.7+           | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires a lot of config changes to make macro work properly       |
+| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | **M3 chip** works better with external monitors                                                   |
+| Big Sur 11.7+               | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires a lot of config changes to make macro work properly       |
 
 ---
 

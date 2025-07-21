@@ -40,6 +40,7 @@ if errorlevel 1 (
 )
 
 py -m nuitka ^
+  --show-progress ^
   --onefile ^
   --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" ^
   --standalone ^

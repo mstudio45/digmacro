@@ -43,6 +43,7 @@ if ! python3 -m nuitka --version >/dev/null 2>&1; then
 fi
 
 python3 -m nuitka \
+  --show-progress \
   --onefile \
   --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" \
   --standalone \
