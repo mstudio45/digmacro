@@ -52,21 +52,16 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
 ## 💻 Supported Operating Systems
 
 > [!NOTE]
-> Only 64-bit and arm64 systems are supported.
+> Only `64-bit` and `arm64` architectures are supported.
 
-| Operating System          | Support Status     | Supported Versions                                                                         | Tested On                                   | Notes                                                                    |
-| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support    | Windows 10 and newer                                                                       | Windows 10, Windows 11                      | Roblox UWP (Microsoft Store) is not supported                            |
-| **Linux**                 | ✅ Full Support    | Most modern distributions (Ubuntu 13 and newer/Debian, RHEL/Fedora, Arch, OpenSUSE)        | Linux Mint 22.1 (Cinnamon X11)              | Wayland is not supported, Requires [Sober](https://sober.vinegarhq.org/) |
-| **macOS**                 | 🟡 Partial Support | Refer to [macOS Stability Issues](#-macos-stability-issues)                                | MacBook Air M3 16 GB, MacBook Pro Intel i7  | Macro might struggle with performance                                    |
+| Operating System                 | Support Status    | Supported Versions                                                                         | Tested On                                   | Notes                                                                                                                                                    |
+| -------------------------------- | ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows**                      | ✅ Full Support   | Windows 10 and later                                                                       | Windows 10, Windows 11                      | Roblox UWP (Microsoft Store) is **not** supported                                                                                                        |
+| **Linux**                        | ✅ Full Support   | Most modern distributions (Ubuntu 13+/Debian, RHEL/Fedora, Arch, OpenSUSE)                 | Linux Mint 22.1 (Cinnamon X11)              | Wayland is **not** supported, Requires [Sober](https://sober.vinegarhq.org/)                                                                             |
+| **MacBook with Apple Silicon**   | ✅ Full Support   | macOS Big Sur 11.7+, 8GB RAM or more                                                       | MacBook M3                                  | Nothing here...                                                                                                                                          |
+| **MacBook with Intel CPU**       | ✅ Full Support   | macOS High Sierra 10.13+, 8GB RAM or more                                                  | MacBook Pro Intel i7                        | Due to Intel CPU performance on MacBooks, the macro **will only work with Roblox locked at 60 FPS and with the lowest graphics settings possible**       |
 
-_If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
-
-###  **macOS Stability Issues**
-| OS Version                  | RAM                 | CPU                 | Support Status      | Notes                                                                                                                                              |
-| --------------------------- | ------------------- | ------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | Nothing here...                                                                                                                                    |
-| High Sierra 10.3+           | 8GB or more         | Intel i3 and newer  | ✅ Full Support     | Due to the performance of Intel CPUs on MacBooks, the macro **will only work with Roblox locked at 60 FPS and with the lowest graphics possible**  |
+_If you have improvements or patches for additional (or currently supported) operating system(s), please consider submitting a pull request._
 
 ---
 
