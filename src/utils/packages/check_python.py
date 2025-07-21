@@ -1,6 +1,6 @@
 import sys, subprocess, importlib
 from utils.packages.distro_variables import log_install, current_os, install_pip_package
-from utils.packages.versions import check_package_version
+from utils.packages.versions import is_version_outdated, is_version_over_required
 
 __all__ = ["check_pip_packages"]
 required_packages = {
@@ -79,10 +79,16 @@ else:
                         missing_packages.append(package)
                         continue
                     
-                    if min_version != "all" and not check_package_version(min_version, installed_package[1]):
-                        log_install(f"[check_pip_packages] Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
-                        missing_packages.append(package)
-                        continue
+                    if min_version != "all":
+                        if is_version_outdated(installed_package[1], min_version):
+                            log_install(f"[check_pip_packages] Package '{pip_name}' is too old: {installed_package[1]} < {min_version}")
+                            missing_packages.append(package)
+                            continue
+
+                        elif is_version_over_required(installed_package[1], min_version):
+                            log_install(f"[check_pip_packages] Package '{pip_name}' is over the required version: {installed_package[1]} > {min_version}")
+                            missing_packages.append(package)
+                            continue
                 
                 # check import #
                 try: importlib.import_module(import_name)

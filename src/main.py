@@ -48,7 +48,7 @@ from utils.packages.check_apt import check_apt_packages
 from utils.packages.check_errors import check_special_errors
 from utils.packages.check_python import check_pip_packages
 from utils.packages.check_shutil import check_shutil_applications
-from utils.packages.versions import check_package_version
+from utils.packages.versions import is_version_outdated
 
 if "--skip-install" not in sys.argv:
     if "--only-install" in sys.argv:
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         # check versions #
         if Variables.current_branch not in versions: raise Exception(f"{Variables.current_branch} is not an valid branch.")
         latest_branch_version = versions[Variables.current_branch]
-        is_outdated = check_package_version(latest_branch_version, Variables.current_version, check_if_equal=False)
+        is_outdated = is_version_outdated(latest_branch_version, Variables.current_version)
 
         logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {latest_branch_version} > {Variables.current_version} = {is_outdated}")
         if is_outdated:
