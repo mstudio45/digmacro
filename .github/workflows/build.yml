@@ -8,15 +8,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        arch: [x64, arm64, x86]
-        exclude:
-          - os: windows-latest
-            arch: arm64 # Windows runners do not support arm64
-          - os: macos-latest
-            arch: x86 # macOS runners do not support 32-bit
+        include:
           - os: ubuntu-latest
-            arch: x86 # no python for 32-bit on Ubuntu
+            arch: x64
+          - os: ubuntu-latest
+            arch: arm64
+          - os: windows-latest
+            arch: x64
+          - os: windows-latest
+            arch: x86
+          - os: macos-latest
+            arch: x64
+          - os: macos-latest
+            arch: arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,26 +28,26 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.os == 'windows-latest' && '3.12.8' || '3.13.0' }}
+          python-version: ${{ startsWith(matrix.os, 'windows') && '3.12.8' || '3.13.0' }}
           architecture: ${{ matrix.arch == 'arm64' && 'x64' || matrix.arch }}
 
       - name: Build for Linux
-        if: matrix.os == 'ubuntu-latest'
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           sh scripts/build_linux.sh ${{ matrix.arch }}
 
       - name: Build for Windows
-        if: matrix.os == 'windows-latest'
+        if: startsWith(matrix.os, 'windows')
         run: |
           scripts\build_win.bat ${{ matrix.arch }}
 
       - name: Build for macOS
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         run: |
           sh scripts/build_macos.sh ${{ matrix.arch }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}-binaries
+          name: digmacro-${{ matrix.os == 'ubuntu-latest' && 'linux' || replace(matrix.os, '-latest', '') }}-${{ matrix.arch }}
           path: output/
