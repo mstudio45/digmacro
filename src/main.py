@@ -171,7 +171,7 @@ if __name__ == "__main__":
                     
                     display_id = CGMainDisplayID()
                     main_queue = dispatch.dispatch_get_main_queue()
-                    stream_ref = CGDisplayStreamCreateWithDispatchQueue(display_id, 1, 1, "BGRA", None, main_queue, stream_callback)
+                    stream_ref = CGDisplayStreamCreateWithDispatchQueue(display_id, 1, 1, 1111970369, None, main_queue, stream_callback) # kCVPixelFormatType_32BGRA = 1111970369
 
                     has_perms = stream_ref is not None
                     return has_perms
