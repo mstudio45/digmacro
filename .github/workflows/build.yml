@@ -50,5 +50,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: digmacro-${{ startsWith(matrix.os, 'ubuntu') && 'linux' || (startsWith(matrix.os, 'windows') && 'windows' || 'macos') }}-${{ matrix.arch }}
+          name: digmacro-${{ startsWith(matrix.os, 'ubuntu') && 'linux' || (startsWith(matrix.os, 'windows') && 'windows' || 'macos') }}-${{ matrix.arch == 'x64' && 'x86_64' || matrix.arch }}
           path: output/

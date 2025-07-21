@@ -63,10 +63,10 @@ DIG Macro uses [Python](https://www.python.org/) and computer vision to detect w
 _If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
 
 ###  **macOS Stability Issues**
-| OS Version                  | RAM                 | CPU                 | Support Status      | Notes                                                                                             |
-| --------------------------- | ------------------- | ------------------- | ------------------- | ------------------------------------------------------------------------------------------------- |
-| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | Nothing here...                                                                                   |
-| Big Sur 11.7+               | 8GB or more         | Intel i5 and newer  | 🟡 Partial Support  | **Only source version works**, Requires a lot of config changes to make macro work properly       |
+| OS Version                  | RAM                 | CPU                 | Support Status      | Notes                                                                                                                                              |
+| --------------------------- | ------------------- | ------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Big Sur 11.7+               | 8GB or more         | Apple Silicon       | ✅ Full Support     | Nothing here...                                                                                                                                    |
+| High Sierra 10.3+           | 8GB or more         | Intel i3 and newer  | ✅ Full Support     | Due to the performance of Intel CPUs on MacBooks, the macro **will only work with Roblox locked at 60 FPS and with the lowest graphics possible**  |
 
 ---
 
