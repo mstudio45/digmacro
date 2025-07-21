@@ -123,16 +123,17 @@ if __name__ == "__main__":
         logging.info("[macOS Permissions] Checking permission...")
 
         try:
-            import objc # type: ignore
             from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
-            import Quartz # type: ignore
-            from Quartz import CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess # type: ignore # used for screen recording
+            from Quartz import ( # type: ignore
+                CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess,
+                CGDisplayStreamCreateWithDispatchQueue,
+                CGMainDisplayID
+            )
+            import dispatch # type: ignore
             
             # used for input monitoring #
             kIOHIDRequestTypeListenEvent = 1
             kIOHIDAccessTypeGranted = 0
-            kIOHIDAccessTypeDenied = 1
-            kIOHIDAccessTypeUnknown = 2
 
             # arch = platform.machine()
             message_check = (
@@ -157,8 +158,26 @@ if __name__ == "__main__":
                     iokit = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
                     return iokit.IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
                 except Exception as e:
-                    logging.info(f"Failed to check Input Monitoring: {str(e)}")
+                    logging.info(f"[macOS Permissions] Failed to check Input Monitoring Permission: {str(e)}")
                     return True # just assume its enabled #
+                
+            def has_screen_recording_access():
+                try:
+                    if CGPreflightScreenCaptureAccess(): 
+                        return True
+                    
+                    # fallback check #
+                    def stream_callback(status, timestamp, frame, update_ref): pass
+                    
+                    display_id = CGMainDisplayID()
+                    main_queue = dispatch.dispatch_get_main_queue()
+                    stream_ref = CGDisplayStreamCreateWithDispatchQueue(display_id, 1, 1, "BGRA", None, main_queue, stream_callback)
+
+                    has_perms = stream_ref is not None
+                    return has_perms
+                except Exception as e:
+                    logging.info(f"[macOS Permissions] Failed to check Screen Recording Permission: {str(e)}")
+                    return True
             
             def prompt_issue_msgbox(permission, why):
                 logging.info(f"[macOS Permissions] {permission} access is required, prompting user to enable it.")
@@ -192,7 +211,7 @@ if __name__ == "__main__":
                 prompt_issue_msgbox("Accessibility", "control mouse and keyboard")
 
             # Screen Recording #
-            if CGPreflightScreenCaptureAccess(): # only check #
+            if has_screen_recording_access(): # only check #
                 logging.info("[macOS Permissions] Screen Recording access is enabled.")
             else:
                 # CGRequestScreenCaptureAccess()
