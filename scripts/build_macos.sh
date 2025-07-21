@@ -125,7 +125,12 @@ if [ ${#BUILT_APPS[@]} -eq 0 ]; then
   exit 1
 fi
 
-UNIVERSAL_APP="output/digmacro_macos_universal.app"
+UNIVERSAL_FILE_NAME="digmacro_macos_universal"
+if [ ${#USED_ARCHS[@]} -eq 1 ]; then
+  UNIVERSAL_FILE_NAME="digmacro_macos_${USED_ARCHS[0]}"
+fi
+UNIVERSAL_APP="output/$UNIVERSAL_FILE_NAME.app"
+
 rm -rf "$UNIVERSAL_APP"
 
 mkdir -p "$UNIVERSAL_APP/Contents/MacOS"
@@ -270,12 +275,12 @@ codesign --force --deep --sign - "$UNIVERSAL_APP"
 
 cd output
 
-ditto -c -k --sequesterRsrc --keepParent digmacro_macos_universal.app digmacro_macos_universal.zip
-rm -rf digmacro_macos_universal.app
+# ditto -c -k --sequesterRsrc --keepParent "$UNIVERSAL_FILE_NAME.app" "$UNIVERSAL_FILE_NAME.zip"
+# rm -rf "UNIVERSAL_FILE_NAME.app"
 
 cd ..
 
-echo "Built digmacro_macos_universal.zip successfully."
+echo "Built $UNIVERSAL_FILE_NAME.app successfully."
 
 for app in "${BUILT_APPS[@]}"; do
   rm -rf "$app"
