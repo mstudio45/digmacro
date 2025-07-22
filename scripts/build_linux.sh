@@ -1,5 +1,11 @@
 #!/bin/bash
 
+BUILD_VERSION="MATRIX.VERSION"
+if [[ "$BUILD_VERSION" == *"MATRIX."* ]]; then
+  BUILD_VERSION="2.0.3"
+  echo "Using default BUILD_VERSION: $BUILD_VERSION"
+fi
+
 echo "Creating environment directories..."
 if [ ! -d "env" ]; then
   mkdir env
@@ -51,7 +57,7 @@ python3 -m nuitka \
   --assume-yes-for-downloads \
   --company-name="mstudio45" \
   --product-name="DIG Macro" \
-  --file-version="2.0.2" \
+  --file-version="$BUILD_VERSION" \
   --file-description="DIG Macro is a tool that automatically plays the minigame in the Roblox game DIG." \
   --copyright="© mstudio45 2025 - https://github.com/mstudio45/digmacro" \
   --enable-plugin=pyside6,tk-inter \
