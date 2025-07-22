@@ -2,12 +2,13 @@ import os, platform, random, string, shutil, time
 
 __all__ = ["Variables", "StaticVariables"]
 current_os = platform.system()
+compiled = "__compiled__" in globals()
 
 # get compiled paths #
 resource_path_str = ""
 base_path_str = os.path.abspath(os.getcwd())
 
-if "__compiled__" in globals():
+if compiled:
     try:
         from __nuitka_binary_dir import __nuitka_binary_dir # type: ignore
         resource_path_str = __nuitka_binary_dir
@@ -25,7 +26,7 @@ def get_base_path    (*paths): return os.path.join(base_path_str,     *paths)
 
 # variables #
 class Variables:
-    is_compiled = "__compiled__" in globals()
+    is_compiled = compiled
     is_running = True
     is_paused = True
 
@@ -34,8 +35,8 @@ class Variables:
 
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    current_version = "2.0.2"
-    current_branch = "main"
+    current_version = "MATRIX.VERSION" if compiled else "2.0.3"
+    current_branch = "MATRIX.BRANCH" if compiled else "dev"
 
     # minigame information #
     dig_count = 0

@@ -2,6 +2,14 @@ name: Build Binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Build Branch'
+        required: false
+        default: 'main'
+      version:
+        description: 'Build Version'
+        required: true
 
 jobs:
   build:
@@ -31,6 +39,19 @@ jobs:
         with:
           python-version: '3.12.8'
           architecture: ${{ matrix.arch }}
+
+      - name: Set branch and version
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch || github.ref_name }}"
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src\\variables.py
+            sed -i "s/MATRIX.VERSION/${VERSION}/g" src\\variables.py
+          else
+            sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
+            sed -i "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
+          fi
+          echo "Branch set to '${BRANCH_NAME}' and version set to '${VERSION}'."
 
       - name: Build for Linux
         if: startsWith(matrix.os, 'ubuntu')

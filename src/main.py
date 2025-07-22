@@ -232,27 +232,30 @@ if __name__ == "__main__":
 
     ## check version ##
     try:
-        logging.info("Checking current version...")
+        if Variables.current_version == "MATRIX.VERSION" or Variables.current_branch == "MATRIX.BRANCH":
+            logging.info("Current version is not set, skipping version check.")
+        else:
+            logging.info("Checking current version...")
 
-        import requests, json
-        req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
-        versions = json.loads(req.text)
+            import requests, json
+            req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
+            versions = json.loads(req.text)
 
-        # check versions #
-        if Variables.current_branch not in versions: raise Exception(f"{Variables.current_branch} is not an valid branch.")
-        latest_branch_version = versions[Variables.current_branch]
-        is_outdated = is_version_outdated(Variables.current_version, latest_branch_version)
+            # check versions #
+            if Variables.current_branch not in versions: raise Exception(f"{Variables.current_branch} is not an valid branch.")
+            latest_branch_version = versions[Variables.current_branch]
+            is_outdated = is_version_outdated(Variables.current_version, latest_branch_version)
 
-        logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {latest_branch_version} > {Variables.current_version} = {is_outdated}")
-        if is_outdated:
-            res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
-            if res == "Yes":
-                try:
-                    if current_os == "Windows":
-                        webbrowser.open("https://github.com/mstudio45/digmacro")
-                    else:
-                        subprocess.run([Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"])
-                except Exception as e: logging.error(f"Failed to open link: {e}")
+            logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {latest_branch_version} > {Variables.current_version} = {is_outdated}")
+            if is_outdated:
+                res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
+                if res == "Yes":
+                    try:
+                        if current_os == "Windows":
+                            webbrowser.open("https://github.com/mstudio45/digmacro")
+                        else:
+                            subprocess.run([Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"])
+                    except Exception as e: logging.error(f"Failed to open link: {e}")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}")
 
