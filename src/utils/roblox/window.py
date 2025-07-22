@@ -2,11 +2,11 @@ import psutil, logging, subprocess
 import platform, traceback
 
 __all__ = ["is_roblox_focused", "focus_roblox", "kill_roblox", "is_roblox_running"]
-
-# make functions depending on the os #
 current_os = platform.system()
 
 if current_os == "Windows":
+    logging.info("Using 'Windows' for Roblox window handler...")
+
     import win32gui, win32con, pygetwindow # type: ignore
     
     def is_roblox_focused():
@@ -23,8 +23,8 @@ if current_os == "Windows":
             if not roblox_window: return
             roblox_window = roblox_window[0]
 
-            roblox_window.restore() # minimized #
             roblox_window.activate()
+            roblox_window.show()
 
             win32gui.ShowWindow(roblox_window._hWnd, win32con.SW_SHOW)
             win32gui.SetForegroundWindow(roblox_window._hWnd)
@@ -34,6 +34,8 @@ if current_os == "Windows":
     def is_roblox_running(): return "robloxplayerbeta.exe" in [p.name().lower() for p in psutil.process_iter()]
 
 elif current_os == "Linux": # xdotool
+    logging.info("Using 'Linux' for Roblox window handler...")
+
     def is_roblox_focused():
         try:
             root = subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE)
@@ -62,6 +64,8 @@ elif current_os == "Linux": # xdotool
     def is_roblox_running(): return "sober" in [p.name().lower() for p in psutil.process_iter()]
 
 elif current_os == "Darwin":
+    logging.info("Using 'Darwin' for Roblox window handler...")
+
     from AppKit import NSWorkspace # type: ignore
 
     def is_roblox_focused():

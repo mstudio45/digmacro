@@ -1,6 +1,10 @@
 import time, logging
 
-from utils.general.keyboard import press_key, press_multiple_keys
+from utils.input.keyboard import press_key, press_multiple_keys
+from utils.input.mouse import move_mouse, right_down, right_up
+
+from utils.images.screen import screen_region
+
 from config import Config
 from variables import Variables
 
@@ -8,9 +12,10 @@ __all__ = ["PathfingingHandler"]
 class PathfingingHandler:
     def __init__(self):
         self.current_index = 0
+        self.current_macro = Config.PATHFINDING_MACRO
 
     def get_next_key(self):
-        macro = Config.PathfindingMacros[Config.PATHFINDING_MACRO]
+        macro = Config.PathfindingMacros[self.current_macro]
         
         was_last_key = False
         if self.current_index > len(macro) - 1:
@@ -23,6 +28,7 @@ class PathfingingHandler:
         return next_key, duration, was_last_key
     
     def start_walking(self):
+        if Variables.is_paused:     logging.debug("Paused, skipping..."); return
         if not Variables.is_idle(): logging.debug("Not idle, skipping..."); return
 
         logging.info("Walking started...")
@@ -35,4 +41,3 @@ class PathfingingHandler:
         
         time.sleep(0.25)
         Variables.is_walking = False
-        return was_last_key

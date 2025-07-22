@@ -5,6 +5,8 @@ __all__ = ["alert", "confirm"]
 current_os = platform.system()
 
 if current_os == "Darwin":
+    logging.info("Using 'Darwin' message box handler...")
+
     import subprocess
 
     def run_osascript(script):
@@ -20,22 +22,19 @@ if current_os == "Darwin":
             logging.error(f"AppleScript error: {e.stderr}")
             return None
 
-    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
-        if not message:
-            return
-
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
+        if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
-        if Config.MSGBOX_ENABLED or bypass:
-            # Determine the type of alert
-            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-                icon = "stop"
-            elif log_level == logging.WARNING:
-                icon = "caution"
-            else:
-                icon = "note"
 
-            script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
-            run_osascript(script)
+        if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+            icon = "stop"
+        elif log_level == logging.WARNING:
+            icon = "caution"
+        else:
+            icon = "note"
+
+        script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
+        run_osascript(script)
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         btn_list = ", ".join(f'"{btn}"' for btn in buttons)
@@ -49,29 +48,36 @@ if current_os == "Darwin":
 
         return None
 else:
+    logging.info("Using 'General' message box handler...")
+
     import tkinter as tk
     from tkinter import ttk, messagebox
+    from utils.images.screen import logical_screen_region
 
-    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO, bypass=False):
+    def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
-
         logging.log(level=log_level, msg=message, stacklevel=2)
-        if Config.MSGBOX_ENABLED or bypass:
-            root = tk.Tk()
-            root.withdraw()
 
-            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-                messagebox.showerror(title=title + " - Message", message=message, parent=root)
-            elif log_level == logging.WARNING:
-                messagebox.showwarning(title=title + " - Message", message=message, parent=root)
-            else:
-                messagebox.showinfo(title=title + " - Message", message=message, parent=root)
-            
-            root.destroy()
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes("-topmost", True)
+
+        if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+            messagebox.showerror(title=title + " - Message", message=message, parent=root)
+        elif log_level == logging.WARNING:
+            messagebox.showwarning(title=title + " - Message", message=message, parent=root)
+        else:
+            messagebox.showinfo(title=title + " - Message", message=message, parent=root)
+        
+        root.destroy()
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         # create dialog #
         dialog = tk.Tk()
+
+        if current_os == "Linux": dialog.wait_visibility(dialog)
+        dialog.wm_attributes("-topmost", True)
+
         result = tk.StringVar()
 
         dialog.title(title)
@@ -107,10 +113,9 @@ else:
         dialog.update_idletasks()
         dialog_width = dialog.winfo_reqwidth()
         dialog_height = dialog.winfo_reqheight()
-        screen_width = dialog.winfo_screenwidth()
-        screen_height = dialog.winfo_screenheight()
-        x_pos = (screen_width // 2) - (dialog_width // 2)
-        y_pos = (screen_height // 2) - (dialog_height // 2)
+
+        x_pos = (logical_screen_region["width"] // 2) - (dialog_width // 2)
+        y_pos = (logical_screen_region["height"] // 2) - (dialog_height // 2)
         dialog.geometry(f"+{x_pos}+{y_pos}")
 
         # wait for result #

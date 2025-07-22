@@ -6,13 +6,17 @@ from PySide6.QtWidgets import (
     QScrollArea
 )
 from PySide6.QtCore import Signal
-import os, json, time, pynput
+import os, json, time, pynput, platform
 
 from config import Config, settings_table
 from variables import StaticVariables
 
 import utils.general.filehandler as FileHandler
 from utils.images.screen import scale_x, scale_y
+
+import interface.msgbox
+
+current_os = platform.system()
 
 class QMousePicker(QWidget):
     valueChanged = Signal(str)
@@ -81,6 +85,7 @@ class ConfigUI(QWidget):
         self.create_ui()
         self.load_current_settings()
         self.setup_change_handler()
+        self.config_loaded = True
     
     # closing #
     def closeEvent(self, event):
@@ -100,6 +105,18 @@ class ConfigUI(QWidget):
         event.accept()
 
     def start_macro(self):
+        if self.changes_made:
+            reply = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                "You have unsaved changes. Are you sure you want to exit without saving?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+
+            if reply == QMessageBox.No:
+                return
+            
         self.start_macro_now = True
         self.close()
 
@@ -125,7 +142,7 @@ class ConfigUI(QWidget):
 
                     self.avalaible_regions = json.loads(pos)
                     if self.avalaible_regions:
-                        region_group_layout.addWidget(QLabel("Region Format Example: 0x0 1920x1080 (monitor left and top position, display resolution)"))
+                        region_group_layout.addWidget(QLabel("Region Format Example: 'Windows 0x0 1920x1080' (os leftxtop widthxheight)"))
 
                         # list #
                         self.region_widget = QComboBox()
@@ -199,6 +216,7 @@ class ConfigUI(QWidget):
                     # special stuff #
                     if key == "PATHFINDING_MACRO":
                         items = Config.PathfindingMacros.keys()
+                        widget.currentTextChanged.connect(self.pathfinding_macro_change)
 
                     widget.addItems(items)
           
@@ -242,6 +260,12 @@ class ConfigUI(QWidget):
 
     # on change handler #
     def on_change_made(self): self.changes_made = True
+    def pathfinding_macro_change(self, text):
+        if hasattr(self, "config_loaded") == True and text == "risk_spin":
+            if current_os != "Windows":
+                interface.msgbox.alert("This pathfinding macro only works on Windows.")
+            else:
+                interface.msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
 
     def setup_change_handler(self):
         for section, options in Config.config.items():

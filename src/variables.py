@@ -1,35 +1,51 @@
-import os, random, string, shutil, time
+import os, platform, random, string, shutil, time
 
 __all__ = ["Variables", "StaticVariables"]
+current_os = platform.system()
+compiled = "__compiled__" in globals()
 
-# get onefile compiled path #
-if "__compiled__" in globals():
-    base_path = os.path.dirname(__file__)
+# get compiled paths #
+resource_path_str = ""
+base_path_str = os.path.abspath(os.getcwd())
+
+if compiled:
     try:
         from __nuitka_binary_dir import __nuitka_binary_dir # type: ignore
-        base_path = __nuitka_binary_dir
+        resource_path_str = __nuitka_binary_dir
     except ImportError: pass
-else:
-    base_path = os.path.dirname(os.path.abspath(__file__))
 
-def resource_path(relative_path):
-    return os.path.join(base_path, relative_path)
+# fix paths #
+if current_os == "Darwin" and ".app/Contents/MacOS" in __file__:
+    base_path_str = os.path.abspath(os.path.join(__file__[:__file__.find(".app/") + len(".app")], ".."))
+
+if resource_path_str.strip() == "": resource_path_str = os.path.dirname(os.path.abspath(__file__))
+
+# path funcs #
+def get_resource_path(*paths): return os.path.join(resource_path_str, *paths)
+def get_base_path    (*paths): return os.path.join(base_path_str,     *paths)
 
 # variables #
 class Variables:
-    is_compiled = "__compiled__" in globals()
+    is_compiled = compiled
     is_running = True
+    is_paused = True
 
-    session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     is_roblox_focused = True
     is_selecting_region = True
+
+    # macro settings #
+    session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    current_version = "MATRIX.VERSION" if compiled else "2.0.3"
+    current_branch = "MATRIX.BRANCH" if compiled else "dev"
 
     # minigame information #
     dig_count = 0
     click_count = 0
+    failed_minigame_attempts = 0
+    failed_rejoin_attempts = 0
     
     minigame_region = { "left": 0, "top": 0, "height": 100, "width": 100 }
-    last_minigame_interaction = None
+    last_minigame_detection = None
 
     # macro states #
     is_minigame_active = False
@@ -39,7 +55,7 @@ class Variables:
     is_idle = lambda: (Variables.is_rejoining == False and Variables.is_walking == False and Variables.is_selling == False and Variables.is_minigame_active == False) == True
 
     # cmds #
-    unix_macos_open_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
+    unix_open_app_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
     where_cmd = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
 
     # functions #
@@ -53,19 +69,16 @@ class Variables:
         return Variables.is_running == False
 
 class StaticVariables:
-    ui_filepath                 = resource_path(os.path.join("assets", "ui", "ui.html"))
-    guide_ui_filepath           = resource_path(os.path.join("assets", "ui", "guide.html"))
+    ui_filepath                 = get_resource_path("assets", "ui", "ui.html")
+    guide_ui_filepath           = get_resource_path("assets", "ui", "guide.html")
+    region_example_imgpath      = get_resource_path("assets", "select_example.png")
 
-    sell_anywhere_btn_imgpath   = resource_path(os.path.join("assets", "sell.png"))
-    topbar_btns_imgpath         = resource_path(os.path.join("assets", "topbar_btns.png"))
-    reconnect_btn_imgpath       = resource_path(os.path.join("assets", "reconnect.png"))
-    region_example_imgpath      = resource_path(os.path.join("assets", "select_example.png"))
-
-    region_filepath = os.path.join("storage", "region.json")
-    config_filepath = os.path.join("storage", "config.ini")
-    pathfinding_macros_filepath = os.path.join("storage", "pathfinding_macros.json")
+    storage_folder              = get_base_path("storage")
+    region_filepath             = os.path.join(storage_folder, "region.json")
+    config_filepath             = os.path.join(storage_folder, "config.ini")
+    pathfinding_macros_filepath = os.path.join(storage_folder, "pathfinding_macros.json")
     
-    logs_path = os.path.join("storage", "logs")
+    logs_path                   = os.path.join(storage_folder, "logs")
 
-    screenshots_path = os.path.join("storage", "screenshots")
+    screenshots_path            = os.path.join(storage_folder, "screenshots")
     prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)

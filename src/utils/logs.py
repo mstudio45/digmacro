@@ -4,6 +4,8 @@ from variables import Variables, StaticVariables
 from config import Config
 
 def setup_logger():
+    print("Loading logger...")
+    
     fmt = "[{asctime}] [{levelname}] [{module}.{funcName}:{lineno}]: {message}"
     datefmt = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(fmt=fmt, datefmt=datefmt, style="{")
@@ -21,16 +23,26 @@ def setup_logger():
             mode="a"
         )
         file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.NOTSET)
     
     # logger #
     logging.root.handlers.clear()
 
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.NOTSET)
 
     if file_handler: logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
     # loaded #
-    logging.debug("Logger loaded!")
+    logging.info("Logger loaded!")
+
+def disable_spammy_loggers():
+    logging.info("Disabling spammy loggers...")
+
+    # disable console spam #
+    all_loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for logger in all_loggers:
+        if logger.name.startswith("comtypes") or logger.name.startswith("watchdog.observers.inotify"):
+            logging.info(f"  - {logger.name} disabled.")
+            logger.setLevel(logging.ERROR)

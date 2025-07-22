@@ -1,4 +1,4 @@
-import platform
+import platform, logging
 from utils.images.screen import screen_region
 from variables import Variables
 
@@ -6,6 +6,8 @@ current_os = platform.system()
 __all__ = ["RegionSelector"]
 
 if current_os == "Darwin":
+    logging.info("Using 'Darwin' region selector handler...")
+
     import objc # type: ignore
     from Foundation import * # type: ignore
     from AppKit import * # type: ignore
@@ -123,6 +125,8 @@ if current_os == "Darwin":
         def get_selection(self):
             return selected_rect
 else:
+    logging.info("Using 'General' region selector handler...")
+
     import tkinter as tk
 
     class RegionSelector:
@@ -136,16 +140,12 @@ else:
             self.root.geometry(f"{screen_region["width"]}x{screen_region["height"]}+{screen_region["left"]}+{screen_region["top"]}")
             
             # add bg #
-            if current_os == "Linux":
-                self.root.wait_visibility(self.root)
-                self.root.wm_attributes("-alpha", 0.3) 
-                self.root.configure(bg="black")
-                self.root.wm_attributes("-topmost", True)
-            else:
-                self.root.overrideredirect(True)
-                self.root.attributes("-alpha", 0.3) 
-                self.root.configure(bg="black")
-                self.root.attributes("-topmost", True)
+            if current_os == "Linux": self.root.wait_visibility(self.root)
+            else: self.root.overrideredirect(True)
+            
+            self.root.wm_attributes("-alpha", 0.3) 
+            self.root.configure(bg="black")
+            self.root.wm_attributes("-topmost", True)
                 
             # make canvas #
             self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0, bg="black")

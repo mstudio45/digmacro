@@ -52,17 +52,20 @@ def get_folders(folderpath: str): # (path, is_empty)
     
     except OSError as e:
         logging.error(f"Failed to create folder '{folderpath}': {str(e)}")
-        return False
+        return []
     
     except Exception as e:
         logging.error(f"An unexpected error occurred while creating folder '{folderpath}': {str(e)}")
-        return False
+        return []
 
 def create_folder(folderpath: str):
     try:
-        os.makedirs(folderpath, exist_ok=True)
+        if not os.path.isdir(folderpath):
+            os.makedirs(folderpath)
+            logging.info(f"Folder '{folderpath}' created.")
+        else:
+            logging.info(f"Folder '{folderpath}' already exists, skipped...")
 
-        logging.info(f"Folder '{folderpath}' created or already exists.")
         return True
     
     except OSError as e:

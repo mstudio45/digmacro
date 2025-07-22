@@ -1,4 +1,4 @@
-# DIG macro
+# DIG Macro
 
 <p align="center">
     <img src="https://github.com/user-attachments/assets/a15c5e87-ab1e-44e6-be01-0fd095e00982" alt="Showcase video"> <br />
@@ -12,7 +12,7 @@ DIG Macro is a tool that automatically plays the minigame in the roblox game [DI
 
 ## How does this work?
 
-DIG Macro uses [python](https://www.python.org/) and computer vision to detect when to click inside the digging minigame. It uses pywebview which is a wrapper around a web browser to create a custom GUI.
+DIG Macro uses [Python](https://www.python.org/) and computer vision to detect when to click inside the digging minigame. It uses pywebview which is a wrapper around a web browser to create a custom GUI.
 
 ---
 
@@ -22,10 +22,11 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 - [TO-DO and Known Issues](/TO-DO.md)
 - [Supported Operating Systems](#-supported-operating-systems)
 - [Quick Start](#-quick-start)
-  - [Download and Run](#-1-download-and-run)
+  - [Download and Run](#-download-and-run)
     - [Running on macOS](#-macos-setup)
     - [Permissions on macOS](#-permissions-on-macos)
 - [How to Stop the Macro](#%EF%B8%8F-how-to-stop-the-macro)
+- [Global Hotkeys](#-global-hotkeys)
 - [Editing the Configuration](#%EF%B8%8F-editing-the-configuration)
   - [How to Open the Configuration](#-how-to-open-the-configuration)
 - [Pathfinding Macros (Movement Patterns)](#%EF%B8%8F-pathfinding-macros-movement-patterns)
@@ -51,22 +52,27 @@ DIG Macro uses [python](https://www.python.org/) and computer vision to detect w
 ## 💻 Supported Operating Systems
 
 > [!NOTE]
-> Both 32-bit and 64-bit systems are supported, but **64-bit is recommended for best performance**.  
-> Administrator or sudo permissions may be required for some features on Linux/macOS.
+> Only `64-bit` and `arm64` architectures are supported.
 
-| Operating System          | Support Status  | Supported Versions                                                            | Tested On                             | Notes                                |
-| ------------------------- | --------------- | ----------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
-| **Windows** (Recommended) | ✅ Full Support | Windows 10 and newer                                                          | Windows 10, Windows 11                | Best performance and compatibility   |
-| **Linux**                 | ✅ Full Support | Most modern distributions (Ubuntu/Debian, Fedora, Arch, OpenSUSE)             | Linux Mint 22.1 (Cinnamon, X11)       | Wayland not tested                   |
-| **macOS**                 | ✅ Full Support | macOS Sierra 10.12.6+, Apple Silicon + Intel CPUs                             | Apple M3 16 GB, Sequoia 15.5 (Retina) | Works better with external monitors  |
+| Operating System                 | Support Status    | Supported Versions                                                                         | Tested On                                   | Notes                                                                                                                                                    |
+| -------------------------------- | ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows**                      | ✅ Full Support   | Windows 10 and later                                                                       | Windows 10, Windows 11                      | Roblox UWP (Microsoft Store) is **not** supported                                                                                                        |
+| **Linux**                        | ✅ Full Support   | Most modern distributions (Ubuntu 13+/Debian, RHEL/Fedora, Arch, OpenSUSE)                 | Linux Mint 22.1 (Cinnamon X11)              | Wayland is **not** supported, Requires [Sober](https://sober.vinegarhq.org/)                                                                             |
+| **MacBook with Apple Silicon**   | ✅ Full Support   | macOS Big Sur 11.7+, 8GB RAM or more                                                       | MacBook M3                                  | Nothing here...                                                                                                                                          |
+| **MacBook with Intel CPU**       | ✅ Full Support   | macOS High Sierra 10.13+, 8GB RAM or more                                                  | MacBook Pro Intel i7                        | Due to Intel CPU performance on MacBooks, the macro **will only work with Roblox locked at 60 FPS and with the lowest graphics settings possible**       |
 
-_If you have improvements or patches for additional (or currently supported) operating system(s), feel free to submit a pull request._
+_If you have improvements or patches for additional (or currently supported) operating system(s), please consider submitting a pull request._
 
 ---
 
 ## 🚀 Quick Start
 
 ### 📥 Download and Run
+
+> [!WARNING]
+> Some antivirus software may flag the standalone (pre-built) version as a **false positive**. <br />
+> This is a common issue with **binary files (`.exe`/`.app`/`.bin`)** generated using Python compilers such as **Nuitka** or **PyInstaller/auto-py-to-exe**. These tools bundle Python code into a single binary file, which can sometimes trigger antivirus alerts despite the code being completely safe. <br /> <br />
+> **All of our code is open source and publicly available!**
 
 #### Standalone (pre-built) version
 
@@ -79,20 +85,32 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 #### Source version
 
+> [!NOTE]
+> **Python 3.12.8 and later** is required.
+
 1. **Download the latest version:**
-   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
+   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
 2. **Extract the ZIP File:**
-   - Right-click the downloaded file and choose "Extract Here" or "Extract All".
+   - **Windows/Linux:** Right-click the downloaded zip file and select `Extract Here` or `Extract All`.
+   - **macOS:** Double-click the downloaded zip file.
 3. **Open the Folder:**
-   - Go into the extracted `digmacro-[main/dev]` folder.
+   - **Windows:** Go into the extracted `digmacro-[main/dev]` folder.
+   - **Linux:** Right-click the extracted `digmacro-[main/dev]` folder and select `Open in Terminal`.
+   - **macOS:** Right-click the extracted `digmacro-[main/dev]` folder and select `New Terminal at Folder` (that option might be inside `Services` dropdown).
 4. **Run the macro:**
-   - **Windows:** Double-click `launch.bat` or run `launch.bat` in your terminal.
-   - **Linux/macOS:** Run `sh launch.sh` in your terminal.
+   - **Windows:** Double-click `launch.bat` or run `launch.bat` in Command Prompt opened in the extracted folder.
+   - **Linux/macOS:** Run `sh launch.sh` in the Terminal you opened.
 
 ---
 
 ###  **macOS Setup**
 
+#### Video Tutorial
+<a href="https://youtu.be/KHdoO1UF_n0" title="Video Tutorial" target="_blank">
+  <img src="https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/tutorial_video.png" alt="Video Tutorial" width="500">
+</a>
+
+#### Text Tutorial
 1. **Download & unzip** `digmacro_macos.zip`, then double-click `digmacro_macos.app` to launch.
 
 2. If you see a warning that the app is from an unidentified developer, you need to allow it in your security settings:
@@ -133,11 +151,18 @@ open digmacro_macos.app
 
 ## ⏹️ How to Stop the Macro
 
-> [!NOTE]
-> Keybind Shortcuts are not supported on macOS due to certain Python and OS restrictions.
+- **Close the Macro Window:** Just click the `close (X)` button or press `Ctrl+E`.
 
-- **Close the Macro Window:** Just click the `close (X)` button or `Exit` button.
-- **Keyboard Shortcuts:** Hold `Ctrl+E` or press `Ctrl+C` in the terminal window where the macro is running.
+---
+
+## ⌨ Global Hotkeys
+
+These keyboard shortcuts can be used at any time while the macro is running, regardless of which application is focused:
+
+- `Ctrl+E` - **Exit**
+  - The hotkey will immediately stops and closes the macro.
+- `Ctrl+P` - **Pause/Resume**
+  - This hotkey will pause/resume the macro. Useful if you need to do something without closing the macro.
 
 ---
 
@@ -207,6 +232,9 @@ The macro can move your character in different patterns (like a square, line, et
 
 ## 🔧 Troubleshooting
 
+- **Computer Vision is at the wrong place.**
+  - Go to the `storage` folder and delete `region.json` file. Then you will be prompted to re-select your minigame region again.
+
 - **Macro is missing clicks or not working well:**
   - The macro’s speed can be affected by several factors:
     1) Your CPU performance and Roblox FPS also impact how well the macro runs
@@ -215,7 +243,7 @@ The macro can move your character in different patterns (like a square, line, et
   - If you're having issues, try the following:
     1) Lower your in-game graphics and enable "Low Graphics" inside DIG settings
     2) Close background applications (ideally only have the macro and Roblox running)
-    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS)
+    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS, USE_PREDICTION, PLAYER_BAR_DETECTION)
     4) Change your screen resolution (for example 1080p to 720p)
 
 - **Running from source with macOS is not working well:**
