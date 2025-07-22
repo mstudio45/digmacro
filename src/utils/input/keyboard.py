@@ -371,10 +371,14 @@ else: # default to pynput key listener #
 # SETUP KEYBOARD FUNCTIONS #
 if current_os == "Darwin" and Config.KEYBOARD_INPUT_PACKAGE == "Quartz":
     logging.info("Using 'Quartz' keyboard handler...")
+    from Quartz import ( # type: ignore
+        CGEventPost, CGEventCreateKeyboardEvent, kCGHIDEventTap,
+        kCGEventKeyDown, kCGEventKeyUp, kCGKeyboardEventKeycode
+    )
 
     # press/releae #
     def key_event(key_code, key_down):
-        CGEventPost(kCGHIDEventTap, CGEventCreateKeyboardEvent(None, key_code, key_down)) # type: ignore
+        CGEventPost(kCGHIDEventTap, CGEventCreateKeyboardEvent(None, key_code, kCGEventKeyDown if key_down == True else kCGEventKeyUp)) # type: ignore
 
     def _press(quartz_key): 
         key, requires_shift = quartz_key
@@ -383,14 +387,14 @@ if current_os == "Darwin" and Config.KEYBOARD_INPUT_PACKAGE == "Quartz":
             key_event(0x38, True) # shift key #
             time.sleep(0.0001)
 
-        press_key(key, False) # press the key #
+        key_event(key, True) # press the key #
 
         if requires_shift:
             time.sleep(0.0001)
             key_event(0x38, False) # shift key #
 
     def _release(quartz_key):
-        return key_event(quartz_key, False)
+        return key_event(quartz_key[0], False)
 
 else: # default to pynput
     logging.info("Using 'pynput' keyboard handler...")
@@ -407,7 +411,7 @@ def press_key(raw_key, duration=0):
     # convert #
     key = key_converter.get_key(raw_key)
     if key is None:
-        logging.error(f"Cannot convert invalid key: {raw_key}")
+        logging.error(f"Cannot convert invalid key: '{raw_key}'")
         return False
 
     # try to press #
@@ -418,7 +422,7 @@ def press_key(raw_key, duration=0):
 
         return True
     except Exception as e:
-        logging.error(f"Failed to press key {raw_key}: {traceback.format_exc()}")
+        logging.error(f"Failed to press key '{raw_key}': {str(e)}")
         return False
 
 def press_multiple_keys(raw_keys, duration=0):
@@ -429,7 +433,7 @@ def press_multiple_keys(raw_keys, duration=0):
     for raw_key in raw_keys:
         key = key_converter.get_key(raw_key)
         if key is None:
-            logging.error(f"Cannot convert invalid key: {raw_key}")
+            logging.error(f"Cannot convert invalid key: '{raw_key}'")
             return False
         keys.append(key)
 
@@ -441,7 +445,7 @@ def press_multiple_keys(raw_keys, duration=0):
 
         return True
     except Exception as e:
-        logging.error(f"Failed to press keys {raw_keys}: {traceback.format_exc()}")
+        logging.error(f"Failed to press keys '{raw_keys}': {str(e)}")
         return False
     
 logging.info("============ KEYBOARD MODULE LOADED ============")
