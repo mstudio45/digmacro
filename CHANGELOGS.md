@@ -3,6 +3,8 @@
 [New Features]
 + Added Pausing
 + Added Auto Sell Mode (UI Navigation, Mouse Movement)
++ Added KEYBOARD_INPUT_PACKAGE configuration
++ Added 'risk_spin' pathfinding macro (only for Windows)
 
 [Changes]
 + Added more buttons to the UI (Pause, Configuration, Restart)
@@ -14,7 +16,9 @@
 + Global Hotkeys are now supported on macOS
 
 [Fixes]
++ Fixed Intel CPU macOS standalone
 + Fixed Auto Rejoin and Auto Start Minigame
++ Fixed issues with UI being resized incorrectly with different DPI (on Windows)
 ```
 
 # v2.0.2
