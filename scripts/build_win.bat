@@ -6,6 +6,8 @@ echo %BUILD_VERSION% | findstr "MATRIX." >nul
 if %errorlevel%==0 (
     set "BUILD_VERSION=2.0.3"
     echo Using default BUILD_VERSION: %BUILD_VERSION%
+) else (
+    echo Using provided BUILD_VERSION: %BUILD_VERSION%
 )
 
 echo Creating environment directories...

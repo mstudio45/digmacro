@@ -4,6 +4,8 @@ BUILD_VERSION="MATRIX.VERSION"
 if [[ "$BUILD_VERSION" == *"MATRIX."* ]]; then
   BUILD_VERSION="2.0.3"
   echo "Using default BUILD_VERSION: $BUILD_VERSION"
+else
+  echo "Using provided BUILD_VERSION: $BUILD_VERSION"
 fi
 
 if [ "$#" -eq 0 ]; then
