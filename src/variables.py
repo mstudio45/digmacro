@@ -36,7 +36,7 @@ class Variables:
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     current_version = "MATRIX.VERSION" if compiled else "2.0.3"
-    current_branch = "MATRIX.BRANCH" if compiled else "dev"
+    current_branch = "MATRIX.BRANCH" if compiled else "main"
 
     # minigame information #
     dig_count = 0
