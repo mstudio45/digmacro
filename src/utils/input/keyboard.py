@@ -385,12 +385,12 @@ if current_os == "Darwin" and Config.KEYBOARD_INPUT_PACKAGE == "Quartz":
 
         if requires_shift:
             key_event(0x38, True) # shift key #
-            time.sleep(0.0001)
+            time.sleep(0.01)
 
         key_event(key, True) # press the key #
 
         if requires_shift:
-            time.sleep(0.0001)
+            time.sleep(0.01)
             key_event(0x38, False) # shift key #
 
     def _release(quartz_key):
@@ -419,6 +419,7 @@ def press_key(raw_key, duration=0):
         _press(key)
         if duration > 0: time.sleep(duration)
         _release(key)
+        time.sleep(0.01)
 
         return True
     except Exception as e:
@@ -442,7 +443,8 @@ def press_multiple_keys(raw_keys, duration=0):
         for key in keys:            _press(key)
         if duration > 0: time.sleep(duration)
         for key in reversed(keys):  _release(key)
-
+        time.sleep(0.01)
+        
         return True
     except Exception as e:
         logging.error(f"Failed to press keys '{raw_keys}': {str(e)}")

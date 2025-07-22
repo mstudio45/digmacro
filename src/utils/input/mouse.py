@@ -74,16 +74,20 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
     logging.info("Using 'Quartz' mouse handler...")
     from Quartz import (  # type: ignore
         CGEventCreate, CGEventCreateMouseEvent, CGEventGetLocation,
-        CGPointMake, CGEventPost,
+        CGPointMake, CGEventPost, CGEventSourceCreate,
 
-        kCGHIDEventTap, kCGEventMouseMoved,
-        kCGEventLeftMouseDown, kCGEventRightMouseDown, kCGEventOtherMouseDown,
-        kCGEventLeftMouseUp,   kCGEventRightMouseUp,   kCGEventOtherMouseUp
+        kCGHIDEventTap, kCGEventMouseMoved, kCGEventSourceStateCombinedSessionState,
+        kCGEventLeftMouseDown, kCGEventRightMouseDown,
+        kCGEventLeftMouseUp,   kCGEventRightMouseUp,
+        kCGMouseButtonLeft,    kCGMouseButtonRight
     )
 
-    down_key = [kCGEventLeftMouseDown, kCGEventRightMouseDown, kCGEventOtherMouseDown]
-    up_key   = [kCGEventLeftMouseUp,   kCGEventRightMouseUp,   kCGEventOtherMouseUp]
-    [LEFT, RIGHT, OTHER] = [0, 1, 2]
+    down_key = [kCGEventLeftMouseDown, kCGEventRightMouseDown]
+    up_key   = [kCGEventLeftMouseUp,   kCGEventRightMouseUp  ]
+    mouse    = [kCGMouseButtonLeft,    kCGMouseButtonRight   ]
+    [LEFT, RIGHT] = [0, 1]
+
+    ## CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) ##
 
     # mouse pos #
     def get_mouse_pos():
@@ -92,30 +96,30 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
 
     # mouse move #
     def _move_quartz(x, y):
-        mouse_move = CGEventCreateMouseEvent(None, kCGEventMouseMoved, CGPointMake(x, y), 0)
+        mouse_move = CGEventCreateMouseEvent(None, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft)
         CGEventPost(kCGHIDEventTap, mouse_move)
 
     def move_mouse(x, y, steps=13, delay=0.001): 
         smooth_move_to(get_mouse_pos(), x, y, _move_quartz, steps, delay)
+        time.sleep(0.01)
 
     # left click #
-    def _press(x, y, button=down_key[LEFT]):
-        event = CGEventCreateMouseEvent(None, button, CGPointMake(x, y), 0)
+    def _press(x, y, button=LEFT):
+        event = CGEventCreateMouseEvent(None, down_key[button], CGPointMake(x, y), mouse[button])
         CGEventPost(kCGHIDEventTap, event)
+        time.sleep(0.01)
 
-    def _release(x, y, button=up_key[LEFT]):
-        event = CGEventCreateMouseEvent(None, button, CGPointMake(x, y), 0)
+    def _release(x, y, button=LEFT):
+        event = CGEventCreateMouseEvent(None, up_key[button], CGPointMake(x, y), mouse[button])
         CGEventPost(kCGHIDEventTap, event)
+        time.sleep(0.01)
 
     def left_click():
-        if not Variables.is_running: return
-        
         x, y = get_mouse_pos()
         _press(x, y)
         _release(x, y)
-    
+
     def left_click_lock(click_delay=0):
-        if not Variables.is_running: return
         if click_delay > 0: time.sleep(click_delay)
         
         x, y = get_mouse_pos()
@@ -126,16 +130,12 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
 
     # right click #
     def right_down():
-        if not Variables.is_running: return
-        
         x, y = get_mouse_pos()
-        _press(x, y, button=down_key[RIGHT])
+        _press(x, y, button=RIGHT)
 
     def right_up():
-        if not Variables.is_running: return
-
         x, y = get_mouse_pos()
-        _release(x, y, button=up_key[RIGHT])
+        _release(x, y, button=RIGHT)
 
 else: # defaults to pynput
     logging.info("Using 'pynput' mouse handler...")
@@ -158,7 +158,9 @@ else: # defaults to pynput
 
         # mouse move #
         def _move_pynput(x, y): _pynput_mouse_controller.position = (x, y)
-        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(get_mouse_pos(), x, y, _move_pynput, steps, delay)
+        def move_mouse(x, y, steps=13, delay=0.001): 
+            smooth_move_to(get_mouse_pos(), x, y, _move_pynput, steps, delay)
+            time.sleep(0.01)
 
     # left click #
     def left_click_lock(click_delay=0):
