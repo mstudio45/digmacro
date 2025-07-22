@@ -54,38 +54,46 @@ class MainHandler:
 
         logging.info(f"Region Image size: ({region_width}, {region_height}) -> {self.resized_image_size}")
 
+        # only reallocate if buffer is None or shape changed #
         if scale_factor > 1:
-            self._resize_buffer = np.empty(
-                (int(region_height * scale_y_1080p), int(region_width * scale_x_1080p), 4), 
-                dtype=np.uint8
-            )
-            self._gray_buffer = np.empty(
-                (int(region_height * scale_y_1080p), int(region_width * scale_x_1080p)), 
-                dtype=np.uint8
-            )
+            resize_shape = (int(region_height * scale_y_1080p), int(region_width * scale_x_1080p), 4)
+            gray_shape = (int(region_height * scale_y_1080p), int(region_width * scale_x_1080p))
+
+            if self._resize_buffer is None:
+                self._resize_buffer = np.empty(resize_shape, dtype=np.uint8)
+
+            elif self._resize_buffer.shape != resize_shape:
+                del self._resize_buffer
+                self._resize_buffer = np.empty(resize_shape, dtype=np.uint8)
+            
+            if self._gray_buffer is None:
+                self._gray_buffer = np.empty(gray_shape, dtype=np.uint8)
+            elif self._gray_buffer.shape != gray_shape:
+                del self._gray_buffer
+                self._gray_buffer = np.empty(gray_shape, dtype=np.uint8)
         else:
-            self._gray_buffer = np.empty((region_height, region_width), dtype=np.uint8)
+            gray_shape = (region_height, region_width)
+            
+            if self._gray_buffer is None:
+                self._gray_buffer = np.empty(gray_shape, dtype=np.uint8)
+                
+            elif self._gray_buffer.shape != gray_shape:
+                del self._gray_buffer
+                self._gray_buffer = np.empty(gray_shape, dtype=np.uint8)
 
         logging.info("Empty buffers created successfully.")
 
     def update_state(self, sct):
-        # cache variables class #
         vars = Variables
-
         if vars.is_selecting_region == False:
-            if vars.is_paused == True: return
-            if vars.is_roblox_focused == False or vars.is_rejoining == True: return
-            if vars.is_selling == True: return
+            if vars.is_paused == True or (vars.is_roblox_focused == False or vars.is_rejoining == True) or vars.is_selling == True:        
+                del vars; return
         
-        # change to local variables for a bit better perf #
-        region_left, region_top = self.region_left, self.region_top
-        player_bar, dirt_bar = self.PlayerBar, self.DirtBar
-
         # take screenshots #
         screenshot_np = take_screenshot(vars.minigame_region, sct)
         if screenshot_np is None:
             vars.is_minigame_active = False
-            return
+            del vars; return
         
         # resize image to 1080p and change to gray_scale #
         if scale_factor > 1:
@@ -96,49 +104,48 @@ class MainHandler:
         gray_screenshot = self._gray_buffer
         if gray_screenshot is None:
             vars.is_minigame_active = False
-            return
+            del vars; return
 
         # selection region #
         if vars.is_selecting_region == True:        
-            dirt_bar.find_dirt(gray_screenshot,  region_left, region_top)
-            player_bar.find_bar(gray_screenshot, region_left, dirt_bar.clickable_position)
+            self.DirtBar.find_dirt(gray_screenshot,  self.region_left, self.region_top)
+            self.PlayerBar.find_bar(gray_screenshot, self.region_left, self.DirtBar.clickable_position)
             self.create_debug_image(screenshot_np)
-            return
+            del vars; return
         
         # check the minigame #
-        left_diff = np.ptp(
-            np.mean(screenshot_np[:, :15, :3], axis=(0, 1))
-        )
+        left_diff = np.ptp( np.mean(screenshot_np[:, :15, :3], axis=(0, 1)) )
         if left_diff > 1:
-            right_diff = np.ptp(
-                np.mean(screenshot_np[:, -15:, :3], axis=(0, 1))
-            )
+            right_diff = np.ptp( np.mean(screenshot_np[:, -15:, :3], axis=(0, 1)) )
             if right_diff > 1:
                 vars.is_minigame_active = False
-                return
+                del vars; return
 
         # find all stuff #
-        dirt_bar.find_dirt(gray_screenshot,  region_left, region_top)
-        player_bar.find_bar(gray_screenshot, region_left, dirt_bar.clickable_position)
+        self.DirtBar.find_dirt(gray_screenshot,  self.region_left, self.region_top)
+        self.PlayerBar.find_bar(gray_screenshot, self.region_left, self.DirtBar.clickable_position)
         
-        if player_bar.current_position is None:
+        if self.PlayerBar.current_position is None:
             vars.is_minigame_active = False
-            return
+            del vars; return
         
         # enable the minigame #
         vars.is_minigame_active = True
         if self.computer_vision: self.create_debug_image(screenshot_np) # debug_img will be overwritten #
+
+        ############### cleanup ###############
+        del vars
         return True
 
     def handle_click(self):
         if not Variables.is_minigame_active: return
 
-        current_time_ms = int(time.time() * 1000)
         vars = Variables
+        current_time_ms = int(time.time() * 1000)
 
         vars.last_minigame_detection = current_time_ms
         if current_time_ms < self.click_cooldown or clicking_lock.locked():
-            return # early exit, we are on a cooldown #
+            del vars; return # early exit, we are on a cooldown #
 
         # positions #
         player_bar = self.PlayerBar
@@ -189,22 +196,18 @@ class MainHandler:
             vars.click_count += 1
 
             # screenshot handler #
-            pred_ss, ss_click = Config.PREDICTION_SCREENSHOTS, Config.SCREENSHOT_EVERY_CLICK
-            if not pred_ss and not ss_click: return
-            ss_path = StaticVariables.prediction_screenshots_path
-            
-            if ss_click:
-                threading.Thread(target=write_image, args=(
-                    os.path.join(ss_path, f"{vars.click_count}{"_found" if prediction_used else ""}.png"), 
-                    self.debug_img
-                ), daemon=True).start()
-            
-            if prediction_used and pred_ss:
-                def screenshot():
-                    time.sleep(click_delay)
-                    write_image(os.path.join(ss_path, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
+            def screenshot():
+                if Config.SCREENSHOT_EVERY_CLICK:
+                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}{"_found" if prediction_used else ""}.png"), self.debug_img)
 
-                threading.Thread(target=screenshot, daemon=True).start()
+                if prediction_used and Config.PREDICTION_SCREENSHOTS:
+                    time.sleep(click_delay)
+                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
+            
+            threading.Thread(target=screenshot, daemon=True).start()
+        
+        ############### cleanup ###############
+        del vars
 
     def create_debug_image(self, screenshot_np):
         screenshot_height = screenshot_np.shape[0]

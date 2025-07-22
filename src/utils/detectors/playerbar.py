@@ -43,7 +43,11 @@ class PlayerBar:
 
     # finder handler #
     def _ensure_buffers(self, shape):
-        if self._temp_mask is None or self._temp_mask.shape != shape:
+        if self._temp_mask is None:
+            self._temp_mask = np.empty(shape, dtype=np.uint8)
+        
+        elif self._temp_mask.shape != shape:
+            del self._temp_mask
             self._temp_mask = np.empty(shape, dtype=np.uint8)
 
     if Config.PLAYER_BAR_DETECTION == "Canny":
@@ -127,9 +131,8 @@ class PlayerBar:
 
             column_strength = np.sum(grad_mag, axis=0)
             best_x = np.argmax(column_strength)
-
             direction_score = grad_x[:, best_x].mean()
-
+            
             if direction_score > 0:
                 self.update_values(region_left + best_x - self.margin_offset, clickable_position)
             else:

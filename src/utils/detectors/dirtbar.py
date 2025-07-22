@@ -17,12 +17,14 @@ class DirtBar:
 
         # buffers #
         self._mask_buffer = None
-        self._temp_buffer = None
         
     def _ensure_buffers(self, shape):
-        if self._mask_buffer is None or self._mask_buffer.shape != shape:
+        if self._mask_buffer is None:
             self._mask_buffer = np.empty(shape, dtype=np.uint8)
-            self._temp_buffer = np.empty(shape, dtype=np.uint8)
+
+        elif self._mask_buffer.shape != shape:
+            del self._mask_buffer
+            self._mask_buffer = np.empty(shape, dtype=np.uint8)
 
     def find_dirt(self, screenshot, region_left, region_top):
         self._ensure_buffers(screenshot.shape)
