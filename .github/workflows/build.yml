@@ -47,6 +47,9 @@ jobs:
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src\\variables.py
             sed -i "s/MATRIX.VERSION/${VERSION}/g" src\\variables.py
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            sed -i '' "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
+            sed -i '' "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
           else
             sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
             sed -i "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
