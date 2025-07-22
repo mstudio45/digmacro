@@ -40,14 +40,20 @@ jobs:
           python-version: '3.12.8'
           architecture: ${{ matrix.arch }}
 
-      - name: Set branch and version
+      - name: Set branch and version (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $branch = "${{ github.event.inputs.branch || github.ref_name }}"
+          $version = "${{ github.event.inputs.version }}"
+          (Get-Content src\variables.py) -replace 'MATRIX.BRANCH', $branch -replace 'MATRIX.VERSION', $version | Set-Content src\variables.py
+          Write-Host "Branch set to '$branch' and version set to '$version'."
+
+      - name: Set branch and version (Linux/macOS)
+        if: (!startsWith(matrix.os, 'windows'))
         run: |
           BRANCH_NAME="${{ github.event.inputs.branch || github.ref_name }}"
           VERSION="${{ github.event.inputs.version }}"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src\\variables.py
-            sed -i "s/MATRIX.VERSION/${VERSION}/g" src\\variables.py
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
             sed -i '' "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
             sed -i '' "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
           else
