@@ -6,6 +6,7 @@
 
 [Changes]
 + Added more buttons to the UI (Pause, Configuration, Restart)
++ Changed "Gradient" method to "ZeroLike" and replaced "Gradient" with a new method
 + Removed "Sobel" method since it was slow and unreliable
 
 [Improvements]
