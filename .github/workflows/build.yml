@@ -40,32 +40,53 @@ jobs:
           python-version: '3.12.8'
           architecture: ${{ matrix.arch }}
 
-      - name: Set branch and version
+      - name: Set branch and version (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $branch = "${{ github.event.inputs.branch || github.ref_name }}"
+          $version = "${{ github.event.inputs.version }}"
+
+          (Get-Content src\variables.py) -replace 'MATRIX.BRANCH', $branch -replace 'MATRIX.VERSION', $version | Set-Content src\variables.py
+          Write-Host "Branch set to '$branch' and version set to '$version'."
+
+      - name: Set branch and version (Linux/macOS)
+        if: (!startsWith(matrix.os, 'windows'))
         run: |
           BRANCH_NAME="${{ github.event.inputs.branch || github.ref_name }}"
           VERSION="${{ github.event.inputs.version }}"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src\\variables.py
-            sed -i "s/MATRIX.VERSION/${VERSION}/g" src\\variables.py
+
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            sed -i '' "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
+            sed -i '' "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
           else
             sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
             sed -i "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
           fi
+
           echo "Branch set to '${BRANCH_NAME}' and version set to '${VERSION}'."
 
       - name: Build for Linux
         if: startsWith(matrix.os, 'ubuntu')
         run: |
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i "s/MATRIX.VERSION/${VERSION}/g" scripts/build_linux.sh
+
           sh scripts/build_linux.sh ${{ matrix.arch }}
 
       - name: Build for Windows
         if: startsWith(matrix.os, 'windows')
         run: |
+          $version = "${{ github.event.inputs.version }}"
+          (Get-Content scripts\build_win.bat) -replace 'MATRIX.VERSION', $version | Set-Content scripts\build_win.bat
+
           scripts\build_win.bat ${{ matrix.arch }}
 
       - name: Build for macOS
         if: startsWith(matrix.os, 'macos')
         run: |
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i '' "s/MATRIX.VERSION/${VERSION}/g" scripts/build_macos.sh
+
           sh scripts/build_macos.sh ${{ matrix.arch }}
 
       - name: Upload Artifacts
