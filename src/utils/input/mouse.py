@@ -99,7 +99,9 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
         mouse_move = CGEventCreateMouseEvent(None, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft)
         CGEventPost(kCGHIDEventTap, mouse_move)
 
-    def move_mouse(x, y, steps=13, delay=0.001): 
+    def move_mouse(x, y, steps=13, delay=0.001):
+        if not Variables.is_running: return
+
         smooth_move_to(get_mouse_pos(), x, y, _move_quartz, steps, delay)
         time.sleep(0.01)
 
@@ -115,11 +117,14 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
         time.sleep(0.01)
 
     def left_click():
+        if not Variables.is_running: return
+
         x, y = get_mouse_pos()
         _press(x, y)
         _release(x, y)
 
     def left_click_lock(click_delay=0):
+        if not Variables.is_running: return
         if click_delay > 0: time.sleep(click_delay)
         
         x, y = get_mouse_pos()
@@ -130,10 +135,14 @@ elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
 
     # right click #
     def right_down():
+        if not Variables.is_running: return
+
         x, y = get_mouse_pos()
         _press(x, y, button=RIGHT)
 
     def right_up():
+        if not Variables.is_running: return
+
         x, y = get_mouse_pos()
         _release(x, y, button=RIGHT)
 
@@ -151,19 +160,23 @@ else: # defaults to pynput
 
         # mouse move #
         def _move_autoit(x, y): autoit.mouse_move(x, y, speed=0)
-        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(get_mouse_pos(), x, y, _move_autoit, steps, delay)
+        def move_mouse(x, y, steps=13, delay=0.001): 
+            if not Variables.is_running: return
+            smooth_move_to(get_mouse_pos(), x, y, _move_autoit, steps, delay)
     else:
         # mouse pos #
         def get_mouse_pos(): return _pynput_mouse_controller.position
 
         # mouse move #
         def _move_pynput(x, y): _pynput_mouse_controller.position = (x, y)
-        def move_mouse(x, y, steps=13, delay=0.001): 
+        def move_mouse(x, y, steps=13, delay=0.001):
+            if not Variables.is_running: return
             smooth_move_to(get_mouse_pos(), x, y, _move_pynput, steps, delay)
             time.sleep(0.01)
 
     # left click #
     def left_click_lock(click_delay=0):
+        if not Variables.is_running: return
         if click_delay > 0: time.sleep(click_delay)
 
         _pynput_mouse_controller.press(full_left_click)
