@@ -69,7 +69,7 @@ for arch in "${ARCHS[@]}"; do
   $CMD_PREFIX pip install --upgrade --no-cache-dir pip 
   $CMD_PREFIX pip install --upgrade --no-cache-dir setuptools wheel
   $CMD_PREFIX pip install --upgrade --no-cache-dir nuitka
-  $CMD_PREFIX python3 src/main.py --only-install --force-reinstall --force-$arch
+  $CMD_PREFIX python3 src/main.py --only-install --force-reinstall "--force-$arch"
 
   cd src
 
@@ -96,18 +96,18 @@ for arch in "${ARCHS[@]}"; do
     --macos-signed-app-name="com.mstudio45.digmacro" \
     --macos-app-name="DIG Macro" \
     --macos-app-version="$BUILD_VERSION" \
-    --macos-target-arch=$arch \
+    --macos-target-arch="$arch" \
     main.py
 
   cd dist
-  cd macos_$arch
+  cd "macos_$arch"
 
   if [ ! -d "digmacro_macos_$arch.app" ]; then
     if [ ! -d "main.app" ]; then
       echo "Error: digmacro_macos_$arch.app or main.app not found in dist/macos"
       exit 1
     else
-      mv main.app digmacro_macos_$arch.app
+      mv main.app "digmacro_macos_$arch.app"
     fi
   fi
 
