@@ -31,7 +31,7 @@ settings_table = {
     # SYSTEM OPTIONS #
     "TARGET_FPS": {
         "widget": "QSpinBox",
-        "tooltip": "Target Frames Per Second for the macro.",
+        "tooltip": "Target Frames Per Second for the macro. (only works without FINDER_MULTITHREAD enabled)",
         "min": 1,
         "max": 1000
     },
@@ -46,6 +46,10 @@ settings_table = {
     "LOGGING_ENABLED": {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable log files."
+    },
+    "FINDER_MULTITHREAD": {
+        "widget": "QCheckBox",
+        "tooltip": "Enable or disable multiple threads for finder (main detection handler).",
     },
 
     # DISCORD WEBHOOK OPTIONS #
@@ -306,9 +310,10 @@ class ConfigManager:
     def _set_default_config(self):
         self.default_config = {
             "SYSTEM": {
-                "TARGET_FPS": 120,
+                "TARGET_FPS": 60 if current_os == "Darwin" or current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
-                "LOGGING_ENABLED": True
+                "LOGGING_ENABLED": True,
+                "FINDER_MULTITHREAD": True
             },
 
             # "DISCORD": {
@@ -332,7 +337,7 @@ class ConfigManager:
                 "USE_SAVED_POSITION": True,
 
                 "AUTO_START_MINIGAME": False,
-                "MIN_CLICK_INTERVAL": 50,
+                "MIN_CLICK_INTERVAL": 75,
 
                 "PLAYER_BAR_DETECTION": "ZerosLike" if current_os == "Windows" or current_arch == "x86_64" else "Gradient",
                 "PLAYER_BAR_WIDTH": 5,

@@ -142,6 +142,7 @@ class WebUI(UIBase):
                 time.sleep(0.01)
         else:
             if Config.SHOW_DEBUG_MASKS: self.window.evaluate_js("changeImageSize(10)")
+            if Config.FINDER_MULTITHREAD == True: self.window.evaluate_js("ignoreFps()")
 
             frame_time = 1 / Config.DEBUG_IMAGE_FPS
             while not self._stop_event.is_set():

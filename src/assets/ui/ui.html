@@ -100,10 +100,18 @@
         let img = document.querySelector("#debugimg");
         let debugdiv = document.querySelector("#debugdiv")
         let debugtitle = document.querySelector("#debugtitle")
+        let ignoreFpsVar = false;
 
         function updateFps(fps) { // only ran when debugdiv is removed //
             if (debugtitle == undefined) debugtitle = document.querySelector("#debugtitle")
             debugtitle.textContent = "FPS: " + fps
+        }
+
+        function ignoreFps() {
+            ignoreFpsVar = true;
+
+            if (debugtitle == undefined) debugtitle = document.querySelector("#debugtitle")
+            debugtitle.textContent = "Computer Vision"
         }
 
         function updateImage(src, fps) {
@@ -111,7 +119,7 @@
             if (debugtitle == undefined) debugtitle = document.querySelector("#debugtitle")
 
             img.src = src;
-            debugtitle.textContent = "Computer Vision (FPS: " + fps + ")"
+            if (ignoreFpsVar == false) debugtitle.textContent = "Computer Vision (FPS: " + fps + ")"
         }
 
         function clearImage() {
@@ -119,7 +127,7 @@
             if (debugtitle == undefined) debugtitle = document.querySelector("#debugtitle")
 
             img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-            debugtitle.textContent = "Computer Vision (FPS: 0.00)"
+            debugtitle.textContent = "Computer Vision"
         }
 
         function changeImageSize(size) {
