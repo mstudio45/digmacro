@@ -79,73 +79,156 @@ class KeyConverter:
             '/': 0xBF,
         }
 
+        # https://github.com/kenorb/kenorb/blob/master/scripts/python/Quartz/keyboard.py #
+        self.quartz_shift_required_map = { # key that we want = key that we need to press with shift #
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            '{': '[',
+            '}': ']',
+            '|': '\\',
+            ':': ';',
+            '"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/'
+        }
+
         self.quartz_keycode_map = {
-            # functions #
-            'f1': 122, 'f2': 120, 'f3': 99, 'f4': 118, 'f5': 96, 'f6': 97,
-            'f7': 98, 'f8': 100, 'f9': 101, 'f10': 109, 'f11': 103, 'f12': 111,
-            'f13': 105, 'f14': 107, 'f15': 113, 'f16': 106, 'f17': 64, 'f18': 79,
-            'f19': 80, 'f20': 90,
+            'a'              : 0x00,
+            's'              : 0x01,
+            'd'              : 0x02,
+            'f'              : 0x03,
+            'h'              : 0x04,
+            'g'              : 0x05,
+            'z'              : 0x06,
+            'x'              : 0x07,
+            'c'              : 0x08,
+            'v'              : 0x09,
+            'b'              : 0x0B,
+            'q'              : 0x0C,
+            'w'              : 0x0D,
+            'e'              : 0x0E,
+            'r'              : 0x0F,
+            'y'              : 0x10,
+            't'              : 0x11,
+            '1'              : 0x12,
+            '2'              : 0x13,
+            '3'              : 0x14,
+            '4'              : 0x15,
+            '6'              : 0x16,
+            '5'              : 0x17,
+            '='              : 0x18,
+            '9'              : 0x19,
+            '7'              : 0x1A,
+            '-'              : 0x1B,
+            '8'              : 0x1C,
+            '0'              : 0x1D,
+            ']'              : 0x1E,
+            'o'              : 0x1F,
+            'u'              : 0x20,
+            '['              : 0x21,
+            'i'              : 0x22,
+            'p'              : 0x23,
+            'l'              : 0x25,
+            'j'              : 0x26,
+            '\''             : 0x27,
+            'k'              : 0x28,
+            ';'              : 0x29,
+            '\\'             : 0x2A,
+            ','              : 0x2B,
+            '/'              : 0x2C,
+            'n'              : 0x2D,
+            'm'              : 0x2E,
+            '.'              : 0x2F,
+            '`'              : 0x32,
+            'k.'             : 0x41,
+            'k*'             : 0x43,
+            'k+'             : 0x45,
+            'kclear'         : 0x47,
+            'k/'             : 0x4B,
+            'k\n'            : 0x4C,
+            'k-'             : 0x4E,
+            'k='             : 0x51,
+            'k0'             : 0x52,
+            'k1'             : 0x53,
+            'k2'             : 0x54,
+            'k3'             : 0x55,
+            'k4'             : 0x56,
+            'k5'             : 0x57,
+            'k6'             : 0x58,
+            'k7'             : 0x59,
+            'k8'             : 0x5B,
+            'k9'             : 0x5C,
 
-            # special keys #
-            'esc': 53,
-            'backspace': 51,
-            'tab': 48,
-            'enter': 36,
-            'space': 49,
-            'delete': 117,
-            'home': 115,
-            'end': 119,
-            'page_up': 116,
-            'page_down': 121,
-            'caps_lock': 272,
-
-            # arrows #
-            'left': 123,
-            'right': 124,
-            'up': 126,
-            'down': 125,
-
-            # modifiers #
-            'shift': 257,
-            'shift_l': 257,
-            'shift_r': 258,
-
-            'ctrl': 256,
-            'ctrl_l': 256,
-            'ctrl_r': 269,
-
-            'alt': 261,
-            'alt_l': 261,
-            'alt_r': 262,
-
-            'cmd': 259,
-            'cmd_l': 259,
-            'cmd_r': 260,
-
-            'fn': 279,
-
-            # numbers #
-            '0': 29, '1': 18, '2': 19, '3': 20, '4': 21,
-            '5': 23, '6': 22, '7': 26, '8': 28, '9': 25,
-
-            # letters #
-            'a': 0, 'b': 11, 'c': 8, 'd': 2, 'e': 14, 'f': 3, 'g': 5,
-            'h': 4, 'i': 34, 'j': 38, 'k': 40, 'l': 37, 'm': 46, 'n': 45,
-            'o': 31, 'p': 35, 'q': 12, 'r': 15, 's': 1, 't': 17, 'u': 32,
-            'v': 9, 'w': 13, 'x': 7, 'y': 16, 'z': 6,
-
-            # symbols #
-            '`': 50,
-            '-': 27,
-            '=': 24,
-            '[': 33,
-            ']': 30,
-            '\\': 42,
-            ';': 41,
-            "'": 39,
-            ',': 43,
-            '.': 47,
-            '/': 44,
+            # keycodes for keys that are independent of keyboard layout
+            '\n'             : 0x24,
+            '\t'             : 0x30,
+            ' '              : 0x31,
+            'del'            : 0x33,
+            'delete'         : 0x33,
+            'esc'            : 0x35,
+            'escape'         : 0x35,
+            'cmd'            : 0x37,
+            'command'        : 0x37,
+            'shift'          : 0x38,
+            'caps lock'      : 0x39,
+            'option'         : 0x3A,
+            'ctrl'           : 0x3B,
+            'control'        : 0x3B,
+            'right shift'    : 0x3C,
+            'rshift'         : 0x3C,
+            'right option'   : 0x3D,
+            'roption'        : 0x3D,
+            'right control'  : 0x3E,
+            'rcontrol'       : 0x3E,
+            'fun'            : 0x3F,
+            'function'       : 0x3F,
+            'f17'            : 0x40,
+            'volume up'      : 0x48,
+            'volume down'    : 0x49,
+            'mute'           : 0x4A,
+            'f18'            : 0x4F,
+            'f19'            : 0x50,
+            'f20'            : 0x5A,
+            'f5'             : 0x60,
+            'f6'             : 0x61,
+            'f7'             : 0x62,
+            'f3'             : 0x63,
+            'f8'             : 0x64,
+            'f9'             : 0x65,
+            'f11'            : 0x67,
+            'f13'            : 0x69,
+            'f16'            : 0x6A,
+            'f14'            : 0x6B,
+            'f10'            : 0x6D,
+            'f12'            : 0x6F,
+            'f15'            : 0x71,
+            'help'           : 0x72,
+            'home'           : 0x73,
+            'pgup'           : 0x74,
+            'page up'        : 0x74,
+            'forward delete' : 0x75,
+            'f4'             : 0x76,
+            'end'            : 0x77,
+            'f2'             : 0x78,
+            'page down'      : 0x79,
+            'pgdn'           : 0x79,
+            'f1'             : 0x7A,
+            'left'           : 0x7B,
+            'right'          : 0x7C,
+            'down'           : 0x7D,
+            'up'             : 0x7E
         }
 
     # funcs #
@@ -176,10 +259,26 @@ class KeyConverter:
             return None
 
     def _get_quartz_key(self, normalized_key):
-        quartz_key = self.quartz_keycode_map.get(normalized_key)
-        if quartz_key is None: logging.warning(f"Invalid Quartz key: {normalized_key}")
+        requires_shift = False
+        quartz_key = None
 
-        return quartz_key
+        # convert to shift key #
+        if normalized_key.isalpha() and not normalized_key.islower():
+            requires_shift = True
+            normalized_key = normalized_key.lower()
+        
+        if normalized_key in self.quartz_shift_required_map:
+            requires_shift = True
+            normalized_key = self.quartz_shift_required_map[normalized_key]
+        
+        # get key from map #
+        if normalized_key in self.quartz_keycode_map:
+            quartz_key = self.quartz_keycode_map[normalized_key]
+        else:
+            quartz_key = ord(normalized_key)
+        
+        if quartz_key is None: logging.warning(f"Invalid Quartz key: {normalized_key}")
+        return quartz_key, requires_shift
     
     # main function #
     def get_key(self, key_str):
@@ -220,7 +319,9 @@ if current_os == "Darwin":
         
         kCGSessionEventTap, kCGHeadInsertEventTap, kCFRunLoopCommonModes,
         kCGEventKeyDown, kCGEventTapOptionDefault, kCGKeyboardEventKeycode,
-        kCGEventTapDisabledByTimeout, kCGEventTapDisabledByUserInput
+        kCGEventTapDisabledByTimeout, kCGEventTapDisabledByUserInput,
+
+        kCGHIDEventTap, CGEventCreateKeyboardEvent, CGEventPost
     )
 
     MODIFIER_FLAGS = {
@@ -337,11 +438,23 @@ if current_os == "Darwin" and Config.KEYBOARD_INPUT_PACKAGE == "Quartz":
 
     # press/releae #
     def key_event(key_code, key_down):
-        event = Quartz.CGEventCreateKeyboardEvent(None, key_code, key_down) # type: ignore
-        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event) # type: ignore
+        CGEventPost(kCGHIDEventTap, CGEventCreateKeyboardEvent(None, key_code, key_down)) # type: ignore
 
-    def _press(key):   return key_event(key, True)
-    def _release(key): return key_event(key, False)
+    def _press(quartz_key): 
+        key, requires_shift = quartz_key
+
+        if requires_shift:
+            key_event(0x38, True) # shift key #
+            time.sleep(0.0001)
+
+        press_key(key, False) # press the key #
+
+        if requires_shift:
+            time.sleep(0.0001)
+            key_event(0x38, False) # shift key #
+
+    def _release(quartz_key):
+        return key_event(quartz_key, False)
 
 else: # default to pynput
     logging.info("Using 'pynput' keyboard handler...")

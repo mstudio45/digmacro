@@ -27,13 +27,13 @@ class SellUI:
         # sell items #
         if self.mode == "UI Navigation":
             self.toggle_shop()
-            time.sleep(0.1)
+            time.sleep(0.25)
 
-            Keyboard.press_key("\\"); time.sleep(0.15)
-            Keyboard.press_key("down"); time.sleep(0.15)
-            Keyboard.press_key("up"); time.sleep(0.15)
-            Keyboard.press_key("enter"); time.sleep(0.15)
-            Keyboard.press_key("\\"); time.sleep(0.15)
+            Keyboard.press_key("\\"); time.sleep(0.25)
+            Keyboard.press_key("down"); time.sleep(0.25)
+            Keyboard.press_key("up"); time.sleep(0.25)
+            Keyboard.press_key("enter"); time.sleep(0.25)
+            Keyboard.press_key("\\"); time.sleep(0.35)
 
             self.toggle_shop()
             time.sleep(0.25)

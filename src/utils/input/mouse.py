@@ -31,7 +31,8 @@ def smooth_move_to(start_pos, dest_x, dest_y, cursor_func, steps=13, delay=0.001
         cursor_func(new_x, new_y)
         time.sleep(delay)
 
-if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api": # (TO-DO: linux evdev)
+# MOUSE HANDLER #
+if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api":
     logging.info("Using 'win32api' mouse handler...")
     import win32con, ctypes, autoit # type: ignore
 
@@ -39,6 +40,13 @@ if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api": # (TO-D
     user32 = ctypes.windll.user32
     full_left_click = (win32con.MOUSEEVENTF_LEFTDOWN) + (win32con.MOUSEEVENTF_LEFTDOWN << 1)
     
+    # mouse pos #
+    def get_mouse_pos(): return autoit.mouse_get_pos()
+
+    # mouse move #
+    def _move_autoit(x, y): autoit.mouse_move(x, y, speed=0)
+    def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(get_mouse_pos(), x, y, _move_autoit, steps, delay)
+
     # left click #
     def left_click_lock(click_delay = 0):
         if not Variables.is_running: return
@@ -59,80 +67,98 @@ if current_os == "Windows" and Config.MOUSE_INPUT_PACKAGE == "win32api": # (TO-D
     def right_up():
         if not Variables.is_running: return
         user32.mouse_event(win32con.MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
-
-    # mouse move #
-    def _move_autoit(x, y): autoit.mouse_move(x, y, speed=0)
-    def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(autoit.mouse_get_pos(), x, y, _move_autoit, steps, delay)
-
-    # mouse pos #
-    def get_mouse_pos(): return autoit.mouse_get_pos()
     
 elif current_os == "Darwin" and Config.MOUSE_INPUT_PACKAGE == "Quartz":
+    # https://github.com/kenorb/kenorb/blob/master/scripts/python/Quartz/mouse.py #
+
     logging.info("Using 'Quartz' mouse handler...")
-    from Quartz import * # type: ignore
-    from AppKit import NSEvent # type: ignore
+    from Quartz import (  # type: ignore
+        CGEventCreate, CGEventCreateMouseEvent, CGEventGetLocation,
+        CGPointMake, CGEventPost,
+
+        kCGHIDEventTap, kCGEventMouseMoved,
+        kCGEventLeftMouseDown, kCGEventRightMouseDown, kCGEventOtherMouseDown,
+        kCGEventLeftMouseUp,   kCGEventRightMouseUp,   kCGEventOtherMouseUp
+    )
+
+    down_key = [kCGEventLeftMouseDown, kCGEventRightMouseDown, kCGEventOtherMouseDown]
+    up_key   = [kCGEventLeftMouseUp,   kCGEventRightMouseUp,   kCGEventOtherMouseUp]
+    [LEFT, RIGHT, OTHER] = [0, 1, 2]
+
+    # mouse pos #
+    def get_mouse_pos():
+        event = CGEventGetLocation(CGEventCreate(None))
+        return int(event.x), int(event.y)
+
+    # mouse move #
+    def _move_quartz(x, y):
+        mouse_move = CGEventCreateMouseEvent(None, kCGEventMouseMoved, CGPointMake(x, y), 0)
+        CGEventPost(kCGHIDEventTap, mouse_move)
+
+    def move_mouse(x, y, steps=13, delay=0.001): 
+        smooth_move_to(get_mouse_pos(), x, y, _move_quartz, steps, delay)
 
     # left click #
+    def _press(x, y, button=down_key[LEFT]):
+        event = CGEventCreateMouseEvent(None, button, CGPointMake(x, y), 0)
+        CGEventPost(kCGHIDEventTap, event)
+
+    def _release(x, y, button=up_key[LEFT]):
+        event = CGEventCreateMouseEvent(None, button, CGPointMake(x, y), 0)
+        CGEventPost(kCGHIDEventTap, event)
+
     def left_click():
         if not Variables.is_running: return
         
-        event_source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) # type: ignore
-        current_event = CGEventCreate(None) # type: ignore
-        mouse_pos = CGEventGetLocation(current_event) if current_event else CGPointMake(100, 100) # type: ignore
-        
-        mouse_down = CGEventCreateMouseEvent(event_source, kCGEventLeftMouseDown, mouse_pos, kCGMouseButtonLeft) # type: ignore
-        mouse_up = CGEventCreateMouseEvent(event_source, kCGEventLeftMouseUp, mouse_pos, kCGMouseButtonLeft) # type: ignore
-        
-        CGEventPost(kCGHIDEventTap, mouse_down) # type: ignore
-        CGEventPost(kCGHIDEventTap, mouse_up) # type: ignore
+        x, y = get_mouse_pos()
+        _press(x, y)
+        _release(x, y)
     
     def left_click_lock(click_delay=0):
         if not Variables.is_running: return
         if click_delay > 0: time.sleep(click_delay)
         
-        left_click()
+        x, y = get_mouse_pos()
+        _press(x, y)
+        _release(x, y)
+
         clicking_lock.release()
 
     # right click #
     def right_down():
         if not Variables.is_running: return
         
-        event_source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) # type: ignore
-        current_event = CGEventCreate(None) # type: ignore
-        mouse_pos = CGEventGetLocation(current_event) if current_event else CGPointMake(100, 100) # type: ignore
-        
-        mouse_down = CGEventCreateMouseEvent(event_source, kCGEventRightMouseDown, mouse_pos, kCGMouseButtonLeft) # type: ignore
-        CGEventPost(kCGHIDEventTap, mouse_down) # type: ignore
+        x, y = get_mouse_pos()
+        _press(x, y, button=down_key[RIGHT])
 
     def right_up():
         if not Variables.is_running: return
 
-        event_source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) # type: ignore
-        current_event = CGEventCreate(None) # type: ignore
-        mouse_pos = CGEventGetLocation(current_event) if current_event else CGPointMake(100, 100) # type: ignore
-        
-        mouse_up = CGEventCreateMouseEvent(event_source, kCGEventRightMouseUp, mouse_pos, kCGMouseButtonLeft) # type: ignore
-        CGEventPost(kCGHIDEventTap, mouse_up) # type: ignore
-
-    # mouse move #
-    def _move_quartz(x, y):
-        event_source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState) # type: ignore
-        mouse_move = CGEventCreateMouseEvent(event_source, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft) # type: ignore
-        CGEventPost(kCGHIDEventTap, mouse_move) # type: ignore
-
-    def move_mouse(x, y, steps=13, delay=0.001): 
-        event = NSEvent.mouseLocation()
-        smooth_move_to((int(event.x), int(event.y)), x, y, _move_quartz, steps, delay)
-
-    # mouse pos #
-    def get_mouse_pos():
-        event = NSEvent.mouseLocation()
-        return ( int(event.x), int(event.y) )
+        x, y = get_mouse_pos()
+        _release(x, y, button=up_key[RIGHT])
 
 else: # defaults to pynput
     logging.info("Using 'pynput' mouse handler...")
     pynput_button = pynput.mouse.Button
     full_left_click = pynput_button.left
+
+    if current_os == "Windows":
+        import autoit # type: ignore
+        logging.info("Forcing 'autoit' for mouse movement since its the only package that Roblox wants to detect.")
+
+        # mouse pos #
+        def get_mouse_pos(): return autoit.mouse_get_pos()
+
+        # mouse move #
+        def _move_autoit(x, y): autoit.mouse_move(x, y, speed=0)
+        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(get_mouse_pos(), x, y, _move_autoit, steps, delay)
+    else:
+        # mouse pos #
+        def get_mouse_pos(): return _pynput_mouse_controller.position
+
+        # mouse move #
+        def _move_pynput(x, y): _pynput_mouse_controller.position = (x, y)
+        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(get_mouse_pos(), x, y, _move_pynput, steps, delay)
 
     # left click #
     def left_click_lock(click_delay=0):
@@ -155,22 +181,5 @@ else: # defaults to pynput
     def right_up():
         if not Variables.is_running: return
         _pynput_mouse_controller.release(pynput_button.right)
-
-    # mouse move #
-    if current_os == "Windows":
-        import autoit
-        logging.info("Forcing 'autoit' for mouse movement since its the only package that Roblox wants to detect.")
-
-        def _move_autoit(x, y): autoit.mouse_move(x, y, speed=0)
-        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(autoit.mouse_get_pos(), x, y, _move_autoit, steps, delay)
-
-        # mouse pos #
-        def get_mouse_pos(): return autoit.mouse_get_pos()
-    else:
-        def _move_pynput(x, y): _pynput_mouse_controller.position = (x, y)
-        def move_mouse(x, y, steps=13, delay=0.001): smooth_move_to(_pynput_mouse_controller.position, x, y, _move_pynput, steps, delay)
-
-        # mouse pos #
-        def get_mouse_pos(): return _pynput_mouse_controller.position
 
 logging.info("============ MOUSE MODULE LOADED ============")

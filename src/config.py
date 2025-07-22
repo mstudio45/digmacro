@@ -19,7 +19,7 @@ if current_os == "Windows":
 
 elif current_os == "Darwin":
     default_screenshot_package, screenshot_packages = "mss", ["mss"]
-    default_mouse_input_package, mouse_input_packages = "Quartz", ["Quartz", "pynput"]
+    default_mouse_input_package, mouse_input_packages = "pynput", ["Quartz", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "Quartz", ["Quartz", "pynput"]
 
 elif current_os == "Linux":
