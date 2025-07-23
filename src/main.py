@@ -766,7 +766,7 @@ if __name__ == "__main__":
                     sct = mss.mss()
                     fps_counter = FPSCounter()
 
-                    # frame_time = self.frame_time
+                    frame_time = self.frame_time
                     finder = self.finder
 
                     while not self._stop_event.is_set():
@@ -782,8 +782,8 @@ if __name__ == "__main__":
                         
                         # force target fps #
                         elapsed = time.perf_counter() - frame_start
-                        # sleep_time = max(0, frame_time - elapsed)
-                        if elapsed > 0: time.sleep(elapsed)
+                        sleep_time = max(0, frame_time - elapsed)
+                        if sleep_time > 0: time.sleep(sleep_time)
 
                     del fps_counter
                     del sct

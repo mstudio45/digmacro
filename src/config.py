@@ -10,22 +10,22 @@ from utils.general.filehandler import read, write
 current_os = platform.system()
 current_arch = platform.machine()
 
-# default_screenshot_package, screenshot_packages = "", []
+default_screenshot_package, screenshot_packages = "", []
 default_mouse_input_package, mouse_input_packages = "", []
 defualt_keyboard_input_package, keyboard_input_packages = "", []
 
 if current_os == "Windows":
-    # default_screenshot_package, screenshot_packages = "bettercam", ["bettercam", "mss"]
+    default_screenshot_package, screenshot_packages = "mss", ["mss", "bettercam"]
     default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
 elif current_os == "Darwin":
-    # default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["Quartz", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "Quartz", ["Quartz", "pynput"]
 
 elif current_os == "Linux":
-    # default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
@@ -252,11 +252,11 @@ Canny:
         "tooltip": "Select the keyboard input package to use.",
         "items": keyboard_input_packages
     },
-    # "SCREENSHOT_PACKAGE": {
-    #     "widget": "QComboBox",
-    #     "tooltip": "Select the screenshot package to use.",
-    #     "items": screenshot_packages
-    # },
+    "SCREENSHOT_PACKAGE": {
+        "widget": "QComboBox",
+        "tooltip": "Select the screenshot package to use.",
+        "items": screenshot_packages
+    },
     
     # GUI OPTIONS #
     "UI_ON_TOP": {
@@ -381,7 +381,7 @@ class ConfigManager:
             "PACKAGES": {
                 "MOUSE_INPUT_PACKAGE": default_mouse_input_package,
                 "KEYBOARD_INPUT_PACKAGE": defualt_keyboard_input_package,
-                # "SCREENSHOT_PACKAGE": default_screenshot_package,
+                "SCREENSHOT_PACKAGE": default_screenshot_package,
             },
 
             "GUI": {

@@ -5,7 +5,6 @@
 
 [Changes]
 + Temporarly disabled prediction system until its fixed
-+ Removed SCREENSHOT_PACKAGE
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch
