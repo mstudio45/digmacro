@@ -320,20 +320,31 @@ if __name__ == "__main__":
 
     # main loader #
     logging.info("Importing libraries...")
-    from utils.input.mouse import left_click, move_mouse, _pynput_mouse_controller
-    from utils.input.keyboard import press_key, setup_global_hotkeys
 
+    logging.info("======== INPUT HANDLERS ========".center(60, "="))
+    from utils.input.mouse import left_click, move_mouse
+    from utils.input.keyboard import press_key, setup_global_hotkeys
+    logging.info("======== INPUT HANDLERS END ========".center(60, "="))
+
+    logging.info("======== DETECTORS HANDLER ========".center(60, "="))
     from utils.detectors.handler import MainHandler
+    from utils.general.fps_counter import FPSCounter
+    logging.info("======== DETECTORS HANDLER END ========".center(60, "="))
+
+    logging.info("======== AUTOMATIZATION HANDLERS ========".center(60, "="))
     from utils.sellinv import SellUI
     from utils.pathfinding import PathfingingHandler
+    logging.info("======== AUTOMATIZATION HANDLERS END ========".center(60, "="))
 
+    logging.info("======== ROBLOX HANDLERS ========".center(60, "="))
     from utils.roblox.rejoin import rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
+    logging.info("======== ROBLOX HANDLERS END ========".center(60, "="))
 
-    from utils.general.fps_counter import FPSCounter
-
+    logging.info("======== INTERFACE HANDLERS ========".center(60, "="))
     import interface.web_ui as WebUI
     from interface.region_selection import RegionSelector
+    logging.info("======== INTERFACE HANDLERS END ========".center(60, "="))
 
     class MacroHandler:
         def __init__(self):
