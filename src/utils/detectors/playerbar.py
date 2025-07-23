@@ -151,11 +151,11 @@ class PlayerBar:
         self.bar_in_clickable = is_pos_in_bbox(current_left, bbox_left, bbox_width)
 
         # prediction #
-        if self.use_prediction:
-            self.player_bar_tracker.update(current_left)
-            self.current_velocity = self.player_bar_tracker.get_velocity()
-            self.current_acceleration = self.player_bar_tracker.get_acceleration()
-
-            # kinematic equation #
-            t = float(Config.PREDICTION_MAX_TIME_AHEAD)
-            self.predicted_position = current_left + (self.current_velocity * t) + 0.5 * self.current_acceleration * (t ** 2)
+        # if self.use_prediction:
+        #     self.player_bar_tracker.update(current_left)
+        #     self.current_velocity = self.player_bar_tracker.get_velocity()
+        #     self.current_acceleration = self.player_bar_tracker.get_acceleration()
+        # 
+        #     # kinematic equation #
+        #     t = float(Config.PREDICTION_MAX_TIME_AHEAD)
+        #     self.predicted_position = current_left + (self.current_velocity * t) + 0.5 * self.current_acceleration * (t ** 2)

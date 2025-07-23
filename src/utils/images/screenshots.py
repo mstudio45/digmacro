@@ -13,13 +13,17 @@ if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
     from utils.logs import disable_spammy_loggers
     disable_spammy_loggers()
     
-    def take_screenshot(region, sct):
-        return camera.grab(region=(
-            region["left"],
-            region["top"],
-            region["left"] + region["width"],
-            region["top"] + region["height"]
-        ))
+    def take_screenshot(region, sct=None):
+        try:
+            return camera.grab(region=(
+                region["left"],
+                region["top"],
+                region["left"] + region["width"],
+                region["top"] + region["height"]
+            ))
+        except Exception as e:
+            logging.error(f"Failed to take screenshot: {e}")
+            return None
 
     def screenshot_cleanup():
         logging.info("Cleaning...")

@@ -144,53 +144,54 @@ class MainHandler:
         current_time_ms = int(time.time() * 1000)
 
         vars.last_minigame_detection = current_time_ms
-        if current_time_ms < self.click_cooldown or clicking_lock.locked():
-            del vars; return # early exit, we are on a cooldown #
+        # if current_time_ms < self.click_cooldown or clicking_lock.locked():
+        #     del vars; return # early exit, we are on a cooldown #
 
         # positions #
-        player_bar = self.PlayerBar
-
-        player_bar_center = player_bar.current_position
-        clickable_part = self.DirtBar.clickable_position
-
-        clickable_width = clickable_part[2]
-        clickable_center = clickable_part[0] + (clickable_width // 2)
-        clickable_radius = clickable_width // 2
+        # player_bar = self.PlayerBar
+        # 
+        # player_bar_center = player_bar.current_position
+        # clickable_part = self.DirtBar.clickable_position
+        # 
+        # clickable_width = clickable_part[2]
+        # clickable_center = clickable_part[0] + (clickable_width // 2)
+        # clickable_radius = clickable_width // 2
 
         # prediction variables #
-        confidence = 0.0
-        should_click = False
-        prediction_used = False
-        click_delay = 0
+        # confidence = 0.0
+        # should_click = False
+        # prediction_used = False
+        # click_delay = 0
 
         # verify if we should click or no #
-        if player_bar.bar_in_clickable:
-            should_click = True
-        
-        elif self.use_prediction:
-            predicted_player_bar = player_bar.predicted_position
-            current_velocity = player_bar.current_velocity
-
-            if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
-                player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
-
-                if player_bar_to_clickable: # check if player bar is going towards clickable part #
-                    distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
-
-                    if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
-                        confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
-
-                        if confidence >= Config.PREDICTION_CONFIDENCE:
-                            distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
-                            arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
-
-                            if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
-                                should_click, prediction_used, click_delay = True, True, arrival_in_ms
+        # if player_bar.bar_in_clickable:
+        #     should_click = True
+        # 
+        # elif self.use_prediction:
+        #     predicted_player_bar = player_bar.predicted_position
+        #     current_velocity = player_bar.current_velocity
+        # 
+        #     if predicted_player_bar is not None and abs(current_velocity) >= Config.PREDICTION_MIN_VELOCITY: # check required velocity #
+        #         player_bar_to_clickable = (player_bar_center < clickable_center) if current_velocity > 0 else (player_bar_center > clickable_center)
+        # 
+        #         if player_bar_to_clickable: # check if player bar is going towards clickable part #
+        #             distance_to_center_PREDICTED = abs(predicted_player_bar - clickable_center)
+        # 
+        #             if distance_to_center_PREDICTED <= clickable_radius: # check if prediction bar is inside the clickable part #
+        #                 confidence = 1.0 - (distance_to_center_PREDICTED / clickable_radius)
+        # 
+        #                 if confidence >= Config.PREDICTION_CONFIDENCE:
+        #                     distance_to_player_bar_CLICKABLE = clickable_center - player_bar_center
+        #                     arrival_in_ms = distance_to_player_bar_CLICKABLE / current_velocity
+        # 
+        #                     if arrival_in_ms > 0 and arrival_in_ms <= Config.PREDICTION_MAX_TIME_AHEAD: # check if arrival time is under the max time ahead #
+        #                         should_click, prediction_used, click_delay = True, True, arrival_in_ms
         
         # do the click #
-        if should_click:
+        # if should_click:
+        if self.PlayerBar.bar_in_clickable:
             clicking_lock.acquire()
-            threading.Thread(target=left_click_lock, args=(click_delay,)).start()
+            threading.Thread(target=left_click_lock, args=(0,)).start()
 
             self.click_cooldown = current_time_ms + Config.MIN_CLICK_INTERVAL # + click_delay
             vars.click_count += 1
@@ -198,11 +199,11 @@ class MainHandler:
             # screenshot handler #
             def screenshot():
                 if Config.SCREENSHOT_EVERY_CLICK:
-                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}{"_found" if prediction_used else ""}.png"), self.debug_img)
+                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}.png"), self.debug_img) # "_found" if prediction_used else ""
 
-                if prediction_used and Config.PREDICTION_SCREENSHOTS:
-                    time.sleep(click_delay)
-                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
+                # if prediction_used and Config.PREDICTION_SCREENSHOTS:
+                #     time.sleep(click_delay)
+                #     write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
             
             threading.Thread(target=screenshot, daemon=True).start()
         

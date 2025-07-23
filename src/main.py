@@ -730,70 +730,53 @@ if __name__ == "__main__":
             if not Variables.is_running: return
             logging.info("Setting up finder threads...")
             
-            # setup finder threads #
-            cpu_count = 1 if Config.FINDER_MULTITHREAD == True else os.cpu_count() or 1
-            self.finder_threads = []
-
             class FinderThread(threading.Thread):
-                def __init__(self, finder_instance, thread_idx, target_fps, multithread):
+                def __init__(self, finder, target_fps):
                     super().__init__()
+                    self.finder = finder
+                    self.frame_time = 1 / target_fps
+                    
                     self.daemon = True
                     self._stop_event = threading.Event()
-                    
-                    self.finder_instance = finder_instance
-                    self.thread_idx = thread_idx
-                    self.frame_time = (1 / target_fps) if target_fps > 0 else (1 / 240)
-                    self.multithread = multithread
+
+                    logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
 
                 def run(self):
-                    logging.info(f"Finder loop started on thread {self.thread_idx}.")
+                    logging.info(f"Finder loop starting...")
 
                     sct = mss.mss()
-                    if self.multithread:
-                        fps_counter = FPSCounter()
-                        while not self._stop_event.is_set():
-                            frame_start = time.perf_counter()
+                    fps_counter = FPSCounter()
 
-                            # update state and click #
-                            if self.finder_instance.update_state(sct) == True:
-                                self.finder_instance.handle_click()
+                    frame_time = self.frame_time
+                    finder = self.finder
 
-                            # update fps #
-                            fps_counter.accumulate_frame_time(frame_start)
-                            self.finder_instance.current_fps = fps_counter.get_fps()
-                            
-                            # force target fps #
-                            elapsed = time.perf_counter() - frame_start
-                            sleep_time = max(0, self.frame_time - elapsed)
-                            if sleep_time > 0: time.sleep(sleep_time)
+                    while not self._stop_event.is_set():
+                        frame_start = time.perf_counter()
 
-                        del fps_counter
-                    else:
-                        while not self._stop_event.is_set():
-                            frame_start = time.perf_counter()
+                        # update state and click #
+                        if finder.update_state(sct) == True:
+                            finder.handle_click()
 
-                            # update state and click #
-                            if self.finder_instance.update_state(sct) == True:
-                                self.finder_instance.handle_click()
-
-                            # force target fps #
-                            elapsed = time.perf_counter() - frame_start
-                            if elapsed > 0: time.sleep(elapsed)
+                        # update fps #
+                        fps_counter.accumulate_frame_time(frame_start)
+                        finder.current_fps = fps_counter.get_fps()
                         
+                        # force target fps #
+                        elapsed = time.perf_counter() - frame_start
+                        sleep_time = max(0, frame_time - elapsed)
+                        if sleep_time > 0: time.sleep(sleep_time)
+
+                    del fps_counter
                     del sct
-                    logging.info(f"Finder loop stopped successfully on thread {self.thread_idx}.")
+                    logging.info(f"Finder loop stopped successfully.")
 
                 def stop(self):
                     self._stop_event.set()
 
             # create finder threads #
-            for idx in range(cpu_count):
-                thread = FinderThread(self.finder, idx, Config.TARGET_FPS, Config.FINDER_MULTITHREAD)
-                self.add_thread(f"finder_thread_{idx}", thread=thread)
-                self.finder_threads.append(thread)
-                thread.start()
-
-                logging.info(f"Finder thread {idx} started successfully.")
+            thread = FinderThread(self.finder, Config.TARGET_FPS)
+            self.add_thread("finder_thread", thread=thread)
+            thread.start()
 
         def setup_roblox_focused_thread(self):
             if not Variables.is_running: return

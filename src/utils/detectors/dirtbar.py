@@ -29,13 +29,8 @@ class DirtBar:
     def find_dirt(self, screenshot, region_left, region_top):
         self._ensure_buffers(screenshot.shape)
 
-        # edit screenshot #
-        if Config.DIRT_DETECTION == "Kernels + GaussianBlur":
-            screenshot = cv2.GaussianBlur(screenshot, (3, 3), 0, dst=screenshot) # further remove noise #
-
         # threshold the background #
         cv2.threshold(screenshot, Config.DIRT_THRESHOLD, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU, dst=self._mask_buffer)
-
         cv2.morphologyEx(self._mask_buffer, cv2.MORPH_OPEN, self.vertical_kernel, dst=self._mask_buffer) # remove vertical lines #
         cv2.morphologyEx(self._mask_buffer, cv2.MORPH_OPEN, self.horizontal_kernel, dst=self._mask_buffer) # remove horizontal rect #
         cv2.bitwise_not(self._mask_buffer, dst=self._mask_buffer) # flip the detection to include vertical lines and horizontal rect #

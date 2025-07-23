@@ -31,7 +31,7 @@ settings_table = {
     # SYSTEM OPTIONS #
     "TARGET_FPS": {
         "widget": "QSpinBox",
-        "tooltip": "Target Frames Per Second for the macro. (only works without FINDER_MULTITHREAD enabled)",
+        "tooltip": "Target Frames Per Second for the macro.",
         "min": 1,
         "max": 1000
     },
@@ -46,10 +46,6 @@ settings_table = {
     "LOGGING_ENABLED": {
         "widget": "QCheckBox",
         "tooltip": "Enable or disable log files."
-    },
-    "FINDER_MULTITHREAD": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable multiple threads for finder (main detection handler).",
     },
 
     # DISCORD WEBHOOK OPTIONS #
@@ -141,11 +137,6 @@ Canny:
         "max": 255
     },
 
-    "DIRT_DETECTION": {
-        "widget": "QComboBox",
-        "tooltip": "Choose how to detect the dirt part.",
-        "items": ["Kernels", "Kernels + GaussianBlur"]
-    },
     "DIRT_CLICKABLE_WIDTH": {
         "widget": "QDoubleSpinBox",
         "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
@@ -155,7 +146,7 @@ Canny:
     },
     "DIRT_THRESHOLD": {
         "widget": "QSpinBox",
-        "tooltip": "The saturation threshold to find the location of the 'dirt' part. Lower it to find darker materials or make it higher if it detects the night vision goggles.",
+        "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
         "min": 0,
         "max": 50
     },
@@ -199,41 +190,53 @@ Canny:
     # PREDICTION OPTIONS #
     "USE_PREDICTION": {
         "widget": "QCheckBox",
-        "tooltip": "Calculate prediction using acceleration and velocity history."
+        "tooltip": "Calculate prediction using acceleration and velocity history.",
+        
+        "enabled": False
     },
     "PREDICTION_MAX_TIME_AHEAD": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Used inside the kinematic equation as the variable 't' (bigger = further prediction, but less reliable).",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01
+        "step": 0.01,
+
+        "enabled": False
     },
     "PREDICTION_MIN_VELOCITY": {
         "widget": "QSpinBox",
         "tooltip": "Required minimum velocity of the player bar for prediction.",
         "min": 0,
-        "max": 1000
+        "max": 1000,
+        
+        "enabled": False
     },
     "PREDICTION_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Confidence needed for the prediction to trigger a click (0.0 to 1.0).",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01
+        "step": 0.01,
+        
+        "enabled": False
     },
     "PREDICTION_CENTER_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Minimum confidence required to click when player bar is reasonably centered inside the dirt part.",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01
+        "step": 0.01,
+        
+        "enabled": False
     },
     "PREDICTION_SLOW_CONFIDENCE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Minimum confidence required to click when player bar is moving slowly to the center of the dirt part.",
         "min": 0.0,
         "max": 1.0,
-        "step": 0.01
+        "step": 0.01,
+        
+        "enabled": False
     },
 
     # PACKAGES OPTIONS #
@@ -284,7 +287,9 @@ Canny:
     # SCREENSHOTS OPTIONS #
     "PREDICTION_SCREENSHOTS": {
         "widget": "QCheckBox",
-        "tooltip": "Enables making screenshots for each prediction clicks (requires 'Show Debug' to be enabled)."
+        "tooltip": "Enables making screenshots for each prediction clicks (requires 'Show Debug' to be enabled).",
+        
+        "enabled": False
     },
     "SCREENSHOT_EVERY_CLICK": {
         "widget": "QCheckBox",
@@ -310,10 +315,9 @@ class ConfigManager:
     def _set_default_config(self):
         self.default_config = {
             "SYSTEM": {
-                "TARGET_FPS": 60 if current_os == "Darwin" or current_arch == "x86_64" else 120,
+                "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
-                "LOGGING_ENABLED": True,
-                "FINDER_MULTITHREAD": True
+                "LOGGING_ENABLED": True
             },
 
             # "DISCORD": {
@@ -343,8 +347,7 @@ class ConfigManager:
                 "PLAYER_BAR_WIDTH": 5,
                 "PLAYER_BAR_CANNY_THRESHOLD": 100,
 
-                "DIRT_DETECTION": "Kernels",
-                "DIRT_CLICKABLE_WIDTH": 0.1,
+                "DIRT_CLICKABLE_WIDTH": 0.125,
                 "DIRT_THRESHOLD": 25,
             },
 
@@ -531,7 +534,15 @@ class ConfigManager:
                 self.PathfindingMacros = new_data
             except json.JSONDecodeError:
                 print("[ConfigManager.load_config] Warning: Could not decode 'PathfindingMacros' from config file. Using defaults.")
-        
+        else:
+            print(f"[ConfigManager.load_config] Pathfinding macros file '{StaticVariables.pathfinding_macros_filepath}' not found. Using default macros.")
+            
+            new_data = collections.OrderedDict()
+            new_data["risk_spin"] = [] # one place dig #
+            new_data.update(self.default_PathfindingMacros.copy())
+            
+            self.PathfindingMacros = new_data
+
         return False
 
     def save_config(self):
