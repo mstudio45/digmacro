@@ -3,9 +3,8 @@ import platform
 # import logging
 # from config import Config
 
-current_os = platform.system()
 __all__ = ["take_screenshot", "screenshot_cleanup"]
-
+# current_os = platform.system()
 # if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
 #     logging.info("Screenshot package: bettercam")
 # 
@@ -34,7 +33,7 @@ __all__ = ["take_screenshot", "screenshot_cleanup"]
 # else: # use mss if that if statement is false #
 import numpy as np
 
-import mss
+# import mss
 from mss.base import MSSBase
 
 def take_screenshot(region, sct: MSSBase):
