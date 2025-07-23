@@ -1,3 +1,16 @@
+# v2.0.4 (hotfix for v2.0.3)
+```diff
+[New Features]
+- Nothing here...
+
+[Changes]
++ Temporarly disabled prediction system until its fixed
++ Removed SCREENSHOT_PACKAGE
+
+[Fixes]
++ Fixed 'risk_spin' not appearing in the list during first launch
+```
+
 # v2.0.3
 ```diff
 [New Features]

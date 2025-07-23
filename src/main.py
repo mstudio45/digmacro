@@ -750,15 +750,15 @@ if __name__ == "__main__":
             logging.info("Setting up finder threads...")
             
             class FinderThread(threading.Thread):
-                def __init__(self, finder):
+                def __init__(self, finder, target_fps):
                     super().__init__()
                     self.finder = finder
-                    # self.frame_time = 1 / target_fps
+                    self.frame_time = 1 / target_fps
                     
                     self.daemon = True
                     self._stop_event = threading.Event()
 
-                    # logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
+                    logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
 
                 def run(self):
                     logging.info(f"Finder loop starting...")
@@ -793,7 +793,7 @@ if __name__ == "__main__":
                     self._stop_event.set()
 
             # create finder threads #
-            thread = FinderThread(self.finder) #, Config.TARGET_FPS)
+            thread = FinderThread(self.finder, Config.TARGET_FPS)
             self.add_thread("finder_thread", thread=thread)
             thread.start()
 

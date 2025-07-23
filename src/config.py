@@ -31,12 +31,12 @@ elif current_os == "Linux":
 
 settings_table = {
     # SYSTEM OPTIONS #
-    # "TARGET_FPS": {
-    #     "widget": "QSpinBox",
-    #     "tooltip": "Target Frames Per Second for the macro.",
-    #     "min": 1,
-    #     "max": 1000
-    # },
+    "TARGET_FPS": {
+        "widget": "QSpinBox",
+        "tooltip": "Target Frames Per Second for the macro. (mss on Windows will lock the FPS depending on your monitor refresh rate)",
+        "min": 1,
+        "max": 1000
+    },
     "MACOS_DISPLAY_SCALE_OVERRIDE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
@@ -317,7 +317,7 @@ class ConfigManager:
     def _set_default_config(self):
         self.default_config = {
             "SYSTEM": {
-                # "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
+                "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
                 "LOGGING_ENABLED": True
             },
