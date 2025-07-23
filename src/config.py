@@ -10,34 +10,33 @@ from utils.general.filehandler import read, write
 current_os = platform.system()
 current_arch = platform.machine()
 
-# this shit pmo fr #
-default_screenshot_package, screenshot_packages = "", []
+# default_screenshot_package, screenshot_packages = "", []
 default_mouse_input_package, mouse_input_packages = "", []
 defualt_keyboard_input_package, keyboard_input_packages = "", []
 
 if current_os == "Windows":
-    default_screenshot_package, screenshot_packages = "bettercam", ["bettercam", "mss"]
+    # default_screenshot_package, screenshot_packages = "bettercam", ["bettercam", "mss"]
     default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
 elif current_os == "Darwin":
-    default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    # default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["Quartz", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "Quartz", ["Quartz", "pynput"]
 
 elif current_os == "Linux":
-    default_screenshot_package, screenshot_packages = "mss", ["mss"]
+    # default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 
 settings_table = {
     # SYSTEM OPTIONS #
-    "TARGET_FPS": {
-        "widget": "QSpinBox",
-        "tooltip": "Target Frames Per Second for the macro.",
-        "min": 1,
-        "max": 1000
-    },
+    # "TARGET_FPS": {
+    #     "widget": "QSpinBox",
+    #     "tooltip": "Target Frames Per Second for the macro.",
+    #     "min": 1,
+    #     "max": 1000
+    # },
     "MACOS_DISPLAY_SCALE_OVERRIDE": {
         "widget": "QDoubleSpinBox",
         "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
@@ -253,11 +252,11 @@ Canny:
         "tooltip": "Select the keyboard input package to use.",
         "items": keyboard_input_packages
     },
-    "SCREENSHOT_PACKAGE": {
-        "widget": "QComboBox",
-        "tooltip": "Select the screenshot package to use.",
-        "items": screenshot_packages
-    },
+    # "SCREENSHOT_PACKAGE": {
+    #     "widget": "QComboBox",
+    #     "tooltip": "Select the screenshot package to use.",
+    #     "items": screenshot_packages
+    # },
     
     # GUI OPTIONS #
     "UI_ON_TOP": {
@@ -318,7 +317,7 @@ class ConfigManager:
     def _set_default_config(self):
         self.default_config = {
             "SYSTEM": {
-                "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
+                # "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
                 "LOGGING_ENABLED": True
             },
@@ -382,7 +381,7 @@ class ConfigManager:
             "PACKAGES": {
                 "MOUSE_INPUT_PACKAGE": default_mouse_input_package,
                 "KEYBOARD_INPUT_PACKAGE": defualt_keyboard_input_package,
-                "SCREENSHOT_PACKAGE": default_screenshot_package,
+                # "SCREENSHOT_PACKAGE": default_screenshot_package,
             },
 
             "GUI": {

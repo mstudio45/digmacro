@@ -237,13 +237,13 @@ The macro can move your character in different patterns (like a square, line, et
 
 - **Macro is missing clicks or not working well:**
   - The macro’s speed can be affected by several factors:
-    1) Your CPU performance and Roblox FPS also impact how well the macro runs
-    2) **mss on Windows** slows down the macro because of VSync
+    1) CPU performance, RAM Usage, Background Applications
+    2) Roblox FPS
 
   - If you're having issues, try the following:
     1) Lower your in-game graphics and enable "Low Graphics" inside DIG settings
     2) Close background applications (ideally only have the macro and Roblox running)
-    3) Adjust the configuration (MIN_CLICK_INTERVAL, TARGET_FPS, USE_PREDICTION, PLAYER_BAR_DETECTION)
+    3) Adjust the configuration
     4) Change your screen resolution (for example 1080p to 720p)
 
 - **Running from source with macOS is not working well:**

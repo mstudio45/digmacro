@@ -750,15 +750,15 @@ if __name__ == "__main__":
             logging.info("Setting up finder threads...")
             
             class FinderThread(threading.Thread):
-                def __init__(self, finder, target_fps):
+                def __init__(self, finder):
                     super().__init__()
                     self.finder = finder
-                    self.frame_time = 1 / target_fps
+                    # self.frame_time = 1 / target_fps
                     
                     self.daemon = True
                     self._stop_event = threading.Event()
 
-                    logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
+                    # logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
 
                 def run(self):
                     logging.info(f"Finder loop starting...")
@@ -766,7 +766,7 @@ if __name__ == "__main__":
                     sct = mss.mss()
                     fps_counter = FPSCounter()
 
-                    frame_time = self.frame_time
+                    # frame_time = self.frame_time
                     finder = self.finder
 
                     while not self._stop_event.is_set():
@@ -782,8 +782,8 @@ if __name__ == "__main__":
                         
                         # force target fps #
                         elapsed = time.perf_counter() - frame_start
-                        sleep_time = max(0, frame_time - elapsed)
-                        if sleep_time > 0: time.sleep(sleep_time)
+                        # sleep_time = max(0, frame_time - elapsed)
+                        if elapsed > 0: time.sleep(elapsed)
 
                     del fps_counter
                     del sct
@@ -793,7 +793,7 @@ if __name__ == "__main__":
                     self._stop_event.set()
 
             # create finder threads #
-            thread = FinderThread(self.finder, Config.TARGET_FPS)
+            thread = FinderThread(self.finder) #, Config.TARGET_FPS)
             self.add_thread("finder_thread", thread=thread)
             thread.start()
 
