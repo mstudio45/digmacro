@@ -1,11 +1,10 @@
 import platform
 
-import mss.factory
 # import logging
 # from config import Config
 
 current_os = platform.system()
-__all__ = ["take_screenshot", "cleanup"]
+__all__ = ["take_screenshot", "screenshot_cleanup"]
 
 # if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
 #     logging.info("Screenshot package: bettercam")
