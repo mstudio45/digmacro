@@ -1,6 +1,10 @@
 import time
 import threading
-import win32con, ctypes, autoit
+
+import win32con
+import ctypes
+import autoit
+
 from variables import Variables
 from utils.input.mouse_handler.movement_handler import smooth_move_to
 

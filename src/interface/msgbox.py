@@ -1,5 +1,6 @@
-import logging, platform
-from config import Config
+import logging
+import subprocess
+import platform
 
 __all__ = ["alert", "confirm"]
 current_os = platform.system()

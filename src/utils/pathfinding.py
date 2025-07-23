@@ -1,4 +1,5 @@
-import time, logging
+import time
+import logging
 
 from utils.input.keyboard import press_key, press_multiple_keys
 

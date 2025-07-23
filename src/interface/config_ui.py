@@ -1,3 +1,8 @@
+import os
+import time
+import platform
+import json
+
 ## ui editor ##
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -6,7 +11,7 @@ from PySide6.QtWidgets import (
     QScrollArea
 )
 from PySide6.QtCore import Signal
-import os, json, time, pynput, platform
+import pynput
 
 from config import Config, settings_table
 from variables import StaticVariables

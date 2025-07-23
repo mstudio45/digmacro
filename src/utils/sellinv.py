@@ -1,4 +1,5 @@
-import time, logging
+import time
+import logging
 
 # file imports #
 from variables import Variables

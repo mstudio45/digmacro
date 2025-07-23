@@ -1,5 +1,10 @@
 # imports #
-import os, sys, time, traceback, subprocess, platform
+import os
+import sys
+import time
+import traceback
+import subprocess
+import platform
 
 current_os = platform.system() # Linux, Windows, Darwin
 if current_os not in ["Linux", "Darwin", "Windows"]:
@@ -86,9 +91,11 @@ Config.load_config() # default_config_loaded
 setup_logger()
 
 # imports #
-import logging, threading
+import logging
+import threading
 import webbrowser
-import pyautogui, mss
+import pyautogui
+import mss
 import interface.msgbox as msgbox
 
 try: import cv2

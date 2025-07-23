@@ -1,4 +1,6 @@
-import platform, logging
+import logging
+import platform
+
 from utils.images.screen import screen_region
 from variables import Variables
 

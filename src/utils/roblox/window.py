@@ -1,5 +1,8 @@
-import psutil, logging, subprocess
-import platform, traceback
+import traceback
+import subprocess
+import platform
+import logging
+import psutil
 
 __all__ = ["is_roblox_focused", "focus_roblox", "kill_roblox", "is_roblox_running"]
 current_os = platform.system()

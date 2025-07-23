@@ -1,4 +1,9 @@
-import os, re, time, threading, platform, logging
+import os
+import time
+import platform
+import threading
+import logging
+import re
 
 from pathlib import Path
 from watchdog.observers import Observer

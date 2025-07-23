@@ -1,4 +1,8 @@
-import os, sys, subprocess, platform, traceback
+import os
+import sys
+import traceback
+import subprocess
+import platform
 
 from utils.packages.distro_variables import log_install, install_pip_package, current_os
 from variables import Variables

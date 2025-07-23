@@ -1,4 +1,9 @@
-import os, csv, sys, subprocess, platform, traceback
+import os
+import sys
+import traceback
+import subprocess
+import platform
+import csv
 
 from variables import Variables, StaticVariables
 from utils.general.filehandler import create_folder

@@ -1,4 +1,9 @@
-import os, platform, random, string, shutil, time
+import os
+import time
+import platform
+import shutil
+import random
+import string
 
 __all__ = ["Variables", "StaticVariables"]
 current_os = platform.system()

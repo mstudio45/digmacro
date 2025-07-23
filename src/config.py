@@ -1,5 +1,8 @@
-import os, json, platform
-import configparser, collections
+import os
+import json
+import platform
+import configparser
+import collections
 
 from variables import StaticVariables
 from utils.general.filehandler import read, write

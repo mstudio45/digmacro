@@ -1,6 +1,13 @@
-import sys, time, threading, logging, traceback
+import sys
+import time
+import traceback
+import subprocess
+import platform
+import threading
+import logging
+
 import webbrowser
-import webview, platform, subprocess
+import webview
 
 try: import cv2
 except ImportError as e:

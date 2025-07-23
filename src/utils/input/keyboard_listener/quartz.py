@@ -1,4 +1,7 @@
-import time, logging, re, threading
+import time
+import threading
+import logging
+import re
 from typing import Callable
 
 from variables import Variables

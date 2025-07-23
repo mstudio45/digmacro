@@ -1,5 +1,7 @@
+import traceback
+import logging
+
 from pynput.keyboard import Key, KeyCode
-import logging, traceback
 
 __all__ = ["get_key"]
 class KeyConverter:

@@ -1,4 +1,8 @@
-import sys, shutil, subprocess, traceback
+import sys
+import traceback
+import subprocess
+import shutil
+
 from utils.packages.distro_variables import log_install, current_os, get_linux_app_install_cmd, distro_key
 
 __all__ = ["check_shutil_applications"]

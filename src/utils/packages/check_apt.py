@@ -1,4 +1,7 @@
-import sys, subprocess, traceback
+import sys
+import traceback
+import subprocess
+
 from utils.packages.distro_variables import log_install, current_os, get_linux_app_install_cmd, get_linux_installed_packages, distro_key
 
 __all__ = ["check_apt_packages"]

@@ -1,4 +1,7 @@
-import sys, subprocess, importlib
+import sys
+import subprocess
+import importlib
+
 from utils.packages.distro_variables import log_install, current_os, install_pip_package
 from utils.packages.versions import is_version_outdated, is_version_over_required
 

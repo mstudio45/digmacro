@@ -1,5 +1,8 @@
-import time, webbrowser, platform
-import subprocess, logging
+import time
+import subprocess
+import platform
+import logging
+import webbrowser
 
 from config import Config
 from variables import Variables

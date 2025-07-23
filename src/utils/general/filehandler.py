@@ -1,4 +1,5 @@
-import os, shutil
+import os
+import shutil
 import logging
 
 def write(filename: str, content: str):

@@ -1,6 +1,7 @@
-import os, logging
-from variables import Variables, StaticVariables
+import os
+import logging
 
+from variables import Variables, StaticVariables
 from config import Config
 
 def setup_logger():

@@ -1,5 +1,7 @@
+import platform
+import logging
+
 from config import Config
-import logging, platform
 
 current_os = platform.system()
 __all__ = ["take_screenshot", "cleanup"]

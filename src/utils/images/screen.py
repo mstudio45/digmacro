@@ -1,5 +1,10 @@
-import sys, traceback, logging, platform
-import base64, io
+import sys
+import traceback
+import subprocess
+import platform
+import logging
+import base64
+import io
 from PIL import Image
 
 import numpy as np
