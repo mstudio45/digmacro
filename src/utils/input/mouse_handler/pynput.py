@@ -13,7 +13,7 @@ mouse_controller = Controller()
 # mouse info and movement #
 if current_os == "Windows":
     logging.info("Using 'autoit' for mouse information and movement for Windows. Roblox doesn't detect mouse movement input from pynput.")
-    import autoit  # type: ignore
+    import autoit # type: ignore
 
     def get_mouse_pos():
         return autoit.mouse_get_pos()

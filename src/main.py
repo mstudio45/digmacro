@@ -244,7 +244,8 @@ if __name__ == "__main__":
         else:
             logging.info("Checking current version...")
 
-            import requests, json
+            import requests
+            import json
             req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
             versions = json.loads(req.text)
 

@@ -10,7 +10,9 @@ current_os = platform.system()
 if current_os == "Windows":
     logging.info("Using 'Windows' for Roblox window handler...")
 
-    import win32gui, win32con, pygetwindow # type: ignore
+    import win32gui
+    import win32con
+    import pygetwindow
     
     def is_roblox_focused():
         try:

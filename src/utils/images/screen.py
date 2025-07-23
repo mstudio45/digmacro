@@ -39,7 +39,7 @@ try:
     if current_os == "Darwin":
         logging.info("Using 'PyObjC' to get monitor information...\n")
 
-        import objc, subprocess # type: ignore
+        import subprocess # type: ignore
         from AppKit import NSScreen # type: ignore
 
         def get_macos_display_info():
@@ -149,7 +149,8 @@ try:
     elif current_os == "Windows":
         logging.info("Using 'ctypes' to get monitor information...\n")
 
-        import ctypes, ctypes.wintypes
+        import ctypes
+        import ctypes.wintypes
         
         MDT_EFFECTIVE_DPI = 0
 
