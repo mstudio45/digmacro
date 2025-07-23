@@ -272,7 +272,6 @@ logging.info(f"Scale Factor: {scale_factor:.5f}")
 logging.info(f"Image Finder Scale Factor: {1.0 / scale_factor:.5f}")
 logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}\n")
 
-logging.info(f"Screenshot package: {Config.SCREENSHOT_PACKAGE}")
 logging.info("========================\n")
 
 black_pixel = np.zeros((1, 1, 3), dtype=np.uint8)
