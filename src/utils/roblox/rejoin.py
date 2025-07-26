@@ -10,6 +10,8 @@ from variables import Variables
 from utils.input.keyboard import press_key
 from utils.input.mouse import left_click
 
+from utils.discord.bot import discord_bot
+
 from utils.roblox.logstatus import RobloxStatusHandler
 import utils.roblox.window as RobloxWindow
 
@@ -76,6 +78,8 @@ def rejoin_dig():
     if not Variables.is_idle(): return
 
     logging.info("Rejoining...")
+    discord_bot.send_starting_reconnect(roblox_status_handler.disconnected_error_code)
+
     Variables.is_rejoining = True
     protocol = create_rotocol(Variables.failed_rejoin_attempts >= Config.AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC)
 
@@ -126,8 +130,12 @@ def rejoin_dig():
 
             if Config.AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK == True and Variables.failed_rejoin_attempts >= Config.AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC:
                 logging.info(f"Failed to join the private server after {Variables.failed_rejoin_attempts} attempts, joining a public server...")
+                discord_bot.send_failed_to_reconnect(f"Failed to join the private server after {Variables.failed_rejoin_attempts} attempts, joining a public server...")
+
                 protocol = create_rotocol(True)
                 Variables.failed_rejoin_attempts = 0
+            else:
+                discord_bot.send_failed_to_reconnect()
             
             launch_protocol(protocol)
             start_time = time.time()
@@ -152,4 +160,6 @@ def rejoin_dig():
 
     time.sleep(0.1)
     logging.info("Successfully rejoined.")
+    discord_bot.send_reconnect_success()
+    
     Variables.is_rejoining = False

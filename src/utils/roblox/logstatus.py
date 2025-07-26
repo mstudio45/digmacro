@@ -130,19 +130,21 @@ class RobloxStatusHandler:
 
             logging.info(f"User Disconnected: {str(reason_code)}")
             self.reset_state()
-            self.disconnected_error_code = str(reason_code)
+            self.disconnected_error_code = str(reason_code or "N/A")
             self.disconnected = True
             return
         
         if self.keyword_game_leaving in line:
             logging.info("User Left")
             self.reset_state()
+            self.disconnected_error_code = "User Left"
             self.game_left = True
             return
         
         if self.keyword_roblox_closing in line:
             logging.info("Roblox Closed")
             self.reset_state()
+            self.disconnected_error_code = "Roblox Closed"
             self.roblox_closed = True
             return
     

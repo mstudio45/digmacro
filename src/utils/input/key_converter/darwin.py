@@ -129,10 +129,10 @@ class KeyConverter:
             normalized_key = str(raw_key_str).lower().strip()
 
             # get the key from cache #
-            key = self._cache.get(normalized_key, None)
-            if key is not None:
-                logging.info(f"Using cached key: '{raw_key_str}' -> '{key}'.")
-                return key
+            cached_key = self._cache.get(normalized_key, None)
+            if cached_key is not None:
+                logging.info(f"Using cached key: '{raw_key_str}' -> '{cached_key}'.")
+                return cached_key
 
             # get the key and store in cache #
             key = _get_quartz_key(normalized_key)

@@ -80,7 +80,7 @@ class ConfigUI(QWidget):
         self.start_macro_now = False
 
         self.setWindowTitle("DIG Macro Configuration | https://github.com/mstudio45/digmacro")
-        self.setGeometry(100, 100, 500 * scale_x, 500 * scale_y)
+        self.setGeometry(100, 100, 600 * scale_x, 500 * scale_y)
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -185,38 +185,57 @@ class ConfigUI(QWidget):
 
         # dynamic variable creation #
         for section, options in Config.config.items():
+            # widget information #
+            widget_information = settings_table[section]
+            default_widget_settings = settings_table["default"]
+
+            # group box #
             group_box = QGroupBox(section)
             group_layout = QVBoxLayout()
             group_box.setLayout(group_layout)
 
+            # warning text #
+            warning_text = widget_information.get("__WARNING", None)
+            if warning_text is not None:
+                warning_label = QLabel(f"<b>{warning_text}</b>")
+                warning_label.setStyleSheet("color: red;")
+                group_layout.addWidget(warning_label)
+
+            # info text #
+            info_text = widget_information.get("__INFO", None)
+            if warning_text is not None:
+                info_label = QLabel(info_text)
+                group_layout.addWidget(info_label)
+            
+            # widget #
             for key, value in options.items():
                 row_layout = QHBoxLayout()
                 label = QLabel(f"{key}:")
                 row_layout.addWidget(label)
 
-                settings = settings_table[key]
                 widget = None
-                widget_type = settings["widget"]
-                tooltip = settings.get("tooltip", settings_table["default"].get("tooltip", ""))
-                is_enabled = settings.get("enabled", True)
+                widget_settings = widget_information.get(key, default_widget_settings)
+                widget_type = widget_settings["widget"]
+                tooltip = widget_settings.get("tooltip", settings_table["default"].get("tooltip", ""))
+                is_enabled = widget_settings.get("enabled", True)
                 
                 if widget_type == "QCheckBox":
                     widget = QCheckBox()
   
                 elif widget_type == "QSpinBox":
                     widget = QSpinBox()
-                    widget.setMinimum(settings.get("min", 0))
-                    widget.setMaximum(settings.get("max", 100))
+                    widget.setMinimum(widget_settings.get("min", 0))
+                    widget.setMaximum(widget_settings.get("max", 100))
     
                 elif widget_type == "QDoubleSpinBox":
                     widget = QDoubleSpinBox()
-                    widget.setMinimum(settings.get("min", 0.0))
-                    widget.setMaximum(settings.get("max", 1.0))
-                    widget.setSingleStep(settings.get("step", 0.01))
+                    widget.setMinimum(widget_settings.get("min", 0.0))
+                    widget.setMaximum(widget_settings.get("max", 1.0))
+                    widget.setSingleStep(widget_settings.get("step", 0.01))
 
                 elif widget_type == "QComboBox":
                     widget = QComboBox()
-                    items = settings.get("items", [])
+                    items = widget_settings.get("items", [])
                     
                     # special stuff #
                     if key == "PATHFINDING_MACRO":
@@ -230,6 +249,8 @@ class ConfigUI(QWidget):
    
                 elif widget_type == "QLineEdit":
                     widget = QLineEdit()
+                    if widget_settings.get("password", False) == True:
+                        widget.setEchoMode(QLineEdit.Password)
                  
                 else:
                     widget = QLineEdit() # fallback #

@@ -40,7 +40,7 @@ class Variables:
 
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    current_version = "MATRIX.VERSION" if compiled else "2.0.3"
+    current_version = "MATRIX.VERSION" if compiled else "2.0.4"
     current_branch = "MATRIX.BRANCH" if compiled else "dev"
 
     # minigame information #
@@ -87,3 +87,5 @@ class StaticVariables:
 
     screenshots_path            = os.path.join(storage_folder, "screenshots")
     prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)
+
+    discord_config_filepath   = os.path.join(storage_folder, "discord_settings.json")

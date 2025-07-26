@@ -1,7 +1,7 @@
-# v2.0.4 (hotfix for v2.0.3)
+# v2.0.4
 ```diff
 [New Features]
-- Nothing here...
++ Added 'Discord Bot' Configuration
 
 [Changes]
 + Temporarly disabled prediction system until its fixed

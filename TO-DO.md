@@ -1,14 +1,14 @@
 ### 📝 TO-DO
-- [ ] Monitor Selection UI
+- [ ] Discord Bot -- BEING WORKED ON --
 - [ ] Refactor pathfinding system
     - [ ] Better saving system and format
     - [ ] Tool for creating pathfinding macros
     - [ ] "random" movement pattern
     - [ ] ShiftLock support
     - [ ] Walking slowdown calculation
-- [ ] Discord Bot for interaction / Discord Webhook Notifications
 - [ ] Config presets (allows you to setup multiple config files)
 - [ ] Adaptive dirt bar recognition (special effects, low saturation etc etc)
+- [ ] Monitor Selection UI
 
 ---
 

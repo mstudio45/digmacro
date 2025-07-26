@@ -4,7 +4,7 @@ set "BUILD_VERSION=MATRIX.VERSION"
 
 echo %BUILD_VERSION% | findstr "MATRIX." >nul
 if %errorlevel%==0 (
-    set "BUILD_VERSION=2.0.3"
+    set "BUILD_VERSION=2.0.4"
     echo Using default BUILD_VERSION: %BUILD_VERSION%
 ) else (
     echo Using provided BUILD_VERSION: %BUILD_VERSION%

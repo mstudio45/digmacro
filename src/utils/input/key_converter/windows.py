@@ -92,7 +92,7 @@ class KeyConverter:
         # get the key from cache #
         cached_key = self._cache.get(normalized_key, None)
         if cached_key is not None:
-            logging.info(f"Using cached key: '{raw_key_str}' -> '{key}'.")
+            logging.info(f"Using cached key: '{raw_key_str}' -> '{cached_key}'.")
             return cached_key
 
         # get the key and store in cache #

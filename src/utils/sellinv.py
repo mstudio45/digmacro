@@ -7,6 +7,7 @@ from config import Config
 
 from utils.input.mouse import left_click, move_mouse, get_mouse_pos
 import utils.input.keyboard as Keyboard
+from utils.discord.bot import discord_bot
 
 from utils.images.screen import screen_region
 
@@ -37,7 +38,7 @@ class SellUI:
             Keyboard.press_key("\\"); time.sleep(0.35)
 
             self.toggle_shop()
-            time.sleep(0.25)
+            time.sleep(0.35)
         else:
             old_cursor_pos = get_mouse_pos()
             
@@ -63,7 +64,11 @@ class SellUI:
             
             if Config.PATHFINDING_MACRO == "risk_spin":
                 Keyboard.press_key("shift")
-                time.sleep(0.25)
+                time.sleep(0.35)
 
+        if discord_bot.running:
+            time.sleep(1)
+            discord_bot.send_auto_sell()
+        
         self.total_sold = total_sold_add
         Variables.is_selling = False

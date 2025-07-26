@@ -98,12 +98,8 @@ import pyautogui
 import mss
 import interface.msgbox as msgbox
 
-try: import cv2
-except ImportError as e:
-    if "numpy" in str(e):
-        import numpy as np
-        import cv2
-    else: raise e
+import numpy as np
+import cv2
 
 # unslow packages #
 pyautogui.PAUSE = 0
@@ -353,6 +349,11 @@ if __name__ == "__main__":
     import interface.web_ui as WebUI
     from interface.region_selection import RegionSelector
     logging.info("======== INTERFACE HANDLERS END ========".center(60, "="))
+
+    logging.info("======== DISCORD BOT ========".center(60, "="))
+    import nextcord
+    from utils.discord.bot import discord_bot
+    logging.info("======== DISCORD BOT END ========".center(60, "="))
 
     class MacroHandler:
         def __init__(self):
@@ -678,9 +679,13 @@ if __name__ == "__main__":
                             Variables.dig_count = Variables.dig_count + 1
                             Variables.last_minigame_detection = None
 
-                            logging.info("Added 1 to dig_count, waiting...")
-                            logging.info("========= STARTING AUTO HANDLERS =========")
+                            logging.info("========== Added 1 to dig_count, waiting... ===========")
                             digging_finished = True
+
+                            if Variables.dig_count > 0 and Variables.dig_count % 5 == 0:
+                                logging.info("[Discord] Sending minigame information.")
+                                discord_bot.send_minigame_info()
+
                             if Variables.sleep(0.75): break
 
                     else: digging_finished = True
@@ -923,20 +928,6 @@ if __name__ == "__main__":
             msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
             Config.PATHFINDING = False
 
-    # notify user #
-    # arch = platform.machine()
-    # if current_os == "Darwin" and (arch == "i386" or arch == "x86_64"):
-    #     msgbox.alert(
-    #         "For best performance, keep Roblox FPS locked at 60 FPS.\n\n"
-    #         "Inside Roblox Settings: (Roblox icon in top left corner)\n"
-    #         "   → set 'Maximum Frame Rate' to '60 FPS'\n"
-    #         "   → set 'Graphics Mode' to 'Manual'\n" 
-    #         "   → set 'Graphics Quality' to 'Low (levels 1–3)'\n"
-    # 
-    #         "Inside DIG: (cogwheel icon)\n"
-    #         "   → enable 'Low Graphics' mode"
-    #     )
-
     # region #
     macro.setup_finder_thread()
     macro.setup_region_setter()
@@ -951,6 +942,10 @@ if __name__ == "__main__":
     if Variables.is_running:
         disable_spammy_loggers()
 
+        # load discord bot #
+        discord_bot.run()
+
+        # load ui #
         logging.info("Loading UI...")
         macro.ui.start(macro.main_loop)
         macro.exit_macro()

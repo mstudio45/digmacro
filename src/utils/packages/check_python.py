@@ -20,6 +20,7 @@ required_packages = {
         { "pip": "psutil",          "import": "psutil",         "version": "all"   },
         { "pip": "pillow",          "import": "PIL",            "version": "all"   },
         { "pip": "watchdog",        "import": "watchdog",       "version": "all"   },
+        { "pip": "nextcord",        "import": "nextcord",       "version": "all"   },
     ],
 
     "Windows": [

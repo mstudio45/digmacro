@@ -31,88 +31,107 @@ elif current_os == "Linux":
 
 settings_table = {
     # SYSTEM OPTIONS #
-    "TARGET_FPS": {
-        "widget": "QSpinBox",
-        "tooltip": "Target Frames Per Second for the macro. (mss on Windows will lock the FPS depending on your monitor refresh rate)",
-        "min": 1,
-        "max": 1000
-    },
-    "MACOS_DISPLAY_SCALE_OVERRIDE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
-        "min": 0.0,
-        "max": 3.0,
-        "step": 0.1,
-        "enabled": current_os == "Darwin"
-    },
-    "LOGGING_ENABLED": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable log files."
+    "SYSTEM": {
+        "TARGET_FPS": {
+            "widget": "QSpinBox",
+            "tooltip": "Target Frames Per Second for the macro. (mss on Windows will lock the FPS depending on your monitor refresh rate)",
+            "min": 1,
+            "max": 1000
+        },
+        "MACOS_DISPLAY_SCALE_OVERRIDE": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
+            "min": 0.0,
+            "max": 3.0,
+            "step": 0.1,
+            "enabled": current_os == "Darwin"
+        },
+        "LOGGING_ENABLED": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable log files."
+        },
     },
 
-    # DISCORD WEBHOOK OPTIONS #
-    # "DISCORD_NOTIFICATIONS": {
-    #     "widget": "QCheckBox",
-    #     "tooltip": "Enable or disable the Discord Notifications."
-    # },
-    # "DISCORD_WEBHOOK_URL": {
-    #     "widget": "QLineEdit",
-    #     "tooltip": "Your Discord Webhook URL."
-    # },
+    # DISCORD BOT OPTIONS #
+    "DISCORD": {
+        "__WARNING": "⚠ DO NOT SHARE THE BOT TOKEN WITH ANYONE ⚠",
+        "__INFO": "Use the /setup command to configure the bot.\nMake sure the bot has 'Message Content' intent enabled.",
+
+        "DISCORD_BOT_ENABLED": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable the Discord Bot."
+        },
+        "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": {
+            "widget": "QCheckBox",
+            "tooltip": "Show screenshots inside the log channel."
+        },
+        "DISCORD_USER_ID": {
+            "widget": "QLineEdit",
+            "tooltip": "Your User ID of your Discord account. (required for every command)",
+        },
+        "DISCORD_BOT_TOKEN": {
+            "widget": "QLineEdit",
+            "tooltip": "Your Discord Bot Token.",
+            "password": True,
+        },
+    },
 
     # AUTO REJOIN OPTIONS #
-    "AUTO_REJOIN": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable the rejoining system."
+    "ROBLOX": {
+        "AUTO_REJOIN": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable the rejoining system."
+        },
+        "PRIVATE_SERVER_CODE": {
+            "widget": "QLineEdit",
+            "tooltip": "Your private server code. (the code from this link: https://www.roblox.com/games/126244816328678/DIG?privateServerLinkCode=XXXXXXXXXXXXXXXXXXXX)"
+        },
+        "AUTO_REJOIN_INACTIVITY_TIMEOUT": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes, to disable this set the value to 0).",
+            "min": 0.0,
+            "max": 10.0,
+            "step": 0.1
+        },
+        "AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS": {
+            "widget": "QSpinBox",
+            "tooltip": "The number of failed start minigame attempts required to rejoin.",
+            "min": 15,
+            "max": 200
+        },
+        "AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK": {
+            "widget": "QCheckBox",
+            "tooltip": "If enabled, the Auto Rejoin will be able to join public servers using 'AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC'.",
+        },
+        "AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC": {
+            "widget": "QSpinBox",
+            "tooltip": "The number of failed rejoins to your private server required to join a public server.",
+            "min": 2,
+            "max": 10
+        },
     },
-    "PRIVATE_SERVER_CODE": {
-        "widget": "QLineEdit",
-        "tooltip": "Your private server code. (the code from this link: https://www.roblox.com/games/126244816328678/DIG?privateServerLinkCode=XXXXXXXXXXXXXXXXXXXX)"
-    },
-    "AUTO_REJOIN_INACTIVITY_TIMEOUT": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes, to disable this set the value to 0).",
-        "min": 0.0,
-        "max": 10.0,
-        "step": 0.1
-    },
-    "AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS": {
-        "widget": "QSpinBox",
-        "tooltip": "The number of failed start minigame attempts required to rejoin.",
-        "min": 15,
-        "max": 200
-    },
-    "AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK": {
-        "widget": "QCheckBox",
-        "tooltip": "If enabled, the Auto Rejoin will be able to join public servers using 'AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC'.",
-    },
-    "AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC": {
-        "widget": "QSpinBox",
-        "tooltip": "The number of failed rejoins to your private server required to join a public server.",
-        "min": 2,
-        "max": 10
-    },
-    
+
     # MINIGAME OPTIONS #
-    "USE_SAVED_POSITION": {
-        "widget": "QCheckBox",
-        "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
-    },
-    "AUTO_START_MINIGAME": {
-        "widget": "QCheckBox",
-        "tooltip": "Auto clicks to start the minigame so you don't need to use an auto clicker."
-    },
+    "MINIGAME": {
+        "USE_SAVED_POSITION": {
+            "widget": "QCheckBox",
+            "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
+        },
+        "AUTO_START_MINIGAME": {
+            "widget": "QCheckBox",
+            "tooltip": "Auto clicks to start the minigame so you don't need to use an auto clicker."
+        },
 
-    "MIN_CLICK_INTERVAL": {
-        "widget": "QSpinBox",
-        "tooltip": "Minimum time between clicks (in milliseconds).",
-        "min": 0,
-        "max": 150
-    },
+        "MIN_CLICK_INTERVAL": {
+            "widget": "QSpinBox",
+            "tooltip": "Minimum time between clicks (in milliseconds).",
+            "min": 0,
+            "max": 150
+        },
 
-    "PLAYER_BAR_DETECTION": {
-        "widget": "QComboBox",
-        "tooltip": """
+        "PLAYER_BAR_DETECTION": {
+            "widget": "QComboBox",
+            "tooltip": """
 ZerosLike: 
     - Recommended for Windows, Intel MacBooks. 
     - Uses 'zeros like' mask to find the player bar using numpy.
@@ -123,179 +142,192 @@ Canny:
     - Slower than other methods, less false detections when the cooldown icon is present.
     - Uses Canny edge detection to find the player bar using OpenCV.
     [ Might not work on certain CPUs, brightness and saturation settings. ]
-""",
-        "items": ["ZerosLike", "Gradient", "Canny"]
-    },
-    "PLAYER_BAR_WIDTH": {
-        "widget": "QSpinBox",
-        "tooltip": "The width of the player bar.",
-        "min": 2,
-        "max": 10
-    },
-    "PLAYER_BAR_CANNY_THRESHOLD": {
-        "widget": "QSpinBox",
-        "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Canny detections).",
-        "min": 0,
-        "max": 255
-    },
+    """,
+            "items": ["ZerosLike", "Gradient", "Canny"]
+        },
+        "PLAYER_BAR_WIDTH": {
+            "widget": "QSpinBox",
+            "tooltip": "The width of the player bar.",
+            "min": 2,
+            "max": 10
+        },
+        "PLAYER_BAR_CANNY_THRESHOLD": {
+            "widget": "QSpinBox",
+            "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Canny detections).",
+            "min": 0,
+            "max": 255
+        },
 
-    "DIRT_CLICKABLE_WIDTH": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01
-    },
-    "DIRT_THRESHOLD": {
-        "widget": "QSpinBox",
-        "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
-        "min": 0,
-        "max": 50
+        "DIRT_CLICKABLE_WIDTH": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "The width of the 'STRONG' clicking area as a percentage of dirt bar width (percentage / 100).",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01
+        },
+        "DIRT_THRESHOLD": {
+            "widget": "QSpinBox",
+            "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
+            "min": 0,
+            "max": 50
+        },
     },
     
     # PATHFINDING OPTIONS #
     "PATHFINDING": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable pathfinding movement."
-    },
-    "PATHFINDING_MACRO": {
-        "widget": "QComboBox",
-        "tooltip": "Select the movement pattern for pathfinding.",
-        "items": None
+        "PATHFINDING": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable pathfinding movement."
+        },
+        "PATHFINDING_MACRO": {
+            "widget": "QComboBox",
+            "tooltip": "Select the movement pattern for pathfinding.",
+            "items": None
+        },
     },
     
     # AUTO SELL OPTIONS #
-    "AUTO_SELL": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
-    },
-    "AUTO_SELL_MODE": {
-        "widget": "QComboBox",
-        "tooltip": "UI Navigation: Uses Roblox UI Navigation enabled by '\\' key.\nMouse Movement: Uses mouse to click the button (less reliable, semi breaks 'risk_spin', requires AUTO_SELL_BUTTON_POSITION)",
-        "items": ["UI Navigation", "Mouse Movement"]
-    },
-    "AUTO_SELL_BUTTON_POSITION": {
-        "widget": "QMousePicker",
-        "tooltip": "X and Y position of the 'Sell Inventory' button. (requried for 'Mouse Movement' mode)"
-    },
-    "AUTO_SELL_REQUIRED_ITEMS": {
-        "widget": "QSpinBox",
-        "tooltip": "Number of digs before auto-selling will happen.",
-        "min": 1,
-        "max": 1000
-    },
-    "AUTO_SELL_AFTER_PATHFINDING_MACRO": {
-        "widget": "QCheckBox",
-        "tooltip": "This option ignores 'AUTO_SELL_REQUIRED_ITEMS' and will sell when the pathfinding macro finishes."
+    "AUTO SELL": {
+        "AUTO_SELL": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
+        },
+        "AUTO_SELL_MODE": {
+            "widget": "QComboBox",
+            "tooltip": "UI Navigation: Uses Roblox UI Navigation enabled by '\\' key.\nMouse Movement: Uses mouse to click the button (less reliable, semi breaks 'risk_spin', requires AUTO_SELL_BUTTON_POSITION)",
+            "items": ["UI Navigation", "Mouse Movement"]
+        },
+        "AUTO_SELL_BUTTON_POSITION": {
+            "widget": "QMousePicker",
+            "tooltip": "X and Y position of the 'Sell Inventory' button. (requried for 'Mouse Movement' mode)"
+        },
+        "AUTO_SELL_REQUIRED_ITEMS": {
+            "widget": "QSpinBox",
+            "tooltip": "Number of digs before auto-selling will happen.",
+            "min": 1,
+            "max": 1000
+        },
+        "AUTO_SELL_AFTER_PATHFINDING_MACRO": {
+            "widget": "QCheckBox",
+            "tooltip": "This option ignores 'AUTO_SELL_REQUIRED_ITEMS' and will sell when the pathfinding macro finishes."
+        },
     },
 
     # PREDICTION OPTIONS #
-    "USE_PREDICTION": {
-        "widget": "QCheckBox",
-        "tooltip": "Calculate prediction using acceleration and velocity history.",
-        
-        "enabled": False
-    },
-    "PREDICTION_MAX_TIME_AHEAD": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Used inside the kinematic equation as the variable 't' (bigger = further prediction, but less reliable).",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
+    "PREDICTION": {
+        "USE_PREDICTION": {
+            "widget": "QCheckBox",
+            "tooltip": "Calculate prediction using acceleration and velocity history.",
+            
+            "enabled": False
+        },
+        "PREDICTION_MAX_TIME_AHEAD": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Used inside the kinematic equation as the variable 't' (bigger = further prediction, but less reliable).",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
 
-        "enabled": False
-    },
-    "PREDICTION_MIN_VELOCITY": {
-        "widget": "QSpinBox",
-        "tooltip": "Required minimum velocity of the player bar for prediction.",
-        "min": 0,
-        "max": 1000,
-        
-        "enabled": False
-    },
-    "PREDICTION_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Confidence needed for the prediction to trigger a click (0.0 to 1.0).",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        
-        "enabled": False
-    },
-    "PREDICTION_CENTER_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Minimum confidence required to click when player bar is reasonably centered inside the dirt part.",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        
-        "enabled": False
-    },
-    "PREDICTION_SLOW_CONFIDENCE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Minimum confidence required to click when player bar is moving slowly to the center of the dirt part.",
-        "min": 0.0,
-        "max": 1.0,
-        "step": 0.01,
-        
-        "enabled": False
+            "enabled": False
+        },
+        "PREDICTION_MIN_VELOCITY": {
+            "widget": "QSpinBox",
+            "tooltip": "Required minimum velocity of the player bar for prediction.",
+            "min": 0,
+            "max": 1000,
+            
+            "enabled": False
+        },
+        "PREDICTION_CONFIDENCE": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Confidence needed for the prediction to trigger a click (0.0 to 1.0).",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            
+            "enabled": False
+        },
+        "PREDICTION_CENTER_CONFIDENCE": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Minimum confidence required to click when player bar is reasonably centered inside the dirt part.",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            
+            "enabled": False
+        },
+        "PREDICTION_SLOW_CONFIDENCE": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Minimum confidence required to click when player bar is moving slowly to the center of the dirt part.",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            
+            "enabled": False
+        },
     },
 
     # PACKAGES OPTIONS #
-    "MOUSE_INPUT_PACKAGE": {
-        "widget": "QComboBox",
-        "tooltip": "Select the mouse input package to use.",
-        "items": mouse_input_packages
-    },
-    "KEYBOARD_INPUT_PACKAGE": {
-        "widget": "QComboBox",
-        "tooltip": "Select the keyboard input package to use.",
-        "items": keyboard_input_packages
-    },
-    "SCREENSHOT_PACKAGE": {
-        "widget": "QComboBox",
-        "tooltip": "Select the screenshot package to use.",
-        "items": screenshot_packages
+    "PACKAGES": {
+        "MOUSE_INPUT_PACKAGE": {
+            "widget": "QComboBox",
+            "tooltip": "Select the mouse input package to use.",
+            "items": mouse_input_packages
+        },
+        "KEYBOARD_INPUT_PACKAGE": {
+            "widget": "QComboBox",
+            "tooltip": "Select the keyboard input package to use.",
+            "items": keyboard_input_packages
+        },
+        "SCREENSHOT_PACKAGE": {
+            "widget": "QComboBox",
+            "tooltip": "Select the screenshot package to use.",
+            "items": screenshot_packages
+        },
     },
     
     # GUI OPTIONS #
-    "UI_ON_TOP": {
-        "widget": "QCheckBox",
-        "tooltip": "Enable or disable if the UI should appear over everything on the screen."
-    },
-    "UI_SCALE_OVERRIDE": {
-        "widget": "QDoubleSpinBox",
-        "tooltip": "Option that makes the UI window smaller or bigger.",
-        "min": 0.5,
-        "max": 2.5,
-        "step": 0.1,
-    },
-    "SHOW_COMPUTER_VISION": {
-        "widget": "QCheckBox",
-        "tooltip": "Displays an image with all of the highlighted information that the computer has."
-    },
-    "SHOW_DEBUG_MASKS": {
-        "widget": "QCheckBox",
-        "tooltip": "Displays all of the image masks on what the macro sees."
-    },
-    "DEBUG_IMAGE_FPS": {
-        "widget": "QSpinBox",
-        "tooltip": "The FPS of the debug image inside the UI window.",
-        "min": 1,
-        "max": 480,
-        "step": 1
+    "GUI": {
+        "UI_ON_TOP": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable if the UI should appear over everything on the screen."
+        },
+        "UI_SCALE_OVERRIDE": {
+            "widget": "QDoubleSpinBox",
+            "tooltip": "Option that makes the UI window smaller or bigger.",
+            "min": 0.5,
+            "max": 2.5,
+            "step": 0.1,
+        },
+        "SHOW_COMPUTER_VISION": {
+            "widget": "QCheckBox",
+            "tooltip": "Displays an image with all of the highlighted information that the computer has."
+        },
+        "SHOW_DEBUG_MASKS": {
+            "widget": "QCheckBox",
+            "tooltip": "Displays all of the image masks on what the macro sees."
+        },
+        "DEBUG_IMAGE_FPS": {
+            "widget": "QSpinBox",
+            "tooltip": "The FPS of the debug image inside the UI window.",
+            "min": 1,
+            "max": 480,
+            "step": 1
+        },
     },
     
     # SCREENSHOTS OPTIONS #
-    "PREDICTION_SCREENSHOTS": {
-        "widget": "QCheckBox",
-        "tooltip": "Enables making screenshots for each prediction clicks (requires 'Show Debug' to be enabled).",
-        
-        "enabled": False
-    },
-    "SCREENSHOT_EVERY_CLICK": {
-        "widget": "QCheckBox",
-        "tooltip": "Enables making screenshots for each click (requires 'Show Debug' to be enabled)."
+    "DEBUG SCREENSHOTS": {
+        "PREDICTION_SCREENSHOTS": {
+            "widget": "QCheckBox",
+            "tooltip": "Enables making screenshots for each prediction clicks (requires 'Show Debug' to be enabled).",
+            
+            "enabled": False
+        },
+        "SCREENSHOT_EVERY_CLICK": {
+            "widget": "QCheckBox",
+            "tooltip": "Enables making screenshots for each click (requires 'Show Debug' to be enabled)."
+        },
     },
 
     "default": {
@@ -322,10 +354,12 @@ class ConfigManager:
                 "LOGGING_ENABLED": True
             },
 
-            # "DISCORD": {
-            #     "DISCORD_NOTIFICATIONS": False,
-            #     "DISCORD_WEBHOOK_URL": "",
-            # },
+            "DISCORD": {
+                "DISCORD_BOT_ENABLED": False,
+                "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": True,
+                "DISCORD_USER_ID": "",
+                "DISCORD_BOT_TOKEN": "",
+            },
 
             "ROBLOX": {
                 "AUTO_REJOIN": False,
@@ -487,6 +521,8 @@ class ConfigManager:
         for section in self.config:
             if section not in parser:
                 continue
+            if section.startswith("__"):
+                continue
             
             for key in self.config[section]:
                 try:
@@ -549,15 +585,21 @@ class ConfigManager:
 
     def save_config(self):
         parser = configparser.ConfigParser()
+        parser["__WARNING__"] = {
+            "1": "!!! REMOVE THE DISCORD BOT TOKEN BEFORE SHARING YOUR CONFIG   !!!",
+            "2": "!!!         EXPOSING YOUR DISCORD BOT TOKEN CAN LEAD          !!!",
+            "3": "!!!             TO YOUR BOT BEING COMPROMISED                 !!!"
+        }
+
         for section, options in self.config.items():
             parser[section] = {}
             
             for k, v in options.items():
-                val = str(v)
+                key, val = str(k), str(v)
                 if isinstance(v, tuple):
                     val = f"pos:{v[0]}x{v[1]}"
                 
-                parser[section][str(k)] = val
+                parser[section][key] = val
         
         # save as json #
         write(StaticVariables.pathfinding_macros_filepath, self._format_pathfinding_macros())
@@ -570,7 +612,7 @@ class ConfigManager:
     # setter #
     def set(self, section, key, value, save_config=True):
         if section in self.config and key in self.config[section]:
-            setattr(self, key,  value)
+            setattr(self, key, value)
             self.config[section][key] = value
             if save_config: self.save_config() # instant save #
         else:
