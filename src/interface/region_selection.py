@@ -132,8 +132,8 @@ else:
     import tkinter as tk
 
     class RegionSelector:
-        def __init__(self):
-            pass
+        def __init__(self, stop_macro=False):
+            self.stop_macro = stop_macro
 
         def start(self):
             self.root = tk.Tk()
@@ -164,6 +164,12 @@ else:
             self.root.bind("<Escape>", self.on_escape)
             self.root.focus_set()
             self.root.mainloop()
+
+        def stop(self):
+            try:
+                if self.stop_macro == True: Variables.is_running = False
+                self.root.destroy()
+            except: pass
 
         def on_mouse_press(self, event):
             self.start_x, self.start_y = event.x_root, event.y_root
@@ -201,12 +207,11 @@ else:
                 "width": x2 - x1,
                 "height": y2 - y1,
             }
-            self.root.destroy()
+            self.stop()
 
         def on_escape(self, event):
             self.selection = None
-            Variables.is_running = False
-            self.root.destroy()
+            self.stop()
 
         def get_selection(self):
             return self.selection

@@ -8,9 +8,9 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QCheckBox, QSpinBox, QDoubleSpinBox, QLineEdit,
     QPushButton, QLabel, QGroupBox, QComboBox, QMessageBox,
-    QScrollArea
+    QScrollArea, QSizePolicy
 )
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 import pynput
 
 from config import Config, settings_table
@@ -70,6 +70,63 @@ class QMousePicker(QWidget):
 
         self._pos = (int(x), int(y))
         self.info_label.setText(f"X={x}, Y={y}")
+
+        self.valueChanged.emit(self.value())
+
+class QRegionSelector(QWidget):
+    valueChanged = Signal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.picking = False
+        self._pos = (0, 0)
+
+        self.info_label = QLabel("No region picked")
+
+        self.pick_button = QPushButton("Pick Region")
+        self.pick_button.clicked.connect(self.start_picking)
+
+        row_layout = QHBoxLayout()
+
+        row_layout.addWidget(self.info_label)
+        row_layout.addWidget(self.pick_button)
+
+        self.setLayout(row_layout)
+
+    def start_picking(self):
+        if self.picking: return
+
+        old_text = self.info_label.text()
+        self.info_label.setText("Waiting...")
+        self.picking = True
+        
+        from interface.region_selection import RegionSelector
+        region_selector = RegionSelector()
+
+        region_selector.start()
+        region = region_selector.get_selection()
+        if region is None:
+            self.picking = False
+            self.info_label.setText(old_text)
+            QMessageBox.information(
+                self,
+                "Region Select",
+                "No region selected."
+            )
+            return
+
+        self.picking = False
+        self.set(region["left"], region["top"], region["width"], region["height"])
+        region_selector.stop()
+        
+    def value(self):
+        return f"region:{self._pos[0]}x{self._pos[1]}x{self._pos[2]}x{self._pos[3]}"
+
+    def set(self, left=None, top=None, width=None, height=None):
+        if not left or not top or not width or not height: return
+
+        self._pos = (int(left), int(top), int(width), int(height))
+        self.info_label.setText(f"({left}, {top}, {width}, {height})")
 
         self.valueChanged.emit(self.value())
 
@@ -211,6 +268,7 @@ class ConfigUI(QWidget):
             for key, value in options.items():
                 row_layout = QHBoxLayout()
                 label = QLabel(f"{key}:")
+
                 row_layout.addWidget(label)
 
                 widget = None
@@ -218,7 +276,7 @@ class ConfigUI(QWidget):
                 widget_type = widget_settings["widget"]
                 tooltip = widget_settings.get("tooltip", settings_table["default"].get("tooltip", ""))
                 is_enabled = widget_settings.get("enabled", True)
-                
+
                 if widget_type == "QCheckBox":
                     widget = QCheckBox()
   
@@ -246,14 +304,19 @@ class ConfigUI(QWidget):
           
                 elif widget_type == "QMousePicker":
                     widget = QMousePicker()
+                
+                elif widget_type == "QRegionSelector":
+                    widget = QRegionSelector()
    
                 elif widget_type == "QLineEdit":
                     widget = QLineEdit()
+                    widget.setAlignment(Qt.AlignLeft)
+
                     if widget_settings.get("password", False) == True:
                         widget.setEchoMode(QLineEdit.Password)
-                 
                 else:
                     widget = QLineEdit() # fallback #
+                    widget.setAlignment(Qt.AlignLeft)
                 
                 widget.setEnabled(is_enabled)
 
@@ -261,7 +324,9 @@ class ConfigUI(QWidget):
                 label.setToolTip(tooltip)
                 widget.setToolTip(tooltip)
 
+                widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
                 row_layout.addWidget(widget)
+
                 self.widgets[f"{section}_{key}"] = widget
                 group_layout.addLayout(row_layout)
 
@@ -318,6 +383,9 @@ class ConfigUI(QWidget):
                     elif isinstance(widget, QMousePicker):
                         widget.valueChanged.connect(self.on_change_made)
 
+                    elif isinstance(widget, QRegionSelector):
+                        widget.valueChanged.connect(self.on_change_made)
+
     # regions #
     def delete_selected_region(self):
         cur_region = self.region_widget.currentText() 
@@ -354,6 +422,9 @@ class ConfigUI(QWidget):
                             widget.setCurrentIndex(index)
 
                     elif isinstance(widget, QMousePicker):
+                        widget.set(*value)
+
+                    elif isinstance(widget, QRegionSelector):
                         widget.set(*value)
 
     def save_settings(self):
@@ -398,6 +469,9 @@ class ConfigUI(QWidget):
                         new_value = widget.currentText()
                     
                     elif isinstance(widget, QMousePicker):
+                        new_value = widget.value()
+                    
+                    elif isinstance(widget, QRegionSelector):
                         new_value = widget.value()
 
                     if new_value is not None:

@@ -1,13 +1,13 @@
 @echo off
+setlocal enabledelayedexpansion
 
 set "BUILD_VERSION=MATRIX.VERSION"
 
-echo %BUILD_VERSION% | findstr "MATRIX." >nul
-if %errorlevel%==0 (
+if "%BUILD_VERSION%"=="MATRIX.VERSION" (
     set "BUILD_VERSION=2.0.4"
-    echo Using default BUILD_VERSION: %BUILD_VERSION%
+    echo Using default BUILD_VERSION: !BUILD_VERSION!
 ) else (
-    echo Using provided BUILD_VERSION: %BUILD_VERSION%
+    echo Using provided BUILD_VERSION: !BUILD_VERSION!
 )
 
 echo Creating environment directories...
@@ -36,12 +36,18 @@ if not exist "output" (
     mkdir output
 )
 
-call env\build\Windows\Scripts\activate
+cd env
+cd build
+
+call Windows\Scripts\activate
+
+cd ..
+cd ..
 
 cd src
 
 echo Installing dependencies...
-py main.py --only-install --force-reinstall
+py main.py --only-install
 
 py -m nuitka --version >nul 2>&1
 if errorlevel 1 (
@@ -58,7 +64,7 @@ py -m nuitka ^
   --assume-yes-for-downloads ^
   --company-name="mstudio45" ^
   --product-name="DIG Macro" ^
-  --file-version="%BUILD_VERSION%" ^
+  --file-version="!BUILD_VERSION!" ^
   --file-description="DIG Macro is a tool that automatically plays the minigame in the Roblox game DIG." ^
   --copyright="© mstudio45 2025 - https://github.com/mstudio45/digmacro" ^
   --enable-plugin=pyside6,tk-inter ^

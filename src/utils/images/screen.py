@@ -274,6 +274,15 @@ logging.info(f"Scale factor (to 1080p): {scale_x_1080p}, {scale_y_1080p}\n")
 
 logging.info("========================\n")
 
+def convert_to_rgb(image):
+    if image.ndim == 2 or image.shape[2] == 1:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    elif image.shape[2] == 4:
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+    elif image.shape[2] == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
+
 black_pixel = np.zeros((1, 1, 3), dtype=np.uint8)
 def stack_images_with_dividers(images, margin_thickness=2):
     lenght_images = len(images)
@@ -330,25 +339,14 @@ def stack_images_with_dividers(images, margin_thickness=2):
 
 def write_image(filename, image):
     try: 
-        if image.ndim == 2 or image.shape[2] == 1:
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        elif image.shape[2] == 4:
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
-        elif image.shape[2] == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = convert_to_rgb(image)
         cv2.imwrite(filename, image)
     except Exception as e:
         logging.error(f"'{str(filename)}' write error: \n{traceback.format_exc()}")
 
 def image_to_base64(image):
     try:
-        if image.ndim == 2 or image.shape[2] == 1:
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        elif image.shape[2] == 4:
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
-        elif image.shape[2] == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+        image = convert_to_rgb(image)
         pil_image = Image.fromarray(image)
 
         # to base64 #

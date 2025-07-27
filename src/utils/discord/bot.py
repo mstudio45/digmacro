@@ -5,6 +5,8 @@ import os
 import json
 import asyncio
 import traceback
+import platform
+import datetime
 
 import nextcord
 from nextcord.ext import commands
@@ -23,7 +25,8 @@ import interface.msgbox as msgbox
 from config import Config
 from variables import Variables, StaticVariables
 
-__all__ = ["start_discord_bot", "send_message_to_log_channel"]
+__all__ = ["discord_bot"]
+current_os = platform.system()
 
 class DiscordBot:
     def __init__(self):
@@ -31,6 +34,17 @@ class DiscordBot:
         self.discord_config = self._load_config()
         self.allowed_user_id = int(Config.DISCORD_USER_ID)
 
+        # load ocr #
+        self.ocr_util = None 
+        if Config.DISCORD_ENABLE_STATISTICS:
+            logging.info("[Discord] Loading OCR...")
+            from utils.OCR.ocr import GameOCR
+            from utils.OCR.stats import GameStatLib
+
+            self.ocr_util = GameOCR()
+            self.stat_lib = GameStatLib(self)
+
+        # load bot #
         intents = nextcord.Intents.default()
         intents.guilds = True
         intents.members = True
@@ -45,6 +59,9 @@ class DiscordBot:
 
         # channels cache #
         self.channels = {}
+
+    # styling funcs #
+    def bool_to_emoji(self, val): return "✅" if val == True else "❌"
 
     # config #
     def _load_config(self):
@@ -83,22 +100,65 @@ class DiscordBot:
     def _register_events(self):
         @self.bot.event
         async def on_ready():
-            logging.info(f"[Discord] Logged in as '{self.bot.user.name}'.")
-
             # setup channels #
             logging.info("[Discord] Fetching channels...")
             self._setup_channel("LOG_CHANNEL", "logs")
 
             # startup log #
             try:
-                await self.channels["logs"].send(embed=Embed(
+                embed = Embed(
                     title="Information",
                     description="Started successfully.",
-                    color=Color.green()
-                ))
+                    color=Color.green(),
+                    timestamp=datetime.datetime.now()
+                )
+
+                if current_os == "Windows":
+                    embed.add_field(
+                        name="Statistics",
+                        value=f"`Enabled: {self.bool_to_emoji(self.ocr_util is not None)}`"
+                    )
+
+                await self.channels["logs"].send(embed=embed)
             except Exception as e: msgbox.alert(f"[Discord] Failed to send startup message: {str(e)}", log_level=logging.CRITICAL)
+
+            # main loop #
+            self.stat_lib.run_information_loop(Config.DISCORD_STATISTICS_INTERVAL)
+
+            logging.info(f"[Discord] Logged in as '{self.bot.user.name}'.")
     
     # commands #
+    def add_screenshot_to_embed(self, embed):
+        file = None
+        try:
+            if Config.DISCORD_SHOW_SCREENSHOTS_IN_LOGS == True:
+                image_array = take_screenshot(region=logical_screen_region)
+                image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
+
+                # convert image #
+                image = Image.fromarray(image_array)
+                buffer = io.BytesIO()
+                image.save(buffer, format="PNG")
+                buffer.seek(0)
+
+                file = nextcord.File(fp=buffer, filename="screenshot.png")
+                embed.set_image(url="attachment://screenshot.png")
+        except Exception as e:
+            logging.debug(f"Failed to take screenshot: {traceback.format_exc()}")
+        
+        return file
+
+    async def send_message(self, channel_key, **kwargs):
+        channel = self.channels.get(channel_key, None)
+        if not channel:
+            logging.warning(f"Invalid channel key: {channel_key}")
+            return
+        
+        try:
+            await channel.send(**kwargs)
+        except Exception as e:
+            logging.warning(f"Failed to send message to '{channel_key}': {str(e)}")
+
     def _register_commands(self):
         logging.info("[Discord] Loading commands...")
 
@@ -113,7 +173,8 @@ class DiscordBot:
             embed = Embed(
                 title="Commands List",
                 description="Here are all the available slash commands:",
-                color=Color.blue()
+                color=Color.blue(),
+                timestamp=datetime.datetime.now()
             )
 
             for cmd in self.bot._connection.application_commands:
@@ -146,7 +207,8 @@ class DiscordBot:
             msg = await interaction.response.send_message(embed=Embed(
                 title="Setup Started",
                 description="Please follow the instructions.",
-                color=Color.blue()
+                color=Color.blue(),
+                timestamp=datetime.datetime.now()
             ), ephemeral=True)
 
             # vars #
@@ -163,7 +225,8 @@ class DiscordBot:
                 except ValueError:
                     await interaction.followup.send(embed=Embed(
                         description="Invalid Channel ID provided.",
-                        color=Color.red()
+                        color=Color.red(),
+                        timestamp=datetime.datetime.now()
                     ), ephemeral=True)
                     return
                 
@@ -171,7 +234,8 @@ class DiscordBot:
                 if log_channel is None or log_channel.guild.id != interaction.guild.id:
                     await interaction.followup.send(embed=Embed(
                         description="Invalid channel or channel does not belong to this server.",
-                        color=Color.red()
+                        color=Color.red(),
+                        timestamp=datetime.datetime.now()
                     ), ephemeral=True)
                     return
                 
@@ -182,7 +246,8 @@ class DiscordBot:
                 await interaction.followup.send(embed=Embed(
                     title="Log Channel Set",
                     description=f"Log channel set to {log_channel.mention}!",
-                    color=Color.green()
+                    color=Color.green(),
+                    timestamp=datetime.datetime.now()
                 ), ephemeral=True)
 
             if changes_made == True:
@@ -191,7 +256,8 @@ class DiscordBot:
             embed = Embed(
                 title="Configuration Summary",
                 description="Here is your current setup:",
-                color=Color.blue()
+                color=Color.blue(),
+                timestamp=datetime.datetime.now()
             )
 
             embed.add_field(
@@ -223,7 +289,7 @@ class DiscordBot:
                 file = nextcord.File(fp=buffer, filename="screenshot.png")
                 await interaction.response.send_message(file=file, ephemeral=True)
             except Exception as e:
-                msg = f"Failed to take screenshot: {traceback.format_exc()}"
+                msg = f"Failed to take screenshot:\n```\n{traceback.format_exc()}\n```"
                 logging.debug(msg)
                 await interaction.response.send_message(msg, ephemeral=True)
 
@@ -235,47 +301,81 @@ class DiscordBot:
 
             content = f"""\
 Flags:
-  Is Running:         {Variables.is_running}
-  Is Paused:          {Variables.is_paused}
-  Is Roblox Focused:  {Variables.is_roblox_focused}
+  Is Running:           {self.bool_to_emoji(Variables.is_running)}
+  Is Paused:            {self.bool_to_emoji(Variables.is_paused)}
+  Is Roblox Focused:    {self.bool_to_emoji(Variables.is_roblox_focused)}
 
 Macro Settings:
-  Session ID:         {Variables.session_id}
-  Version:            {Variables.current_version}
-  Branch:             {Variables.current_branch}
+  Session ID:           {Variables.session_id}
+  Version:              {Variables.current_version}
+  Branch:               {Variables.current_branch}
 
 Minigame Info:
-  Dig Count:          {Variables.dig_count}
-  Click Count:        {Variables.click_count}
-  Failed Attempts:    {Variables.failed_minigame_attempts}
-  Failed Rejoin:      {Variables.failed_rejoin_attempts}
-  Last Detection:     {last_detection}
+  Dig Count:            {Variables.dig_count:,}
+  Click Count:          {Variables.click_count:,}
+  Failed Attempts:      {Variables.failed_minigame_attempts:,}
+  Last Detection:       {last_detection}
+
+Auto Rejoin Info:
+  Rejoin Count:         {Variables.rejoin_count:,}
+  Failed Rejoin:        {Variables.failed_rejoin_attempts:,}
 
 Macro States:
-  Is Minigame Active: {Variables.is_minigame_active}
-  Is Walking:         {Variables.is_walking}
-  Is Selling:         {Variables.is_selling}
-  Is Rejoining:       {Variables.is_rejoining}
-  Is Idle:            {is_idle}
+  Is Minigame Active:   {self.bool_to_emoji(Variables.is_minigame_active)}
+  Is Walking:           {self.bool_to_emoji(Variables.is_walking)}
+  Is Selling:           {self.bool_to_emoji(Variables.is_selling)}
+  Is Rejoining:         {self.bool_to_emoji(Variables.is_rejoining)}
+  Is Idle:              {self.bool_to_emoji(is_idle)}
 """
 
             embed = Embed(
                 title="Macro Status",
                 description=f"```ansi\n{content}```",
-                color=Color.blue()
+                color=Color.blue(),
+                timestamp=datetime.datetime.now()
             )
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        @slash_command(name="current_money", description="Get current amount of money.", force_global=True)
+        async def current_money_command(interaction: Interaction):
+            if interaction.user.id != self.allowed_user_id:
+                return await interaction.response.send_message("You are not allowed to run this command.")
+            
+            try:
+                await interaction.response.send_message(self.ocr_util.get_current_money(), ephemeral=True)
+            except Exception as e:
+                msg = f"Failed to get current money:\n```\n{traceback.format_exc()}\n```"
+                logging.debug(msg)
+                await interaction.response.send_message(msg, ephemeral=True)
+
+        @slash_command(name="stats", description="Get current stats (image).", force_global=True)
+        async def stats_command(interaction: Interaction):
+            if interaction.user.id != self.allowed_user_id:
+                return await interaction.response.send_message("You are not allowed to run this command.")
+            
+            try:
+                image_array = self.stat_lib.create_image()
+
+                # convert image #
+                image = Image.fromarray(image_array)
+                buffer = io.BytesIO()
+                image.save(buffer, format="PNG")
+                buffer.seek(0)
+
+                file = nextcord.File(fp=buffer, filename="stats.png")
+
+                await interaction.response.send_message(file=file, ephemeral=True)
+            except Exception as e:
+                msg = f"Failed to create stats image:\n```\n{traceback.format_exc()}\n```"
+                logging.debug(msg)
+                await interaction.response.send_message(msg, ephemeral=True)
 
     def run(self):
         if Config.DISCORD_BOT_ENABLED == False:
             logging.info("[Discord] Bot is disabled.")
             return None
         
-        if Config.DISCORD_USER_ID == "" or not Config.DISCORD_USER_ID.isnumeric():
-            logging.info("[Discord] Invalid User ID.")
-            return None
-    
         logging.info("[Discord] Starting bot...")
 
         def _run_bot(): 
@@ -285,58 +385,28 @@ Macro States:
         thread.start()
 
     # global functions #
-    def add_screenshot_to_embed(self, embed):
-        file = None
-        try:
-            if Config.DISCORD_SHOW_SCREENSHOTS_IN_LOGS == True:
-                image_array = take_screenshot(region=logical_screen_region)
-                image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
-
-                # convert image #
-                image = Image.fromarray(image_array)
-                buffer = io.BytesIO()
-                image.save(buffer, format="PNG")
-                buffer.seek(0)
-
-                file = nextcord.File(fp=buffer, filename="screenshot.png")
-                embed.set_image(url="attachment://screenshot.png")
-        except Exception as e:
-            logging.debug(f"Failed to take screenshot: {traceback.format_exc()}")
-        
-        return file
-
-    async def send_message(self, channel_key, **kwargs):
-        channel = self.channels.get(channel_key, None)
-        if not channel:
-            logging.warning(f"Invalid channel key: {channel_key}")
-            return
-        
-        try:
-            await channel.send(**kwargs)
-        except Exception as e:
-            logging.warning(f"Failed to send message to '{channel_key}': {str(e)}")
-
     def send_minigame_info(self):
         embed = Embed(
             title="Minigame Information",
-            color=nextcord.Color.dark_green()
+            color=nextcord.Color.dark_green(),
+            timestamp=datetime.datetime.now()
         )
 
         embed.add_field(
             name=":tools: Total Dig Count",
-            value=str(Variables.dig_count),
-            inline=True
+            value=f"{Variables.dig_count:,}",
+            inline=False
         )
 
         embed.add_field(
             name=":x: Total Failed Attempts",
-            value=str(Variables.failed_minigame_attempts),
-            inline=True
+            value=f"{Variables.failed_minigame_attempts:,}",
+            inline=False
         )
 
         embed.add_field(
             name=":mouse_three_button: Total Click Count",
-            value=str(Variables.click_count),
+            value=f"{Variables.click_count:,}",
             inline=False
         )
 
@@ -349,14 +419,9 @@ Macro States:
     def send_starting_reconnect(self, error_code):
         embed = Embed(
             title="Auto Rejoin",
-            description="Attempting to rejoing DIG...",
-            color=nextcord.Color.orange()
-        )
-
-        embed.add_field(
-            name=":question: Disconnect Error Code",
-            value=str(error_code or "N/A"),
-            inline=False
+            description="Attempting to rejoing DIG...\n\n" + str(error_code or "N/A"),
+            color=nextcord.Color.orange(),
+            timestamp=datetime.datetime.now()
         )
 
         file = self.add_screenshot_to_embed(embed)
@@ -371,7 +436,14 @@ Macro States:
         embed = Embed(
             title="Auto Rejoin",
             description="Successfully rejoined!",
-            color=nextcord.Color.green()
+            color=nextcord.Color.green(),
+            timestamp=datetime.datetime.now()
+        )
+
+        embed.add_field(
+            name=":repeat: Total Rejoins",
+            value=f"{Variables.rejoin_count:,}",
+            inline=True
         )
 
         file = self.add_screenshot_to_embed(embed)
@@ -386,13 +458,20 @@ Macro States:
         embed = Embed(
             title="Auto Rejoin",
             description=custom_msg,
-            color=nextcord.Color.orange()
+            color=nextcord.Color.orange(),
+            timestamp=datetime.datetime.now()
+        )
+
+        embed.add_field(
+            name=":repeat: Total Rejoins",
+            value=f"{Variables.rejoin_count:,}",
+            inline=True
         )
         
         embed.add_field(
             name=":x: Total Failed Rejoin Attempts",
-            value=str(Variables.failed_rejoin_attempts),
-            inline=False
+            value=f"{Variables.failed_rejoin_attempts:,}",
+            inline=True
         )
 
         # send message #
@@ -405,10 +484,37 @@ Macro States:
         embed = Embed(
             title="Auto Sell",
             description="Successfully sold the inventory.",
-            color=nextcord.Color.green()
+            color=nextcord.Color.green(),
+            timestamp=datetime.datetime.now()
         )
 
         file = self.add_screenshot_to_embed(embed)
+
+        # send message #
+        asyncio.run_coroutine_threadsafe(
+            self.send_message("logs", embed=embed, file=file),
+            self.bot.loop
+        )
+
+    def send_statistic_embed(self):
+        logging.info("[Discord] Sending statistic embed...")
+
+        embed = Embed(
+            title="Statistics",
+            color=nextcord.Color.blurple(),
+            timestamp=datetime.datetime.now()
+        )
+
+        image_array = self.stat_lib.create_image()
+
+        # convert image #
+        image = Image.fromarray(image_array)
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        file = nextcord.File(fp=buffer, filename="stats.png")
+        embed.set_image(url="attachment://stats.png")
 
         # send message #
         asyncio.run_coroutine_threadsafe(

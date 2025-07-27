@@ -90,7 +90,8 @@ class MainHandler:
     def update_state(self, sct):
         vars = Variables
         if vars.is_selecting_region == False:
-            if vars.is_paused == True or (vars.is_roblox_focused == False or vars.is_rejoining == True) or vars.is_selling == True:        
+            if vars.is_paused == True or (vars.is_roblox_focused == False or vars.is_rejoining == True) or vars.is_selling == True: 
+                vars.is_minigame_active = False       
                 del vars; return
         
         # take screenshots #

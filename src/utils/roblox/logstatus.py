@@ -42,6 +42,40 @@ class RobloxStatusHandler:
         self.keyword_game_joined  = "[FLog::Network] serverId:"
 
         # disconnect #
+        self.error_code_map = {
+            # Connection Issues #
+            "285": "🔌 **Disconnected** - You manually disconnected from the server",
+            "17":  "🔌 **Connection Lost** - You were disconnected from the server",
+            "266": "⏳ **Connection Timeout** - The connection timed out due to lag or slow response",
+            "277": "📡 **Connection Dropped** - Your internet connection was interrupted or lost",
+            "279": "🔌 **Unable to Connect** - Failed to connect to the server",
+            
+            # Access & Permission Issues # 
+            "524": "🚫 **Access Denied** - You cannot join this server (private server, restricted place, or downtime)",
+            "529": "🌐 **Server Issues** - Roblox servers are down or experiencing problems",
+            
+            # Account Related Issues #
+            "267": "⚠️ **Kicked by Game** - You were removed by the game's anti-cheat or moderation system",
+            "268": "🚨 **Kicked for Unusual Activity** - Removed due to suspected exploiting, excessive lag, or client issues",
+            "264": "🔁 **Same Account Different Device** - Another device is using your account",
+            "273": "🚨 **Account Action Received** - You received a warning or ban while in-game",
+            
+            # Server Shutdowns #
+            "256": "🛑 **Server Shutdown** - The developer manually shut down this server",
+            "271": "💤 **Inactive Server** - The server was closed due to no active players",
+            "274": "⚙️ **Developer Shutdown** - The developer temporarily closed the server (likely for updates)",
+            "275": "🔧 **Roblox Maintenance** - Roblox staff closed the server for maintenance",
+            
+            # User Activity Issues #
+            "278": "💤 **Idle Disconnect** - You were inactive for over 20 minutes",
+            
+            # Technical Issues #
+            "291": "❌ **Player Instance Removed** - Your player data was deleted or corrupted on the server",
+            "292": "⚠️ **Low Memory Warning** - Your device is running low on memory",
+            
+            # Teleportation #
+            "773": "🚀 **Teleporting** - You are being moved to another place or server"
+        }
         self.regex_error_code_reason = r"Sending disconnect with reason:\s*(\d+)"
         self.keyword_game_disconnected = "[FLog::Network] Sending disconnect with reason"
         self.keyword_game_leaving = "[DFLog::MegaReplicatorLogDisconnectCleanUpLog] Destroying MegaReplicator."
@@ -126,7 +160,10 @@ class RobloxStatusHandler:
             reason_match = re.search(self.regex_error_code_reason, line)
             reason_code = "N/A"
 
-            if reason_match: reason_code = reason_match.group(1)
+            if reason_match: 
+                reason_code = str(reason_match.group(1))
+                reason_info = self.error_code_map.get(reason_code, None)
+                if reason_info is not None: reason_code = reason_info
 
             logging.info(f"User Disconnected: {str(reason_code)}")
             self.reset_state()

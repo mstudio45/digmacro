@@ -55,7 +55,7 @@ settings_table = {
     # DISCORD BOT OPTIONS #
     "DISCORD": {
         "__WARNING": "⚠ DO NOT SHARE THE BOT TOKEN WITH ANYONE ⚠",
-        "__INFO": "Use the /setup command to configure the bot.\nMake sure the bot has 'Message Content' intent enabled.",
+        "__INFO": "Use the <b>/setup</b> command to configure the bot.<br />Make sure the bot has <b>Message Content</b> intent enabled.",
 
         "DISCORD_BOT_ENABLED": {
             "widget": "QCheckBox",
@@ -65,6 +65,27 @@ settings_table = {
             "widget": "QCheckBox",
             "tooltip": "Show screenshots inside the log channel."
         },
+        
+        "DISCORD_ENABLE_STATISTICS": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable or disable statistics.",
+        },
+        "DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS": {
+            "widget": "QSpinBox",
+            "tooltip": "The number of required digs before sending minigame information.",
+            "min": 5,
+            "max": 15
+        },
+        "DISCORD_STATISTICS_INTERVAL": {
+            "widget": "QComboBox",
+            "tooltip": "How often to send statistics.",
+            "items": ["1 Hour", "30 Minutes", "10 Minutes"],
+        },
+        "DISCORD_STATISTICS_MONEY_POSITION": {
+            "widget": "QRegionSelector",
+            "tooltip": "The region of the money label. [ REQUIRED FOR STATISTICS ]"
+        },
+
         "DISCORD_USER_ID": {
             "widget": "QLineEdit",
             "tooltip": "Your User ID of your Discord account. (required for every command)",
@@ -356,7 +377,13 @@ class ConfigManager:
 
             "DISCORD": {
                 "DISCORD_BOT_ENABLED": False,
-                "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": True,
+                "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": True,                
+                "DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS": 5, 
+
+                "DISCORD_ENABLE_STATISTICS": True,
+                "DISCORD_STATISTICS_INTERVAL": "30 Minutes",
+                "DISCORD_STATISTICS_MONEY_POSITION": (0, 0, 0, 0),
+
                 "DISCORD_USER_ID": "",
                 "DISCORD_BOT_TOKEN": "",
             },
@@ -547,10 +574,11 @@ class ConfigManager:
                     else:
                         value = parser.get(section, key)
 
-                        if "pos:" in value:
-                            x, y = value.replace("pos:", "").split("x")
-                            value = (int(x), int(y))
-
+                        for prefix in ("pos:", "region:"):
+                            if value.startswith(prefix):
+                                value = tuple(int(v) for v in value.replace(prefix, "").split("x"))
+                                break
+                        
                         self.config[section][key] = value
                         setattr(self, key, value)
 
@@ -596,8 +624,14 @@ class ConfigManager:
             
             for k, v in options.items():
                 key, val = str(k), str(v)
+
                 if isinstance(v, tuple):
-                    val = f"pos:{v[0]}x{v[1]}"
+                    if len(v) == 2:
+                        val = "pos:"
+                    elif len(v) == 4:
+                        val = "region:"
+
+                    val = val + "x".join(str(x) for x in v)
                 
                 parser[section][key] = val
         

@@ -4,6 +4,8 @@ import platform
 import shutil
 import random
 import string
+import subprocess
+import collections
 
 __all__ = ["Variables", "StaticVariables"]
 current_os = platform.system()
@@ -30,6 +32,9 @@ def get_resource_path(*paths): return os.path.join(resource_path_str, *paths)
 def get_base_path    (*paths): return os.path.join(base_path_str,     *paths)
 
 # variables #
+unix_open_app_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
+where_cmd         = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
+
 class Variables:
     is_compiled = compiled
     is_running = True
@@ -46,11 +51,15 @@ class Variables:
     # minigame information #
     dig_count = 0
     click_count = 0
+    rejoin_count = 0
     failed_minigame_attempts = 0
     failed_rejoin_attempts = 0
     
+    money_region = { "left": 0, "top": 0, "height": 100, "width": 100 }
     minigame_region = { "left": 0, "top": 0, "height": 100, "width": 100 }
     last_minigame_detection = None
+
+    money_information = collections.deque(maxlen=6)
 
     # macro states #
     is_minigame_active = False
@@ -60,32 +69,50 @@ class Variables:
     is_idle = lambda: (Variables.is_rejoining == False and Variables.is_walking == False and Variables.is_selling == False and Variables.is_minigame_active == False) == True
 
     # cmds #
-    unix_open_app_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde-open"] if shutil.which(cmd)), None)
-    where_cmd = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
+    unix_open_app_cmd = unix_open_app_cmd
+    where_cmd = where_cmd
 
     # functions #
-    def sleep(duration):
+    @staticmethod
+    def sleep(duration, check_interval=0):
         start = time.time()
         
         while Variables.is_running:
-            time.sleep(0)
+            time.sleep(check_interval)
             if time.time() - start >= duration: break
 
         return Variables.is_running == False
+    
+    @staticmethod
+    def open_link(url):
+        if url is None: return
+
+        try:
+            if current_os == "Windows":
+                import webbrowser
+                webbrowser.open(url)
+            else:
+                subprocess.run([unix_open_app_cmd, url])
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to open link '{url}': {e}")
 
 class StaticVariables:
     ui_filepath                 = get_resource_path("assets", "ui", "ui.html")
     guide_ui_filepath           = get_resource_path("assets", "ui", "guide.html")
     region_example_imgpath      = get_resource_path("assets", "select_example.png")
+    rose_pine_lib_path          = get_resource_path("assets", "rose-pine")
 
     storage_folder              = get_base_path("storage")
-    region_filepath             = os.path.join(storage_folder, "region.json")
+    # temp_folder                 = os.path.join(storage_folder, "temp")
+    
     config_filepath             = os.path.join(storage_folder, "config.ini")
+    region_filepath             = os.path.join(storage_folder, "region.json")
     pathfinding_macros_filepath = os.path.join(storage_folder, "pathfinding_macros.json")
+    discord_config_filepath     = os.path.join(storage_folder, "discord_settings.json")
+    money_region_filepath       = os.path.join(storage_folder, "money_region.json")
     
     logs_path                   = os.path.join(storage_folder, "logs")
 
     screenshots_path            = os.path.join(storage_folder, "screenshots")
     prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)
-
-    discord_config_filepath   = os.path.join(storage_folder, "discord_settings.json")

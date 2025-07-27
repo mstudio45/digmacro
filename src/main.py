@@ -48,7 +48,7 @@ def restart_macro(args=["--skip-selection"]):
     return
 
 # install requirements #
-from utils.packages.distro_variables import log_install, close_log_file
+from utils.packages.distro_variables import log_install, start_log_file, close_log_file, current_arch
 from utils.packages.check_apt import check_apt_packages
 from utils.packages.check_errors import check_special_errors
 from utils.packages.check_python import check_pip_packages
@@ -56,6 +56,9 @@ from utils.packages.check_shutil import check_shutil_applications
 from utils.packages.versions import is_version_outdated
 
 if "--skip-install" not in sys.argv:
+    start_log_file()
+    log_install(f"[INFO] Detected OS: {current_os} ({current_arch})")
+
     if "--only-install" in sys.argv:
         log_install("Only installing packages...")
 
@@ -71,7 +74,6 @@ if "--skip-install" not in sys.argv:
 
         restart_macro(["--skip-install"])
         sys.exit(0)
-else: log_install("Package installation skipped.")
 
 check_special_errors() # still required to run, fixes for tkinter on windows #
 close_log_file()
@@ -86,6 +88,7 @@ import utils.general.filehandler as FileHandler
 # create folders (on macOS it will prompt an allow 'folder' access notification) #
 FileHandler.create_folder(StaticVariables.storage_folder)
 FileHandler.create_folder(StaticVariables.logs_path)
+# FileHandler.create_folder(StaticVariables.temp_folder)
 
 Config.load_config() # default_config_loaded
 setup_logger()
@@ -93,18 +96,11 @@ setup_logger()
 # imports #
 import logging
 import threading
-import webbrowser
-import pyautogui
 import mss
 import interface.msgbox as msgbox
 
 import numpy as np
 import cv2
-
-# unslow packages #
-pyautogui.PAUSE = 0
-pyautogui.MINIMUM_DURATION = 0.0
-pyautogui.MINIMUM_SLEEP = 0.0
 
 # set DPI awareness #
 if current_os == "Windows":
@@ -253,51 +249,41 @@ if __name__ == "__main__":
             logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {Variables.current_version} < {latest_branch_version} = {is_outdated}")
             if is_outdated:
                 res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
-                if res == "Yes":
-                    try:
-                        if current_os == "Windows":
-                            webbrowser.open("https://github.com/mstudio45/digmacro")
-                        else:
-                            subprocess.run([Variables.unix_open_app_cmd, "https://github.com/mstudio45/digmacro"])
-                    except Exception as e: logging.error(f"Failed to open link: {e}")
+                if res == "Yes": Variables.open_link("https://github.com/mstudio45/digmacro")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}")
 
-    # selection handler #
-    run_config = "--open-config" in sys.argv
+    ##########################################################################################################################
+    def start_config():
+        logging.info("Loading Config GUI...")
+        if current_os == "Linux":
+            os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = ""
+            os.environ["QT_STYLE_OVERRIDE"] = "fusion"
+
+        from interface.config_ui import ConfigUI
+        from PySide6.QtWidgets import QApplication
+
+        q_app = QApplication(sys.argv)
+        config_ui = ConfigUI()
+        config_ui.show()
+        q_app.exec()
+        
+        # exit or restart #
+        if config_ui.start_macro_now == True: restart_macro()
+        else:                                 os.kill(os.getpid(), 9)
 
     if "--skip-selection" in sys.argv or "--region-check" in sys.argv:
         logging.info("Skipping config/start selection.")
     else:
-        if run_config == False:
+        # run config #
+        if "--open-config" in sys.argv:
+            start_config()
+        else:
             res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
-            if res == "Edit the configuration":
-                run_config = True
-            elif res == "Exit" or res == "": 
-                os.kill(os.getpid(), 9)
-            else: 
-                logging.info("Starting the macro...")
-
-        # start configuration #
-        if run_config == True:
-            # config ui #
-            logging.info("Loading Config GUI...")
-            if current_os == "Linux":
-                os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = ""
-                os.environ["QT_STYLE_OVERRIDE"] = "fusion"
-
-            from interface.config_ui import ConfigUI
-            from PySide6.QtWidgets import QApplication
-
-            q_app = QApplication(sys.argv)
-            config_ui = ConfigUI()
-            config_ui.show()
-            q_app.exec()
-            
-            # exit or restart #
-            if config_ui.start_macro_now == True: restart_macro()
-            else:                                 os.kill(os.getpid(), 9)
-    #############################################################################
+            if res == "Edit the configuration": start_config()
+            elif res == "Exit" or res == "":    os.kill(os.getpid(), 9)
+            else:                               logging.info("Starting the macro...")
+    ##########################################################################################################################
 
     # log opencv info #
     logging.info("===============================")
@@ -314,12 +300,6 @@ if __name__ == "__main__":
         logging.info(f"Optimized: {cv2.useOptimized()} - Threads: {cv2.getNumThreads()} - CPUs: {cv2.getNumberOfCPUs()}")
     except Exception as e: logging.critical(f"Failed to optimize opencv: {str(e)}")
     
-    # try:
-    #     time.sleep(0.1)
-    #     logging.info("Enabling OpenCL...")
-    #     cv2.ocl.setUseOpenCL(True)
-    # except Exception as e: logging.critical(f"Failed to optimize opencv (#2): {str(e)}")
-
     logging.info("===============================")
 
     # main loader #
@@ -351,9 +331,10 @@ if __name__ == "__main__":
     logging.info("======== INTERFACE HANDLERS END ========".center(60, "="))
 
     logging.info("======== DISCORD BOT ========".center(60, "="))
-    import nextcord
     from utils.discord.bot import discord_bot
     logging.info("======== DISCORD BOT END ========".center(60, "="))
+
+    ###########################################################################################
 
     class MacroHandler:
         def __init__(self):
@@ -371,7 +352,7 @@ if __name__ == "__main__":
             self.last_hint = ""
 
             # classes #
-            self.region_selector = RegionSelector()
+            self.region_selector = RegionSelector(stop_macro=True)
             self.finder = MainHandler()
             self.pathfinding = PathfingingHandler()
             self.sell_handler = SellUI()
@@ -571,7 +552,7 @@ if __name__ == "__main__":
             if not Variables.is_roblox_focused: logging.info("Roblox is not focused, skipping..."); return
 
             logging.info("Starting minigame...")
-            self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count}", "green")
+            self.update_window_status("Starting minigame...", f"Total dig count: {Variables.dig_count:,}", "green")
 
             # handle shovel re-equipping #
             if failed_do_equip == True: self.re_equip_shovel()
@@ -682,9 +663,12 @@ if __name__ == "__main__":
                             logging.info("========== Added 1 to dig_count, waiting... ===========")
                             digging_finished = True
 
-                            if Variables.dig_count > 0 and Variables.dig_count % 5 == 0:
-                                logging.info("[Discord] Sending minigame information.")
-                                discord_bot.send_minigame_info()
+                            try:
+                                if Variables.dig_count > 0 and Variables.dig_count % Config.DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS == 0:
+                                    logging.info("[Discord] Sending minigame information.")
+                                    discord_bot.send_minigame_info()
+                            except Exception as e:
+                                logging.warning(f"[Discord] Failed to send minigame information: {str(e)}")
 
                             if Variables.sleep(0.75): break
 
@@ -880,11 +864,25 @@ if __name__ == "__main__":
     logging.info("Loading MacroHandler...")
     macro = MacroHandler()
 
-    # verify configuration #
+    # check discord bot config #
+    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_BOT_TOKEN == "":
+        msgbox.alert("Invalid Bot Token. Discord Bot has been disabled.")
+        Config.DISCORD_BOT_ENABLED = False
+
+    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_USER_ID == "" or not Config.DISCORD_USER_ID.isnumeric():
+        msgbox.alert("Invalid User ID. Discord Bot has been disabled.")
+        Config.DISCORD_BOT_ENABLED = False
+
+    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_ENABLE_STATISTICS == True and (Config.DISCORD_STATISTICS_MONEY_POSITION == None or Config.DISCORD_STATISTICS_MONEY_POSITION == (0,0,0,0)):
+        msgbox.alert("Invalid money region selected for Discord Bot Statistics. Discord Bot Statistics has been disabled.")
+        Config.DISCORD_ENABLE_STATISTICS = False
+
+    # check auto sell config #
     if Config.AUTO_SELL == True and Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
         Config.AUTO_SELL = False
 
+    # check pathfinding config #
     if current_os != "Windows" and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
         Config.PATHFINDING = False

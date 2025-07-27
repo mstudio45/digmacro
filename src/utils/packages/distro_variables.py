@@ -8,16 +8,23 @@ import csv
 from variables import Variables, StaticVariables
 from utils.general.filehandler import create_folder
 
-log_folder = os.path.join(StaticVariables.logs_path, "install")
-log_path = os.path.abspath(os.path.join(log_folder, f"{Variables.session_id}.log"))
-create_folder(log_folder)
+log_append = None
+def start_log_file():
+    global log_append
 
-log_append = open(log_path, "a", encoding="utf-8")
+    log_folder = os.path.join(StaticVariables.logs_path, "install")
+    log_path = os.path.abspath(os.path.join(log_folder, f"{Variables.session_id}.log"))
+    create_folder(log_folder)
+
+    log_append = open(log_path, "a", encoding="utf-8")
+
+def close_log_file(): 
+    if log_append: log_append.close()
+
 def log_install(message):
     print(message)
-    log_append.write(message + "\n")
-
-def close_log_file(): log_append.close()
+    if log_append:
+        log_append.write(message + "\n")
 
 current_os = platform.system()
 current_arch = platform.machine().lower()
@@ -26,26 +33,19 @@ if "--force-x86_64" in sys.argv:
 elif "--force-arm64" in sys.argv:
     current_arch = "arm64"
 
-log_install(f"[INFO] Detected OS: {current_os} ({current_arch})")
-
-def install_pip_package(package):
+def install_pip_package(package, only_binary=False, no_deps=False):
     try:
-        if package["version"] != "all":
-            pip_spec = f"{package["pip"]}<={package["version"]}"
-        else:
-            pip_spec = package["pip"]
-
+        if package["version"] != "all": pip_spec = f"{package["pip"]}<={package["version"]}"
+        else:                           pip_spec = package["pip"]
         log_install(f"[install_pip_package] Installing package: {pip_spec}")
 
         # create command #
-        if "--force-reinstall" in sys.argv:
-            command = [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
-        else:
-            command = [sys.executable, "-m", "pip", "install", pip_spec]
+        if "--force-reinstall" in sys.argv: command = [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
+        else:                               command = [sys.executable, "-m", "pip", "install", pip_spec]
 
         # fix up for darwin #
         if current_os == "Darwin":
-            if package["pip"] == "opencv-python":
+            if package["pip"] == "opencv-python-headless":
                 try:
                     macos_ver = platform.mac_ver()
                     if macos_ver is not None and macos_ver[0].startswith("12"): # only Monterey #
@@ -58,18 +58,24 @@ def install_pip_package(package):
             log_install(f"[install_pip_package] Installing with 'arch -{current_arch}' command prefix for {pip_spec}.")
             command = ["arch", f"-{current_arch}", sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
 
-        # force source compilation for specific packages #
-        if package["pip"] == "opencv-python" or package["pip"] == "numpy":
-            log_install(f"[install_pip_package] Installing with --only-binary=:all: for {pip_spec}.")
+        # force binary or no deps #
+        if only_binary == True:
+            log_install(f"[install_pip_package] Installing with binary only for '{pip_spec}'.")
             command += ["--only-binary=:all:"]
 
-        elif package["pip"] == "bettercam":
-            log_install("[install_pip_package] Installing bettercam without dependencies.")
+        if no_deps == True:
+            log_install(f"[install_pip_package] Installing with --no-deps for '{pip_spec}'.")
             command += ["--no-deps"]
 
-        # run command #
+        # start command #
         log_install(f"[install_pip_package] Running command: {' '.join(command)}")
 
+        # uninstall to clear old files #
+        if only_binary == True:
+            try: subprocess.check_call([sys.executable, "-m", "pip", "uninstall", package["pip"], "--yes"])
+            except Exception as e: log_install(f"Failed to uninstall package: {str(e)}")
+
+        # install #
         install_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         for line in install_process.stdout: log_install(line.rstrip())
         install_process.wait()
@@ -95,8 +101,7 @@ else:
                 if row: RELEASE_DATA[row[0]] = row[1]
 
         return RELEASE_DATA["ID"].lower(), RELEASE_DATA["NAME"]
-
-        
+ 
     # variables #
     distro_id, distro_name = get_distro()
     distro_key = ""

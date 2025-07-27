@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import traceback
@@ -8,6 +9,7 @@ import logging
 
 import webbrowser
 import webview
+import importlib
 
 import numpy as np
 import cv2
@@ -19,7 +21,30 @@ from variables import StaticVariables, Variables
 current_os = platform.system()
 __all__ = ["WebUI", "GuideUI", "RegionCheckUI"]
 
-gui_type = "gtk"
+# get avalaible gui type #
+gui_modules = [
+    ("gtk", "webview.platforms.gtk"),
+    ("cef", "webview.platforms.cef"),
+    ("qt", "webview.platforms.qt"),
+    ("winforms", "webview.platforms.winforms"),
+    ("edgechromium", "webview.platforms.edgechromium")
+]
+
+available_backends = []
+for name, module in gui_modules:
+    try:
+        importlib.import_module(module)
+        available_backends.append(name)
+    except ImportError as e:
+        pass
+
+gui_type = ""
+if current_os == "Windows":
+    gui_type = "edgechromium" if "edgechromium" in available_backends else available_backends[0]
+else:
+    gui_type = "gtk"          if "gtk" in available_backends          else available_backends[0]
+
+logging.info(f"Using '{gui_type}' as the GUI rendered. Avalaible renderers: {available_backends}")
 
 class UIBase:
     def __init__(self, ui_path):
@@ -84,15 +109,7 @@ class WebUI(UIBase):
         self._stop_event = threading.Event() # for some reason that shows up on linux bin, so lets just add it
     
     # api functions #
-    def open_link(self, url):
-        global current_os
-
-        try:
-            if current_os == "Windows":
-                webbrowser.open(url)
-            else:
-                subprocess.run([Variables.unix_open_app_cmd, url])
-        except Exception as e: logging.error(f"Failed to open link: {e}")
+    def open_link(self, url): Variables.open_link(url)
 
     def close(self):
         logging.info("WebUI closing using 'close'...")
@@ -122,6 +139,19 @@ class WebUI(UIBase):
             self.window.evaluate_js('document.querySelector("#pausebtn").textContent = "Pause"')
 
     # main handler #
+    def _webview_start(self, renderer=None):
+        if renderer is None:
+            return
+        
+        try:
+            logging.info(f"Starting Web UI ({renderer})")
+            webview.start(gui=renderer)
+            return True
+        except Exception as e:
+            logging.warning(f"Failed to start the Web UI with '{renderer}': {str(e)}")
+        
+        return False
+
     def start(self, next_logic=None):
         self.create_window()
         self.window.expose(self.close, self.go_to_config, self.restart, self.pause, self.open_link)
@@ -134,8 +164,18 @@ class WebUI(UIBase):
             self.next_logic_thread.start()
 
         # start ui #
-        logging.info("Starting Web UI (webview.start)...")
-        webview.start(gui=gui_type)
+        if len(available_backends) == 1:
+            self._webview_start(gui_type)
+        else:
+            if self._webview_start(gui_type) == False:
+                for renderer in available_backends:
+                    if renderer == gui_type: continue
+
+                    logging.info(f"Trying fallback GUI backend: {renderer}")
+                    if self._webview_start(renderer) == False: continue
+                    break
+        
+        logging.error("All GUI backends failed. Unable to start Web UI.")
 
     def update(self):
         if not Config.SHOW_COMPUTER_VISION:
@@ -192,7 +232,6 @@ class GuideUI(UIBase):
         # start ui #
         logging.info("Starting Guide UI (webview.start)...")
         webview.start(gui=gui_type)
-
 class RegionCheckUI(UIBase):
     def __init__(self, finder):
         super().__init__(StaticVariables.ui_filepath)

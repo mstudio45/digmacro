@@ -5,6 +5,7 @@
 
 [Changes]
 + Temporarly disabled prediction system until its fixed
++ Added multiple fallback renderes for the main UI
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch

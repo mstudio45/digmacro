@@ -86,7 +86,7 @@ _If you have improvements or patches for additional (or currently supported) ope
 #### Source version
 
 > [!NOTE]
-> **Python 3.12.8 and later** is required.
+> **Python 3.12.8** is required. You might run into weird issues and package issues with other versions.
 
 1. **Download the latest version:**
    - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
@@ -256,4 +256,4 @@ The macro can move your character in different patterns (like a square, line, et
 
 ## 👥 Credits
 
-- [upio (notpoiu)](https://github.com/notpoiu): UI Design and helped with macOS support and testing
+- [upio (notpoiu)](https://github.com/notpoiu): UI Design, StatLib, helped with macOS support

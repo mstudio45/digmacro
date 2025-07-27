@@ -153,6 +153,8 @@ def rejoin_dig():
     time.sleep(0.1)
 
     # reset variables since we rejoined #
+    Variables.rejoin_count = Variables.rejoin_count + 1
+    
     Variables.is_minigame_active = False
     Variables.is_walking = False
     Variables.is_selling = False
