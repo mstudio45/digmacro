@@ -9,6 +9,7 @@
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch
++ Fixed an issue inside pathfinding that caused keys to be allowed to press only once
 ```
 
 # v2.0.3
