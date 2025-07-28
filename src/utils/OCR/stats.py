@@ -13,7 +13,7 @@ class GameStatLib:
     def calculate_hourly_average(self, cumulative_points): # list of current_money during a certain time, not earnings #
         interval_earnings = []
         for i in range(1, len(cumulative_points)):
-            interval_earnings.append(cumulative_points[i] - cumulative_points[i-1])
+            interval_earnings.append(cumulative_points[i] - cumulative_points[i - 1])
         
         return (sum(interval_earnings) / len(interval_earnings)) * 6 # average_per_interval * (60 minutes / 10 minutes) (bcs interval is 10 minutes) #
 
@@ -60,16 +60,28 @@ class GameStatLib:
             ))
         
         # stats bar chart #
+        dig_count, failed_minigame_attempts, rejoin_count, failed_rejoin_attempts = Variables.dig_count, Variables.failed_minigame_attempts, Variables.rejoin_count, Variables.failed_rejoin_attempts
+
         visuals.append(StatVisualType(
             type=StatVisualEnum.bar_chart,
             right=False,
             data={
                 "x": {
-                    "data": ["Dig Count", "Failed Minigames", "Rejoin Count", "Failed Rejoins"],
+                    "data": [
+                        f"Dig Count ({dig_count:,})",
+                        f"Failed Minigames ({failed_minigame_attempts:,})",
+                        f"Rejoin Count ({rejoin_count:,})",
+                        f"Failed Rejoins ({failed_rejoin_attempts:,})"
+                    ],
                     "label": "Action Type"
                 },
                 "y": {
-                    "data": [Variables.dig_count, Variables.failed_minigame_attempts, Variables.rejoin_count, Variables.failed_rejoin_attempts],
+                    "data": [
+                        dig_count, 
+                        failed_minigame_attempts, 
+                        rejoin_count, 
+                        failed_rejoin_attempts
+                    ],
                     "label": "Count"
                 }
             },

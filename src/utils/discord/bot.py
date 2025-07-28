@@ -159,6 +159,19 @@ class DiscordBot:
         except Exception as e:
             logging.warning(f"Failed to send message to '{channel_key}': {str(e)}")
 
+    async def ask_user(self, interaction: Interaction, question: str, timeout=60):
+        await interaction.followup.send(question, ephemeral=True)
+
+        def check(m): 
+            return m.author == interaction.user and m.channel == interaction.channel
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=timeout, check=check)
+            return msg.content
+        except TimeoutError:
+            await interaction.followup.send("You took too long to reply. Please run the setup again.", ephemeral=True)
+            return None
+
     def _register_commands(self):
         logging.info("[Discord] Loading commands...")
 
@@ -186,19 +199,6 @@ class DiscordBot:
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-        async def ask_user(interaction: Interaction, question: str, timeout=60):
-            await interaction.followup.send(question, ephemeral=True)
-
-            def check(m): 
-                return m.author == interaction.user and m.channel == interaction.channel
-
-            try:
-                msg = await self.bot.wait_for("message", timeout=timeout, check=check)
-                return msg.content
-            except TimeoutError:
-                await interaction.followup.send("You took too long to reply. Please run the setup again.", ephemeral=True)
-                return None
-
         @slash_command(name="setup", description="Show the current configuration or configure the bot.", force_global=True)
         async def screenshot_command(interaction: Interaction):
             if interaction.user.id != self.allowed_user_id:
@@ -217,7 +217,7 @@ class DiscordBot:
 
             # create log channel #
             if self.discord_config.get("LOG_CHANNEL", None) is None:
-                answer = await ask_user(interaction, "Please create a log channel in this server, then send the **channel ID** of the log channel.")
+                answer = await self.ask_user(interaction, "Please create a log channel in this server, then send the **channel ID** of the log channel.")
                 if answer is None: return
 
                 try:

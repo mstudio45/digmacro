@@ -78,7 +78,10 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 1. **Download the latest version for your Operating System:**
    - [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
-2. **Run the macro:**
+2. **Extract the zip:**
+   - **Windows/Linux:** Right-click the downloaded zip file and select `Extract Here` or `Extract All`.
+   - **macOS:** Double-click the downloaded zip file.
+3. **Run the macro:**
    - **Windows:** Double-click `digmacro_windows.exe`.
    - **Linux:** Double-click `digmacro_linux.bin` or run `./digmacro_linux.bin` in your terminal.
    - **macOS:** Refer to the [macOS section](#-MacOS-Setup) below for help.
