@@ -14,6 +14,7 @@ from nextcord import Embed, Interaction, Color
 
 import numpy as np
 import cv2
+import mss
 
 from PIL import Image
 from utils.images.screen import logical_screen_region
@@ -59,6 +60,20 @@ class DiscordBot:
 
         # channels cache #
         self.channels = {}
+
+        # rarity colors (https://digtionary.org/wiki/Items) #
+        self.rarity_colors = {
+            "junk": nextcord.Color.from_rgb(208, 207, 206),        # #d0cfce
+            "common": nextcord.Color.from_rgb(172, 212, 243),      # #acd4f3
+            "unusual": nextcord.Color.from_rgb(117, 199, 111),     # #75c76f
+            "scarce": nextcord.Color.from_rgb(132, 106, 218),      # #846ada
+            "legendary": nextcord.Color.from_rgb(255, 162, 56),    # #ffa238
+            "mythical": nextcord.Color.from_rgb(255, 110, 185),    # #ff6eb9
+            "divine": nextcord.Color.from_rgb(254, 43, 43),        # #fe2b2b
+            "prismatic": nextcord.Color.from_rgb(237, 128, 219),   # #ed80db
+        }
+        self.mention_rarities = Config.DISCORD_ITEMS_TO_MENTION
+        self.allowed_rarities = Config.DISCORD_ITEMS_TO_NOTIFY
 
     # styling funcs #
     def bool_to_emoji(self, val): return "✅" if val == True else "❌"
@@ -132,7 +147,10 @@ class DiscordBot:
         file = None
         try:
             if Config.DISCORD_SHOW_SCREENSHOTS_IN_LOGS == True:
-                image_array = take_screenshot(region=logical_screen_region)
+                sct = mss.mss()
+                image_array = take_screenshot(logical_screen_region, sct)
+                del sct
+
                 image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
 
                 # convert image #
@@ -148,14 +166,18 @@ class DiscordBot:
         
         return file
 
-    async def send_message(self, channel_key, **kwargs):
+    async def send_message(self, channel_key, ping_user=False, **kwargs):
         channel = self.channels.get(channel_key, None)
         if not channel:
             logging.warning(f"Invalid channel key: {channel_key}")
             return
         
         try:
-            await channel.send(**kwargs)
+            format_content = str(kwargs.get("content", ""))
+            if ping_user == True:
+                format_content = f"<@{self.allowed_user_id}> {format_content}"
+            
+            await channel.send(content=format_content, **kwargs)
         except Exception as e:
             logging.warning(f"Failed to send message to '{channel_key}': {str(e)}")
 
@@ -277,17 +299,14 @@ class DiscordBot:
                 return await interaction.response.send_message("You are not allowed to run this command.")
             
             try:
-                image_array = take_screenshot(region=logical_screen_region)
-                image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
+                embed = Embed(
+                    title="Screenshot",
+                    color=nextcord.Color.blue(),
+                    timestamp=datetime.datetime.now()
+                )
 
-                # convert image #
-                image = Image.fromarray(image_array)
-                buffer = io.BytesIO()
-                image.save(buffer, format="PNG")
-                buffer.seek(0)
-
-                file = nextcord.File(fp=buffer, filename="screenshot.png")
-                await interaction.response.send_message(file=file, ephemeral=True)
+                file = self.add_screenshot_to_embed(embed)
+                await interaction.response.send_message(embed=embed, file=file, ephemeral=True)
             except Exception as e:
                 msg = f"Failed to take screenshot:\n```\n{traceback.format_exc()}\n```"
                 logging.debug(msg)
@@ -343,7 +362,8 @@ Macro States:
                 return await interaction.response.send_message("You are not allowed to run this command.")
             
             try:
-                await interaction.response.send_message(self.ocr_util.get_current_money(), ephemeral=True)
+                with mss.mss() as sct:
+                    await interaction.response.send_message(self.ocr_util.get_current_money(sct), ephemeral=True)
             except Exception as e:
                 msg = f"Failed to get current money:\n```\n{traceback.format_exc()}\n```"
                 logging.debug(msg)
@@ -372,7 +392,7 @@ Macro States:
                 await interaction.response.send_message(msg, ephemeral=True)
 
     def run(self):
-        if Config.DISCORD_BOT_ENABLED == False:
+        if Config.ENABLE_DISCORD_BOT == False:
             logging.info("[Discord] Bot is disabled.")
             return None
         
@@ -521,5 +541,38 @@ Macro States:
             self.send_message("logs", embed=embed, file=file),
             self.bot.loop
         )
+
+    def send_item_notification(self, item, rarity, is_new=False):
+        embed = Embed(
+            title="New Item!" if is_new == True else "Item Recieved",
+            description="You have just recieved a new item!" if is_new == True else None,
+            color=self.rarity_colors.get(rarity.lower(), nextcord.Color.blurple()),
+            timestamp=datetime.datetime.now()
+        )
+
+        embed.add_field(
+            name=":grey_question: Item Name",
+            value=str(item),
+            inline=True
+        )
+
+        embed.add_field(
+            name=":sparkles: Item Rarity",
+            value=str(rarity),
+            inline=True
+        )
+
+        # send message #
+        asyncio.run_coroutine_threadsafe(
+            self.send_message("logs", ping_user=is_new == True or rarity in self.mention_rarities, embed=embed),
+            self.bot.loop
+        )
+
+    def check_new_item(self):
+        with mss.mss() as sct:
+            valid, text_arrays, item, rarity, is_new = discord_bot.ocr_util.get_current_item(sct)
+            logging.info(f"Item Detection: valid={valid}, text_arrays={text_arrays}, item={item}, rarity={rarity}, is_new={is_new}")
+            if valid == True and rarity in discord_bot.allowed_rarities:
+                discord_bot.send_item_notification(item, rarity, is_new)
 
 discord_bot = DiscordBot()

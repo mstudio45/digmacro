@@ -36,7 +36,7 @@ class MainHandler:
 
         # cache to class for faster get #
         self.region_left, self.region_top, _, _ = Variables.minigame_region.values()
-        self.use_prediction = Config.USE_PREDICTION
+        self.enable_prediction = Config.ENABLE_PREDICTION
         self.computer_vision = Config.SHOW_COMPUTER_VISION
 
         # buffers #
@@ -47,7 +47,7 @@ class MainHandler:
         if Variables.minigame_region is None: return
         
         # config #
-        self.use_prediction = Config.USE_PREDICTION
+        self.enable_prediction = Config.ENABLE_PREDICTION
         self.computer_vision = Config.SHOW_COMPUTER_VISION
 
         # resize image #
@@ -172,7 +172,7 @@ class MainHandler:
         # if player_bar.bar_in_clickable:
         #     should_click = True
         # 
-        # elif self.use_prediction:
+        # elif self.enable_prediction:
         #     predicted_player_bar = player_bar.predicted_position
         #     current_velocity = player_bar.current_velocity
         # 
@@ -204,11 +204,11 @@ class MainHandler:
             # screenshot handler #
             def screenshot():
                 if Config.SCREENSHOT_EVERY_CLICK:
-                    write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}.png"), self.debug_img) # "_found" if prediction_used else ""
+                    write_image(os.path.join(StaticVariables.prediction_screenshots_folder, f"{vars.click_count}.png"), self.debug_img) # "_found" if prediction_used else ""
 
                 # if prediction_used and Config.PREDICTION_SCREENSHOTS:
                 #     time.sleep(click_delay)
-                #     write_image(os.path.join(StaticVariables.prediction_screenshots_path, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
+                #     write_image(os.path.join(StaticVariables.prediction_screenshots_folder, f"{vars.click_count}_pred_clicked.png"), self.debug_img)
             
             threading.Thread(target=screenshot, daemon=True).start()
         

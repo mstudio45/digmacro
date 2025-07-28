@@ -48,11 +48,7 @@
                 </button>
             </header>
 
-            <main>
-                <h2 class="text-sm font-medium text-gray-300">1. Start the minigame inside DIG.</h2>
-                <h2 class="text-sm font-medium text-gray-300 mb-2">2. Press 'Continue' and then select the region. Example:</h2>
-                <p class="text-sm font-small text-gray-300 mb-2">Make sure that only the minigame is in the region you will select!</p>
-
+            <main id="main_guide">
                 <div class="w-full bg-black border border-gray-600 rounded-lg items-center justify-center">
                     <img id="example" alt="Example region" class="object-cover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
                 </div>
@@ -77,6 +73,18 @@
     <script>
         const wrapper = document.getElementById("scale-wrapper");
 
+        function createNotes(steps, note) {
+            let html = "";
+
+            steps.forEach((step, index) => {
+                html += `<h2 class="text-sm font-medium text-gray-300${index === steps.length - 1 ? " mb-2" : ""}">${index + 1}. ${step}</h2>\n`;
+            });
+
+            if (note) html += `<p class="text-sm font-small text-gray-300 mb-2">${note}</p>\n`;
+
+            return html;
+        }
+
         function scaleContent(scale, baseWidth, baseHeight) {
             if (typeof scale !== "number" || scale <= 0) return;
 
@@ -89,9 +97,16 @@
         }
 
         window.addEventListener("pywebviewready", async () => {
+            // load notes
+            const container = document.querySelector("#main_guide");
+            const [steps, note] = await pywebview.api.get_notes()
+            container.insertAdjacentHTML("afterbegin", createNotes(steps, note));
+
+            // load image
             const img = await pywebview.api.get_image()
             document.querySelector("#example").src = img;
-
+            
+            // scale
             const scale = await pywebview.api.get_scale_override()
             setTimeout(async () => {
                 const width = wrapper.offsetWidth;

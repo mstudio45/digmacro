@@ -4,8 +4,8 @@
 + Added 'Discord Bot' Configuration
 
 [Changes]
++ Reworded certain configuration tooltips and names (you might need to fix up your config)
 + Temporarly disabled prediction system until its fixed
-+ Added multiple fallback renderes for the main UI
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch

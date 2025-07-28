@@ -25,8 +25,9 @@ required_packages = {
         { "pip": "pandas",                 "import": "pandas",         "version": "all"   },
         { "pip": "matplotlib",             "import": "matplotlib",     "version": "all"   },
 
-        # { "pip": "transformers",         "import": "transformers",   "version": "all"   },
         { "pip": "scikit-image",           "import": "skimage",        "version": "all"   },
+        { "pip": "python-bidi",            "import": "bidi",           "version": "all"   },
+        { "pip": "PyYAML",                 "import": "yaml",           "version": "all"   },
         { "pip": "easyocr",                "import": "easyocr",        "version": "all"   },
         { "pip": "torch",                  "import": "torch",          "version": "all"   },
         { "pip": "torchvision",            "import": "torchvision",    "version": "all"   },

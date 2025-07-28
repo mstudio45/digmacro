@@ -3,12 +3,22 @@ import json
 import platform
 import configparser
 import collections
+import ast
 
 from variables import StaticVariables
 from utils.general.filehandler import read, write
 
 current_os = platform.system()
 current_arch = platform.machine()
+
+all_item_rarities = [
+    "Scarce",
+    "Legendary",
+    "Mythical",
+    "Divine",
+    "Prismatic",
+    "Secret",
+]
 
 default_screenshot_package, screenshot_packages = "", []
 default_mouse_input_package, mouse_input_packages = "", []
@@ -34,99 +44,127 @@ settings_table = {
     "SYSTEM": {
         "TARGET_FPS": {
             "widget": "QSpinBox",
-            "tooltip": "Target Frames Per Second for the macro. (mss on Windows will lock the FPS depending on your monitor refresh rate)",
+            "tooltip": "Target frames per second (FPS) for the macro. [ On Windows, mss locks FPS based on your monitor's refresh rate. ]",
             "min": 1,
             "max": 1000
         },
         "MACOS_DISPLAY_SCALE_OVERRIDE": {
             "widget": "QDoubleSpinBox",
-            "tooltip": "Override macOS display scale detection. Set to 0 for auto-detection, 1.0 for standard displays, 2.0 for Retina displays.",
+            "tooltip": "Set macOS display scale detection. 0 = auto-detection, 1.0 = standard displays, 2.0 = Retina displays.",
             "min": 0.0,
             "max": 3.0,
             "step": 0.1,
             "enabled": current_os == "Darwin"
         },
-        "LOGGING_ENABLED": {
+        "ENABLE_LOGGING": {
             "widget": "QCheckBox",
-            "tooltip": "Enable or disable log files."
+            "tooltip": "Enable log files."
         },
     },
 
     # DISCORD BOT OPTIONS #
     "DISCORD": {
         "__WARNING": "⚠ DO NOT SHARE THE BOT TOKEN WITH ANYONE ⚠",
-        "__INFO": "Use the <b>/setup</b> command to configure the bot.<br />Make sure the bot has <b>Message Content</b> intent enabled.",
+        "__INFO": "Use the <b>/setup</b> command to configure the bot.<br />Make sure the bot has <b>Message Content</b> intent enabled.<br /><b>Item Notifications</b> are not perfect and can sometimes fail or return invalid data.",
 
-        "DISCORD_BOT_ENABLED": {
+        "ENABLE_DISCORD_BOT": {
             "widget": "QCheckBox",
-            "tooltip": "Enable or disable the Discord Bot."
+            "tooltip": "Enable the Discord Bot."
         },
         "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": {
             "widget": "QCheckBox",
-            "tooltip": "Show screenshots inside the log channel."
+            "tooltip": "Insert screenshots into messages in the Discord log channel."
         },
         
         "DISCORD_ENABLE_STATISTICS": {
             "widget": "QCheckBox",
-            "tooltip": "Enable or disable statistics.",
+            "tooltip": "Enable minigame statistics. (Contains Stats Summary, Money Information)",
         },
-        "DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS": {
+        "DISCORD_MINIGAME_INFO_FREQUENCY": {
             "widget": "QSpinBox",
-            "tooltip": "The number of required digs before sending minigame information.",
+            "tooltip": "Number of digs between sending minigame information.",
             "min": 5,
             "max": 15
         },
         "DISCORD_STATISTICS_INTERVAL": {
             "widget": "QComboBox",
-            "tooltip": "How often to send statistics.",
-            "items": ["1 Hour", "30 Minutes", "10 Minutes"],
+            "tooltip": "Interval for sending statistics.",
+            "items": ["1 hour", "30 minutes", "10 minutes"],
         },
-        "DISCORD_STATISTICS_MONEY_POSITION": {
+
+        "DISCORD_ENABLE_ITEM_NOTIFICATIONS": {
+            "widget": "QCheckBox",
+            "tooltip": "Enable notifications for new items.",
+        },
+        "DISCORD_ITEMS_TO_NOTIFY": {
+            "widget": "QMultiComboBox",
+            "tooltip": "Select which item rarities to notify.",
+            "items": all_item_rarities,   
+        },
+         "DISCORD_ITEMS_TO_MENTION": {
+            "widget": "QMultiComboBox",
+            "tooltip": "Select which item rarities to notify with a mention.",
+            "items": all_item_rarities,   
+        },
+
+        "DISCORD_MONEY_LABEL_REGION": {
             "widget": "QRegionSelector",
-            "tooltip": "The region of the money label. [ REQUIRED FOR STATISTICS ]"
+            "tooltip": "Region of the money label for statistics tracking. [Required for Statistics]",
+
+            "guide_image": "money_select_example.png",
+            "steps": ["Press 'Continue' to start selecting the Money label region."],
+            "note": "Make sure that only the money label will be inside the region."
+        },
+        "DISCORD_ITEM_NOTIFICATION_REGION": {
+            "widget": "QRegionSelector",
+            "tooltip": "Region of the item notifications. [Required for Item Notifications]",
+
+            "guide_image": "item_notification_select_example.png",
+            "steps": ["Press 'Continue' to start selecting the Item Notification region."],
+            "note": "Make sure that the region is wide enough to detect mutated items, legendaries etc."
         },
 
         "DISCORD_USER_ID": {
             "widget": "QLineEdit",
-            "tooltip": "Your User ID of your Discord account. (required for every command)",
+            "tooltip": "Your Discord User ID. [Required for commands]",
         },
         "DISCORD_BOT_TOKEN": {
             "widget": "QLineEdit",
-            "tooltip": "Your Discord Bot Token.",
+            "tooltip": "Your Discord Bot Token. [ DO NOT SHARE THIS WITH ANYONE ]",
             "password": True,
         },
     },
 
     # AUTO REJOIN OPTIONS #
     "ROBLOX": {
-        "AUTO_REJOIN": {
+        "ENABLE_AUTO_REJOIN": {
             "widget": "QCheckBox",
-            "tooltip": "Enable or disable the rejoining system."
+            "tooltip": "Enable automatic rejoining."
         },
         "PRIVATE_SERVER_CODE": {
             "widget": "QLineEdit",
-            "tooltip": "Your private server code. (the code from this link: https://www.roblox.com/games/126244816328678/DIG?privateServerLinkCode=XXXXXXXXXXXXXXXXXXXX)"
+            "tooltip": "Code from your Roblox private server link. (ex: https://www.roblox.com/games/126244816328678/DIG?privateServerLinkCode=XXXXXXXXXXXXXXXXXXXX)"
         },
         "AUTO_REJOIN_INACTIVITY_TIMEOUT": {
             "widget": "QDoubleSpinBox",
-            "tooltip": "Inactivity timeout used for Auto Rejoin (in minutes, to disable this set the value to 0).",
+            "tooltip": "Inactivity timeout (minutes). Set 0 to disable.",
             "min": 0.0,
             "max": 10.0,
             "step": 0.1
         },
         "AUTO_REJOIN_FAILED_MINIGAME_ATTEMPTS": {
             "widget": "QSpinBox",
-            "tooltip": "The number of failed start minigame attempts required to rejoin.",
+            "tooltip": "Number of failed minigame starts before rejoining.",
             "min": 15,
             "max": 200
         },
         "AUTO_REJOIN_ENABLE_PUBLIC_FALLBACK": {
             "widget": "QCheckBox",
-            "tooltip": "If enabled, the Auto Rejoin will be able to join public servers using 'AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC'.",
+            "tooltip": "Allow fallback to public servers after private server failures.",
         },
         "AUTO_REJOIN_FAILED_JOINS_TO_PUBLIC": {
             "widget": "QSpinBox",
-            "tooltip": "The number of failed rejoins to your private server required to join a public server.",
+            "tooltip": "Number of failed private server rejoins before switching to public servers.",
             "min": 2,
             "max": 10
         },
@@ -136,16 +174,16 @@ settings_table = {
     "MINIGAME": {
         "USE_SAVED_POSITION": {
             "widget": "QCheckBox",
-            "tooltip": "Only find the player UI once (delete storage/pos.json file to reset the saved UI position)."
+            "tooltip": "Save selected regions."
         },
         "AUTO_START_MINIGAME": {
             "widget": "QCheckBox",
-            "tooltip": "Auto clicks to start the minigame so you don't need to use an auto clicker."
+            "tooltip": "Automatically start the minigame by clicking."
         },
 
         "MIN_CLICK_INTERVAL": {
             "widget": "QSpinBox",
-            "tooltip": "Minimum time between clicks (in milliseconds).",
+            "tooltip": "Minimum interval between clicks (ms).",
             "min": 0,
             "max": 150
         },
@@ -168,13 +206,13 @@ Canny:
         },
         "PLAYER_BAR_WIDTH": {
             "widget": "QSpinBox",
-            "tooltip": "The width of the player bar.",
+            "tooltip": "Width of the player bar in pixels.",
             "min": 2,
             "max": 10
         },
         "PLAYER_BAR_CANNY_THRESHOLD": {
             "widget": "QSpinBox",
-            "tooltip": "The threshold to find the vertical lines inside the region to find the player bar (for Canny detections).",
+            "tooltip": "Threshold for detecting the player bar (vertical lines) in Canny method (0-255).",
             "min": 0,
             "max": 255
         },
@@ -188,7 +226,7 @@ Canny:
         },
         "DIRT_THRESHOLD": {
             "widget": "QSpinBox",
-            "tooltip": "The saturation threshold to find the location of the 'dirt' part.",
+            "tooltip": "Saturation threshold for detecting dirt area.",
             "min": 0,
             "max": 50
         },
@@ -196,9 +234,9 @@ Canny:
     
     # PATHFINDING OPTIONS #
     "PATHFINDING": {
-        "PATHFINDING": {
+        "ENABLE_PATHFINDING": {
             "widget": "QCheckBox",
-            "tooltip": "Enable or disable pathfinding movement."
+            "tooltip": "Enable pathfinding movement."
         },
         "PATHFINDING_MACRO": {
             "widget": "QComboBox",
@@ -209,7 +247,7 @@ Canny:
     
     # AUTO SELL OPTIONS #
     "AUTO SELL": {
-        "AUTO_SELL": {
+        "ENABLE_AUTO_SELL": {
             "widget": "QCheckBox",
             "tooltip": "Enable or disable automatic selling (requires Sell Anywhere gamepass)."
         },
@@ -224,21 +262,23 @@ Canny:
         },
         "AUTO_SELL_REQUIRED_ITEMS": {
             "widget": "QSpinBox",
-            "tooltip": "Number of digs before auto-selling will happen.",
+            "tooltip": "Number of digs before triggering auto-sell.",
             "min": 1,
             "max": 1000
         },
         "AUTO_SELL_AFTER_PATHFINDING_MACRO": {
             "widget": "QCheckBox",
-            "tooltip": "This option ignores 'AUTO_SELL_REQUIRED_ITEMS' and will sell when the pathfinding macro finishes."
+            "tooltip": "Sell automatically when pathfinding macro finishes (ignores items count)."
         },
     },
 
     # PREDICTION OPTIONS #
     "PREDICTION": {
-        "USE_PREDICTION": {
+        "__INFO": "Prediction is <b>temporarily</b> disabled until it's fixed.",
+
+        "ENABLE_PREDICTION": {
             "widget": "QCheckBox",
-            "tooltip": "Calculate prediction using acceleration and velocity history.",
+            "tooltip": "Enable prediction using acceleration and velocity data.",
             
             "enabled": False
         },
@@ -372,24 +412,29 @@ class ConfigManager:
             "SYSTEM": {
                 "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
-                "LOGGING_ENABLED": True
+                "ENABLE_LOGGING": True
             },
 
             "DISCORD": {
-                "DISCORD_BOT_ENABLED": False,
+                "ENABLE_DISCORD_BOT": False,
                 "DISCORD_SHOW_SCREENSHOTS_IN_LOGS": True,                
-                "DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS": 5, 
+                "DISCORD_MINIGAME_INFO_FREQUENCY": 5, 
 
                 "DISCORD_ENABLE_STATISTICS": True,
-                "DISCORD_STATISTICS_INTERVAL": "30 Minutes",
-                "DISCORD_STATISTICS_MONEY_POSITION": (0, 0, 0, 0),
+                "DISCORD_STATISTICS_INTERVAL": "30 minutes",
+                "DISCORD_MONEY_LABEL_REGION": (0, 0, 0, 0),
+
+                "DISCORD_ENABLE_ITEM_NOTIFICATIONS": True,
+                "DISCORD_ITEMS_TO_NOTIFY": all_item_rarities,
+                "DISCORD_ITEMS_TO_MENTION": [],
+                "DISCORD_ITEM_NOTIFICATION_REGION": (0, 0, 0, 0),
 
                 "DISCORD_USER_ID": "",
                 "DISCORD_BOT_TOKEN": "",
             },
 
             "ROBLOX": {
-                "AUTO_REJOIN": False,
+                "ENABLE_AUTO_REJOIN": False,
                 "PRIVATE_SERVER_CODE": "",
 
                 "AUTO_REJOIN_INACTIVITY_TIMEOUT": 2.5,
@@ -415,12 +460,12 @@ class ConfigManager:
             },
 
             "PATHFINDING": {
-                "PATHFINDING": False,
+                "ENABLE_PATHFINDING": False,
                 "PATHFINDING_MACRO": "square",
             },
 
             "AUTO SELL": {
-                "AUTO_SELL": False,
+                "ENABLE_AUTO_SELL": False,
                 "AUTO_SELL_MODE": "UI Navigation",
                 "AUTO_SELL_BUTTON_POSITION": (0, 0),
 
@@ -429,7 +474,7 @@ class ConfigManager:
             },
 
             "PREDICTION": {
-                "USE_PREDICTION": False,
+                "ENABLE_PREDICTION": False,
 
                 "PREDICTION_MAX_TIME_AHEAD": 0.05,
                 "PREDICTION_MIN_VELOCITY": 300,
@@ -573,11 +618,11 @@ class ConfigManager:
 
                     else:
                         value = parser.get(section, key)
-
-                        for prefix in ("pos:", "region:"):
-                            if value.startswith(prefix):
-                                value = tuple(int(v) for v in value.replace(prefix, "").split("x"))
-                                break
+                        try:
+                            parsed = ast.literal_eval(value)
+                            value = parsed
+                        except (ValueError, SyntaxError):
+                            pass
                         
                         self.config[section][key] = value
                         setattr(self, key, value)
@@ -623,15 +668,12 @@ class ConfigManager:
             parser[section] = {}
             
             for k, v in options.items():
-                key, val = str(k), str(v)
+                key, val = str(k), None
 
-                if isinstance(v, tuple):
-                    if len(v) == 2:
-                        val = "pos:"
-                    elif len(v) == 4:
-                        val = "region:"
-
-                    val = val + "x".join(str(x) for x in v)
+                if isinstance(v, (list, dict, bool, type(None), float, int)):
+                    val = repr(v)
+                else:
+                    val = str(v)
                 
                 parser[section][key] = val
         

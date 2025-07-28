@@ -139,19 +139,6 @@ class WebUI(UIBase):
             self.window.evaluate_js('document.querySelector("#pausebtn").textContent = "Pause"')
 
     # main handler #
-    def _webview_start(self, renderer=None):
-        if renderer is None:
-            return
-        
-        try:
-            logging.info(f"Starting Web UI ({renderer})")
-            webview.start(gui=renderer)
-            return True
-        except Exception as e:
-            logging.warning(f"Failed to start the Web UI with '{renderer}': {str(e)}")
-        
-        return False
-
     def start(self, next_logic=None):
         self.create_window()
         self.window.expose(self.close, self.go_to_config, self.restart, self.pause, self.open_link)
@@ -164,18 +151,8 @@ class WebUI(UIBase):
             self.next_logic_thread.start()
 
         # start ui #
-        if len(available_backends) == 1:
-            self._webview_start(gui_type)
-        else:
-            if self._webview_start(gui_type) == False:
-                for renderer in available_backends:
-                    if renderer == gui_type: continue
-
-                    logging.info(f"Trying fallback GUI backend: {renderer}")
-                    if self._webview_start(renderer) == False: continue
-                    break
-        
-        logging.error("All GUI backends failed. Unable to start Web UI.")
+        logging.info(f"Starting Web UI ({gui_type})")
+        webview.start(gui=gui_type)
 
     def update(self):
         if not Config.SHOW_COMPUTER_VISION:
@@ -204,11 +181,24 @@ class WebUI(UIBase):
         self.close()
 
 class GuideUI(UIBase):
-    def __init__(self):
+    def __init__(self, image=None, steps=None, note=None):
         super().__init__(StaticVariables.guide_ui_filepath)
         self.is_running = True
 
+        self.image = image
+        self.steps = steps
+        self.note = note
+
+        if self.image is None: self.image = "select_example.png"
+        if self.steps is None: self.steps = ["Start the minigame inside DIG.", "Press 'Continue' and then select the region."]
+        if self.note is None: self.note = "Make sure that only the minigame is in the region you will select! Example:"
+
+        self.image = os.path.join(StaticVariables.assets_folder, self.image)
+
     # api functions #
+    def get_notes(self):
+        return self.steps, self.note
+
     def close(self):
         logging.info("GuideUI closing using 'close'...")
 
@@ -220,18 +210,19 @@ class GuideUI(UIBase):
         self.stop_window()
 
     def get_image(self):
-        example_img = cv2.imread(StaticVariables.region_example_imgpath)
+        example_img = cv2.imread(self.image)
         base_64 = image_to_base64(example_img)
         return base_64
 
     # main handler #
     def start(self):
         self.create_window()
-        self.window.expose(self.start_region_select, self.close, self.get_image)
+        self.window.expose(self.start_region_select, self.close, self.get_image, self.get_notes)
 
         # start ui #
-        logging.info("Starting Guide UI (webview.start)...")
+        logging.info(f"Starting Guide UI ({gui_type})")
         webview.start(gui=gui_type)
+
 class RegionCheckUI(UIBase):
     def __init__(self, finder):
         super().__init__(StaticVariables.ui_filepath)
@@ -267,7 +258,7 @@ class RegionCheckUI(UIBase):
         self.window.expose(self.region_okay, self.close, self.restart)
 
         # start ui #
-        logging.info("Starting Region UI (webview.start)...")
+        logging.info(f"Starting Region UI ({gui_type})")
         webview.start(self.update, gui=gui_type)
 
     def update(self):

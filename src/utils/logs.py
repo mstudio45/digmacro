@@ -17,9 +17,9 @@ def setup_logger():
     console_handler.setLevel(logging.INFO)
 
     file_handler = None
-    if Config.LOGGING_ENABLED: 
+    if Config.ENABLE_LOGGING: 
         file_handler = logging.FileHandler(
-            filename=os.path.join(StaticVariables.logs_path, Variables.session_id + ".log"),
+            filename=os.path.join(StaticVariables.logs_folder, Variables.session_id + ".log"),
             encoding="utf-8",
             mode="a"
         )

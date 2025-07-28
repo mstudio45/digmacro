@@ -12,7 +12,7 @@ log_append = None
 def start_log_file():
     global log_append
 
-    log_folder = os.path.join(StaticVariables.logs_path, "install")
+    log_folder = os.path.join(StaticVariables.logs_folder, "install")
     log_path = os.path.abspath(os.path.join(log_folder, f"{Variables.session_id}.log"))
     create_folder(log_folder)
 

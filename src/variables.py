@@ -98,21 +98,21 @@ class Variables:
             logging.error(f"Failed to open link '{url}': {e}")
 
 class StaticVariables:
-    ui_filepath                 = get_resource_path("assets", "ui", "ui.html")
-    guide_ui_filepath           = get_resource_path("assets", "ui", "guide.html")
-    region_example_imgpath      = get_resource_path("assets", "select_example.png")
-    rose_pine_lib_path          = get_resource_path("assets", "rose-pine")
+    assets_folder                 = get_resource_path("assets")
+    ui_filepath                   = os.path.join(assets_folder, "ui", "ui.html")
+    guide_ui_filepath             = os.path.join(assets_folder, "ui", "guide.html")
+    rose_pine_lib_path            = os.path.join(assets_folder, "rose-pine")
 
-    storage_folder              = get_base_path("storage")
+    storage_folder                = get_base_path("storage")
     # temp_folder                 = os.path.join(storage_folder, "temp")
     
-    config_filepath             = os.path.join(storage_folder, "config.ini")
-    region_filepath             = os.path.join(storage_folder, "region.json")
-    pathfinding_macros_filepath = os.path.join(storage_folder, "pathfinding_macros.json")
-    discord_config_filepath     = os.path.join(storage_folder, "discord_settings.json")
-    money_region_filepath       = os.path.join(storage_folder, "money_region.json")
+    config_filepath               = os.path.join(storage_folder, "config.ini")
+    region_filepath               = os.path.join(storage_folder, "region.json")
+    pathfinding_macros_filepath   = os.path.join(storage_folder, "pathfinding_macros.json")
+    discord_config_filepath       = os.path.join(storage_folder, "discord_settings.json")
+    money_region_filepath         = os.path.join(storage_folder, "money_region.json")
     
-    logs_path                   = os.path.join(storage_folder, "logs")
+    logs_folder                   = os.path.join(storage_folder, "logs")
 
-    screenshots_path            = os.path.join(storage_folder, "screenshots")
-    prediction_screenshots_path = os.path.join(screenshots_path, "prediction", Variables.session_id)
+    screenshots_folder            = os.path.join(storage_folder, "screenshots")
+    prediction_screenshots_folder = os.path.join(screenshots_folder, "prediction", Variables.session_id)

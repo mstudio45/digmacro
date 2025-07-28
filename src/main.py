@@ -87,7 +87,7 @@ import utils.general.filehandler as FileHandler
 
 # create folders (on macOS it will prompt an allow 'folder' access notification) #
 FileHandler.create_folder(StaticVariables.storage_folder)
-FileHandler.create_folder(StaticVariables.logs_path)
+FileHandler.create_folder(StaticVariables.logs_folder)
 # FileHandler.create_folder(StaticVariables.temp_folder)
 
 Config.load_config() # default_config_loaded
@@ -600,9 +600,10 @@ if __name__ == "__main__":
 
             return self.start_minigame(failed_do_equip=True)
 
+
         def main_loop(self, _):
             logging.info("Creating screenshot folders...")
-            FileHandler.create_folder(StaticVariables.prediction_screenshots_path)
+            FileHandler.create_folder(StaticVariables.prediction_screenshots_folder)
 
             failed_risk_attemps = 0
             while Variables.is_running:
@@ -636,7 +637,7 @@ if __name__ == "__main__":
                     time.sleep(0.75)
 
                 else: # main handler #
-                    if Config.AUTO_REJOIN:
+                    if Config.ENABLE_AUTO_REJOIN:
                         if Variables.is_rejoining: continue
 
                         if can_rejoin(self.total_idle_time):
@@ -656,29 +657,32 @@ if __name__ == "__main__":
                     digging_finished = False
                     if Variables.last_minigame_detection is not None and Variables.last_minigame_detection != -1:
                         last_interact = int(Variables.last_minigame_detection) / 1000
-                        if last_interact > 0 and (time.time() - last_interact) >= 1.0:
+                        if last_interact > 0 and (time.time() - last_interact) >= 1.75:
                             Variables.dig_count = Variables.dig_count + 1
                             Variables.last_minigame_detection = None
 
                             logging.info("========== Added 1 to dig_count, waiting... ===========")
                             digging_finished = True
 
-                            try:
-                                if Variables.dig_count > 0 and Variables.dig_count % Config.DISCORD_MINIGAME_INFORMATION_EACH_X_DIGS == 0:
-                                    logging.info("[Discord] Sending minigame information.")
-                                    discord_bot.send_minigame_info()
-                            except Exception as e:
-                                logging.warning(f"[Discord] Failed to send minigame information: {str(e)}")
-
-                            if Variables.sleep(0.75): break
-
+                            if discord_bot.running:
+                                try:
+                                    if Variables.dig_count > 0 and Variables.dig_count % Config.DISCORD_MINIGAME_INFO_FREQUENCY == 0:
+                                        logging.info("[Discord] Sending minigame information.")
+                                        discord_bot.send_minigame_info()
+                                except Exception as e:
+                                    logging.warning(f"[Discord] Failed to send minigame information: {str(e)}")
+                                
+                                threading.Thread(target=discord_bot.check_new_item, daemon=True).start()
+                            else:
+                                if Variables.sleep(0.75): break
+                    
                     else: digging_finished = True
 
                     # skip if digging didnt finish #
                     if not digging_finished: continue
 
                     self.finder.debug_img = None
-                    self.total_idle_time += 0.1
+                    self.total_idle_time = self.total_idle_time + 0.1
 
                     # no dirt bar #
                     if self.finder.minigame_detected_by_avg == False:
@@ -694,11 +698,10 @@ if __name__ == "__main__":
                         self.update_window_status("Minigame", "Waiting for minigame...", "yellow")
 
                     # auto sell #
-                    if Config.AUTO_SELL == True: 
-                        self.sell_all_items()
+                    if Config.ENABLE_AUTO_SELL == True: self.sell_all_items()
 
                     # pathfinding handler #
-                    if Config.PATHFINDING == True:
+                    if Config.ENABLE_PATHFINDING == True:
                         self.update_window_status("Pathfinding", "Walking to the next point...", "green")   
 
                         if self.pathfinding.current_macro == "risk_spin":
@@ -855,7 +858,7 @@ if __name__ == "__main__":
                 except Exception as e: logging.warning(f"Error in cleanup function: {func.__name__}: {str(e)}")
 
             # clear empty files/folders #
-            for (folderpath, is_empty) in FileHandler.get_folders(StaticVariables.screenshots_path):
+            for (folderpath, is_empty) in FileHandler.get_folders(StaticVariables.screenshots_folder):
                 if is_empty == True: FileHandler.try_delete_folder(folderpath)
 
             logging.info("----------- CLEANUP DONE -------------")
@@ -865,38 +868,38 @@ if __name__ == "__main__":
     macro = MacroHandler()
 
     # check discord bot config #
-    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_BOT_TOKEN == "":
+    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_BOT_TOKEN == "":
         msgbox.alert("Invalid Bot Token. Discord Bot has been disabled.")
-        Config.DISCORD_BOT_ENABLED = False
+        Config.ENABLE_DISCORD_BOT = False
 
-    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_USER_ID == "" or not Config.DISCORD_USER_ID.isnumeric():
+    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_USER_ID == "" or not isinstance(Config.DISCORD_USER_ID, int):
         msgbox.alert("Invalid User ID. Discord Bot has been disabled.")
-        Config.DISCORD_BOT_ENABLED = False
+        Config.ENABLE_DISCORD_BOT = False
 
-    if Config.DISCORD_BOT_ENABLED == True and Config.DISCORD_ENABLE_STATISTICS == True and (Config.DISCORD_STATISTICS_MONEY_POSITION == None or Config.DISCORD_STATISTICS_MONEY_POSITION == (0,0,0,0)):
+    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_ENABLE_STATISTICS == True and (Config.DISCORD_MONEY_LABEL_REGION == None or Config.DISCORD_MONEY_LABEL_REGION == (0,0,0,0)):
         msgbox.alert("Invalid money region selected for Discord Bot Statistics. Discord Bot Statistics has been disabled.")
         Config.DISCORD_ENABLE_STATISTICS = False
 
     # check auto sell config #
-    if Config.AUTO_SELL == True and Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
+    if Config.ENABLE_AUTO_SELL == True and Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
         msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
-        Config.AUTO_SELL = False
+        Config.ENABLE_AUTO_SELL = False
 
     # check pathfinding config #
-    if current_os != "Windows" and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+    if current_os != "Windows" and Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
-        Config.PATHFINDING = False
+        Config.ENABLE_PATHFINDING = False
 
-    if Config.AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.PATHFINDING == True:
+    if Config.ENABLE_AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.ENABLE_PATHFINDING == True:
         if Config.PATHFINDING_MACRO != "risk_spin" and Config.PATHFINDING_MACRO in Config.PathfindingMacros:
             Config.AUTO_SELL_REQUIRED_ITEMS = len(Config.PathfindingMacros[Config.PATHFINDING_MACRO]) + 1
             logging.info(f"Auto Sell (After Pathfinding) enabled, will sell after: {Config.AUTO_SELL_REQUIRED_ITEMS} items (amount of keys + 1)")
 
-    if Config.AUTO_START_MINIGAME == False and Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+    if Config.AUTO_START_MINIGAME == False and Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("You need to have 'AUTO_START_MINIGAME' minigame enabled to use 'risk_spin' pathfinding macro. Pathfinding has been disabled.")
-        Config.PATHFINDING = False
+        Config.ENABLE_PATHFINDING = False
 
-    if Config.PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
+    if Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("Make sure shiftlock is enabled for the pahtfinding macro to work correctly!")
 
         if current_os == "Windows":
@@ -919,12 +922,12 @@ if __name__ == "__main__":
             logging.info("Disabling Mouse Acceleration/Enhance pointer precision...")
             if switch_mouse_acceleration(False) == False:
                 msgbox.alert("Failed to disable 'Mouse Acceleration/Enhance pointer precision', disable it manually. Pathfinding has been disabled.")
-                Config.PATHFINDING = False
+                Config.ENABLE_PATHFINDING = False
             else:
                 logging.info("Mouse Acceleration/Enhance disabled.")
         else:
             msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
-            Config.PATHFINDING = False
+            Config.ENABLE_PATHFINDING = False
 
     # region #
     macro.setup_finder_thread()

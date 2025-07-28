@@ -4,6 +4,7 @@ from variables import Variables
 import datetime
 import threading
 import logging
+import mss
 
 class GameStatLib:
     def __init__(self, discord_bot):
@@ -99,18 +100,19 @@ class GameStatLib:
 
             last_message_send = datetime.datetime.now()
             message_interval = datetime.timedelta(minutes={
-                "1 Hour": 60, 
-                "30 Minutes": 30, 
-                "10 Minutes": 10
+                "1 hour": 60, 
+                "30 minutes": 30, 
+                "10 minutes": 10
             }.get(interval_str, 30))
 
             update_interval = datetime.timedelta(minutes=10)
             last_update = datetime.datetime.now() - update_interval
-
+            
+            sct = mss.mss()
             while Variables.is_running:
                 current_money = 0
                 try:
-                    current_money = self.discord_bot.ocr_util.get_current_money()
+                    current_money = self.discord_bot.ocr_util.get_current_money(sct)
                 except Exception as e:
                     logging.warning(f"Error getting current money: {str(e)}")
                 
@@ -132,5 +134,6 @@ class GameStatLib:
 
                 if Variables.sleep(15, 1): break
             
+            del sct
             logging.info("Statistics loop ended.")
         threading.Thread(target=(_thread), daemon=True).start()

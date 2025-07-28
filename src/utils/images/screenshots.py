@@ -6,12 +6,6 @@ from utils.logs import disable_spammy_loggers
 from config import Config
 current_os = platform.system()
 
-# load mss first #
-def take_screenshot(region, sct):
-    return np.array(sct.grab(region), dtype=np.uint8)
-
-def screenshot_cleanup(): pass
-
 # load bettercam #
 if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
     try:
@@ -20,19 +14,20 @@ if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
         camera = bettercam.create(output_idx=0, output_color="BGRA")
         disable_spammy_loggers()
 
-        del take_screenshot, screenshot_cleanup  # remove mss functions #
-
-        def take_screenshot(region, sct=None):
+        def take_screenshot(region, sct):
+            image = None
             try:
-                return camera.grab(region=(
+                image = camera.grab(region=(
                     region["left"],
                     region["top"],
                     region["left"] + region["width"],
                     region["top"] + region["height"]
                 ))
             except Exception as e:
-                logging.error(f"Failed to take screenshot: {e}")
-                return None
+                logging.error(f"Failed to take screenshot (using mss as fallback): {e}")
+
+            if image is None: image = np.array(sct.grab(region), dtype=np.uint8)
+            return image
 
         def screenshot_cleanup():
             logging.info("Cleaning...")
@@ -42,5 +37,15 @@ if current_os == "Windows" and Config.SCREENSHOT_PACKAGE == "bettercam":
     except Exception as e:
         logging.error(f"Failed to initialize bettercam: {e}")
         logging.info("\n\nScreenshot package: mss")
-        
-else: logging.info("Screenshot package: mss")
+
+        def take_screenshot(region, sct):
+            return np.array(sct.grab(region), dtype=np.uint8)
+
+        def screenshot_cleanup(): pass
+
+else: 
+    logging.info("Screenshot package: mss")
+    def take_screenshot(region, sct):
+        return np.array(sct.grab(region), dtype=np.uint8)
+
+    def screenshot_cleanup(): pass

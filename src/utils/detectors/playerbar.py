@@ -20,7 +20,7 @@ class PlayerBar:
         self.computer_vision = Config.SHOW_COMPUTER_VISION and Config.SHOW_DEBUG_MASKS
 
         # prediction
-        self.use_prediction = Config.USE_PREDICTION
+        self.enable_prediction = Config.ENABLE_PREDICTION
 
         self.predicted_position = None
         self.current_velocity = 0
@@ -151,7 +151,7 @@ class PlayerBar:
         self.bar_in_clickable = is_pos_in_bbox(current_left, bbox_left, bbox_width)
 
         # prediction #
-        # if self.use_prediction:
+        # if self.enable_prediction:
         #     self.player_bar_tracker.update(current_left)
         #     self.current_velocity = self.player_bar_tracker.get_velocity()
         #     self.current_acceleration = self.player_bar_tracker.get_acceleration()

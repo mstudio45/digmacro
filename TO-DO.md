@@ -1,5 +1,4 @@
 ### 📝 TO-DO
-- [ ] Discord Bot -- BEING WORKED ON --
 - [ ] Refactor pathfinding system
     - [ ] Better saving system and format
     - [ ] Tool for creating pathfinding macros
