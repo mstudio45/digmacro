@@ -1,7 +1,10 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
 from PySide6.QtCore import Signal, QTimer, QEventLoop
 
-import time
+import logging
+import platform
+
+current_os = platform.system()
 
 class QRegionSelector(QWidget):
     valueChanged = Signal(str)
@@ -41,17 +44,19 @@ class QRegionSelector(QWidget):
         guide_ui.start()
         
         # wait for the guide ui to stop (ty macos) #
-        loop = QEventLoop()
-        timer = QTimer()
-        
-        def check_status():
-            if guide_ui.did_close:
-                timer.stop()
-                loop.quit()
-        
-        timer.timeout.connect(check_status)
-        timer.start(100)
-        loop.exec()
+        if current_os == "Darwin":
+            logging.info("Waiting for Guide UI to close...")
+            loop = QEventLoop()
+            timer = QTimer()
+            
+            def check_status():
+                if guide_ui.did_close:
+                    timer.stop()
+                    loop.quit()
+            
+            timer.timeout.connect(check_status)
+            timer.start(100)
+            loop.exec()
 
         if guide_ui.is_running == False:
             self.picking = False
@@ -64,9 +69,12 @@ class QRegionSelector(QWidget):
             return
 
         # start region selector #
+        logging.info("Starting Region Selector...")
         region_selector = RegionSelector()
         region_selector.start()
+        region_selector.stop()
 
+        logging.info("Getting region...")
         region = region_selector.get_selection()
         if region is None:
             self.picking = False
@@ -80,7 +88,6 @@ class QRegionSelector(QWidget):
 
         self.set(region["left"], region["top"], region["width"], region["height"])
         self.picking = False
-        region_selector.stop()
         
     def value(self):
         return self._region
