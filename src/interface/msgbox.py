@@ -8,45 +8,40 @@ current_os = platform.system()
 if current_os == "Darwin":
     logging.info("Using 'Darwin' message box handler...")
 
-    import subprocess
-
-    def run_osascript(script):
-        try:
-            result = subprocess.run(
-                ["osascript", "-e", script],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            return result.stdout.strip()
-        except subprocess.CalledProcessError as e:
-            logging.error(f"AppleScript error: {e.stderr}")
-            return None
-
+    from Cocoa import NSAlert, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
 
+        alert = NSAlert.alloc().init()
+        alert.setMessageText_(title)
+        alert.setInformativeText_(message)
+        alert.addButtonWithTitle_("OK")
+        
         if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-            icon = "stop"
+            alert.setAlertStyle_(NSCriticalAlertStyle)
         elif log_level == logging.WARNING:
-            icon = "caution"
+            alert.setAlertStyle_(NSWarningAlertStyle)
         else:
-            icon = "note"
-
-        script = f'display dialog "{message}" with title "{title}" buttons ["OK"] with icon {icon}'
-        run_osascript(script)
+            alert.setAlertStyle_(NSInformationalAlertStyle)
+        
+        alert.runModal()
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
-        btn_list = ", ".join(f'"{btn}"' for btn in buttons)
-        default_button = f'default button "{buttons[0]}"' if buttons else ""
-
-        script = f'display dialog "{message}" with title "{title}" buttons {{{btn_list}}} {default_button}'
-        response = run_osascript(script)
-
-        if response and response.startswith("button returned:"):
-            return response.split(":")[1].strip()
-
+        alert = NSAlert.alloc().init()
+        alert.setMessageText_(title)
+        alert.setInformativeText_(message)
+        
+        for button in buttons:
+            alert.addButtonWithTitle_(button)
+        
+        alert.setAlertStyle_(NSInformationalAlertStyle)
+        
+        response = alert.runModal()
+        button_index = response - 1000
+        if 0 <= button_index < len(buttons):
+            return buttons[button_index]
+        
         return None
 else:
     logging.info("Using 'General' message box handler...")

@@ -1,7 +1,7 @@
 from pynput.keyboard import Key, KeyCode
 import logging
 
-__all__ = ["get_key"]
+__all__ = ["KeyConverter"]
 class KeyConverter:
     def __init__(self):
         self._cache = {}

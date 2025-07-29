@@ -2,7 +2,6 @@ import logging
 
 # https://github.com/kenorb/kenorb/blob/master/scripts/python/Quartz/keyboard.py #
 __all__ = ["KeyConverter"]
-
 class KeyConverter:
     def __init__(self):
         self._cache = {}
@@ -94,51 +93,51 @@ class KeyConverter:
             '/': 0x2C,
         }
 
-        # funcs #
-        def _get_quartz_key(self, normalized_key):
-            requires_shift = False
+    # funcs #
+    def _get_quartz_key(self, normalized_key):
+        requires_shift = False
+        quartz_key = None
+
+        # convert to shift key #
+        if normalized_key.isalpha() and not normalized_key.islower():
+            requires_shift = True
+            normalized_key = normalized_key.lower()
+        
+        if normalized_key in self._quartz_shift_required_map:
+            requires_shift = True
+            normalized_key = self._quartz_shift_required_map[normalized_key]
+        
+        # get key from map #
+        if normalized_key in self._quartz_keycode_map:
+            quartz_key = self._quartz_keycode_map[normalized_key]
+        elif len(normalized_key) == 1:
+            quartz_key = ord(normalized_key)
+        else:
             quartz_key = None
+        
+        # info and return #
+        if quartz_key is None: 
+            logging.warning(f"Invalid Quartz key: {normalized_key}")
+        
+        return quartz_key, requires_shift
 
-            # convert to shift key #
-            if normalized_key.isalpha() and not normalized_key.islower():
-                requires_shift = True
-                normalized_key = normalized_key.lower()
-            
-            if normalized_key in self._quartz_shift_required_map:
-                requires_shift = True
-                normalized_key = self._quartz_shift_required_map[normalized_key]
-            
-            # get key from map #
-            if normalized_key in self._quartz_keycode_map:
-                quartz_key = self._quartz_keycode_map[normalized_key]
-            elif len(normalized_key) == 1:
-                quartz_key = ord(normalized_key)
-            else:
-                quartz_key = None
-            
-            # info and return #
-            if quartz_key is None: 
-                logging.warning(f"Invalid Quartz key: {normalized_key}")
-            
-            return quartz_key, requires_shift
+    # main function #
+    def get_key(self, raw_key_str):
+        # validate key #
+        if not raw_key_str: return None # invalid #
+        normalized_key = str(raw_key_str).lower().strip()
 
-        # main function #
-        def get_key(raw_key_str):
-            # validate key #
-            if not raw_key_str: return None # invalid #
-            normalized_key = str(raw_key_str).lower().strip()
+        # get the key from cache #
+        cached_key = self._cache.get(normalized_key, None)
+        if cached_key is not None:
+            logging.info(f"Using cached key: '{raw_key_str}' -> '{cached_key}'.")
+            return cached_key
 
-            # get the key from cache #
-            cached_key = self._cache.get(normalized_key, None)
-            if cached_key is not None:
-                logging.info(f"Using cached key: '{raw_key_str}' -> '{cached_key}'.")
-                return cached_key
-
-            # get the key and store in cache #
-            key = _get_quartz_key(normalized_key)
-            logging.info(f"Using key: '{raw_key_str}' -> '{key}'.")
+        # get the key and store in cache #
+        key = self._get_quartz_key(normalized_key)
+        logging.info(f"Using key: '{raw_key_str}' -> '{key}'.")
+        
+        if key is not None:
+            self._cache[normalized_key] = key
             
-            if key is not None:
-                self._cache[normalized_key] = key
-                
-            return key
+        return key
