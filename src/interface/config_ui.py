@@ -18,7 +18,7 @@ from variables import StaticVariables
 import utils.general.filehandler as FileHandler
 from utils.images.screen import scale_x, scale_y
 
-import interface.msgbox
+import interface.msgbox as msgbox
 
 current_os = platform.system()
 
@@ -263,9 +263,9 @@ class ConfigUI(QWidget):
     def pathfinding_macro_change(self, text):
         if hasattr(self, "config_loaded") == True and text == "risk_spin":
             if current_os != "Windows":
-                interface.msgbox.alert("This pathfinding macro only works on Windows.")
+                msgbox.alert("This pathfinding macro only works on Windows.")
             else:
-                interface.msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
+                msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
 
     def setup_change_handler(self):
         for section, options in Config.config.items():
@@ -336,10 +336,16 @@ class ConfigUI(QWidget):
                             widget.setCurrentIndex(index)
 
                     elif isinstance(widget, QMousePicker):
-                        widget.set(*value)
+                        try:
+                            widget.set(*value)
+                        except Exception as e:
+                            msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n{str(e)}", log_level=logging.ERROR)
 
                     elif isinstance(widget, QRegionSelector):
-                        widget.set(*value)
+                        try:
+                            widget.set(*value)
+                        except Exception as e:
+                            msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n{str(e)}", log_level=logging.ERROR)
 
                     elif isinstance(widget, QMultiComboBox):
                         widget.setSelectedItems(value)
