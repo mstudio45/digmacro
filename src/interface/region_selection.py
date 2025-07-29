@@ -115,8 +115,7 @@ if current_os == "Darwin":
                 NSApp().stop_(self) # type: ignore
 
     class RegionSelector:
-        def __init__(self):
-            pass
+        def __init__(self): pass
 
         def start(self):
             app = NSApplication.sharedApplication() # type: ignore
@@ -126,6 +125,8 @@ if current_os == "Darwin":
 
         def get_selection(self):
             return selected_rect
+        
+        def stop(self): pass # :boom:
 else:
     logging.info("Using 'General' region selector handler...")
 

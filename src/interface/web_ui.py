@@ -188,6 +188,7 @@ class GuideUI(UIBase):
     def __init__(self, image=None, steps=None, note=None):
         super().__init__(StaticVariables.guide_ui_filepath)
         self.is_running = True
+        self.did_close = False
 
         self.image = image
         self.steps = steps
@@ -206,11 +207,14 @@ class GuideUI(UIBase):
     def close(self):
         logging.info("GuideUI closing using 'close'...")
 
+        self.did_close = True
         self.is_running = False
         self.stop_window()
 
     def start_region_select(self):
         logging.info("GuideUI closing using 'start_region_select'...")
+
+        self.did_close = True
         self.stop_window()
 
     def get_image(self):

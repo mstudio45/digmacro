@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
 from PySide6.QtCore import Signal
 
+import time
+
 class QRegionSelector(QWidget):
     valueChanged = Signal(str)
 
@@ -37,6 +39,10 @@ class QRegionSelector(QWidget):
 
         guide_ui = GuideUI(image=self.image, steps=self.steps, note=self.note)
         guide_ui.start()
+        
+        while guide_ui.did_close == False:
+            time.sleep(0.1)
+
         if guide_ui.is_running == False:
             self.picking = False
             self.info_label.setText(old_text)
