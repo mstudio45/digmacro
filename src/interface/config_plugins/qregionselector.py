@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QTimer, QEventLoop
 
 import time
 
@@ -40,8 +40,18 @@ class QRegionSelector(QWidget):
         guide_ui = GuideUI(image=self.image, steps=self.steps, note=self.note)
         guide_ui.start()
         
-        while guide_ui.did_close == False:
-            time.sleep(0.1)
+        # wait for the guide ui to stop (ty macos) #
+        loop = QEventLoop()
+        timer = QTimer()
+        
+        def check_status():
+            if guide_ui.did_close:
+                timer.stop()
+                loop.quit()
+        
+        timer.timeout.connect(check_status)
+        timer.start(100)
+        loop.exec()
 
         if guide_ui.is_running == False:
             self.picking = False
@@ -53,8 +63,10 @@ class QRegionSelector(QWidget):
             )
             return
 
+        # start region selector #
         region_selector = RegionSelector()
         region_selector.start()
+
         region = region_selector.get_selection()
         if region is None:
             self.picking = False
@@ -66,8 +78,8 @@ class QRegionSelector(QWidget):
             )
             return
 
-        self.picking = False
         self.set(region["left"], region["top"], region["width"], region["height"])
+        self.picking = False
         region_selector.stop()
         
     def value(self):
