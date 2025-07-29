@@ -56,7 +56,7 @@ def install_pip_package(package, only_binary=False, no_deps=False):
                 except: pass
 
             log_install(f"[install_pip_package] Installing with 'arch -{current_arch}' command prefix for {pip_spec}.")
-            command = ["arch", f"-{current_arch}", sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-cache-dir", pip_spec]
+            command = ["arch", f"-{current_arch}"] + command
 
         # force binary or no deps #
         if only_binary == True:
