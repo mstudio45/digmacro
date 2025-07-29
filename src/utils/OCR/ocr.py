@@ -37,7 +37,7 @@ class GameOCR:
         self.notif_screenshot_region = {"left": notif_left, "top": notif_top, "width": notif_width, "height": notif_height }
         self.rarities = [ "Junk", "Common", "Unusual", "Scarce", "Legendary", "Mythical", "Divine", "Prismatic" ]
         self.possible_ending_strings = [ "!", "l" ]
-        self.possible_string_split = [ "l dug", "! dug" ]
+        self.possible_string_split = [ "l dug", "! dug", "l You" ]
         self.dug_up_keyword = [ "dugup", "dug up", "yr old", "you upa ", "you up a" ]
 
         self.sharp_kernel = np.array([[0, -1, 0], [-1, 5,-1], [0, -1, 0]])
@@ -62,15 +62,15 @@ class GameOCR:
     def get_current_money(self, sct):
         image_array = take_screenshot(self.money_screenshot_region, sct)
         if image_array is None:
+            logging.warning("Screenshot returned None; returning 0 as money.")
             return 0
         
-        raw_text = self.ocr_util.OCR(image_array)
-        money = 0
-
         try: 
+            raw_text = self.ocr_util.OCR(image_array)
             money = self._format_money(raw_text)
-        except Exception as e:
+        except Exception as e: 
             logging.info(f"Failed to convert OCR result to money: {str(e)}")
+            money = 0
         
         return money
     
@@ -79,7 +79,7 @@ class GameOCR:
         cleaned = ''.join(char for char in raw_text if char in string.printable) # remove special unprintable characters #
         cleaned = re.sub(r'[^a-zA-Z0-9\s.,;:!?\'\"()\-]', '', cleaned) # cleanup special keys #
         cleaned = re.sub(r'\s+', ' ', cleaned)
-        return cleaned.splitlines()
+        return cleaned.lstrip()
 
     def get_current_item(self, sct):
         screenshot_image = take_screenshot(region=self.notif_screenshot_region, sct=sct)
@@ -93,12 +93,7 @@ class GameOCR:
 
         # get raw text #
         raw_text = self.ocr_util.OCR(fixed_image)
-        text_arrays = self._clean_ocr_text(raw_text)
-        text_array_len = len(text_arrays)
-        if text_array_len == 0: return False, text_arrays, "", "", False
-
-        # get line info #
-        cleaned_text = text_arrays[0]
+        cleaned_text = self._clean_ocr_text(raw_text)
         lower_cleaned_text = cleaned_text.lower()
 
         # check if it is a new item notif #
@@ -108,7 +103,7 @@ class GameOCR:
                 has_keyword = True
                 break
         
-        if not has_keyword: return False, text_arrays, "", "", False
+        if not has_keyword: return False, cleaned_text, "", "", False
 
         # get rarity #
         found_rarity, rarity_position = None, None
@@ -119,7 +114,7 @@ class GameOCR:
                 rarity_position = match.start()
                 break
 
-        if found_rarity == None or rarity_position == None: return False, text_arrays, "", "", False
+        if found_rarity == None or rarity_position == None: return False, cleaned_text, "", "", False
 
         # get item name #
         item_name = raw_text[rarity_position + len(found_rarity):].lstrip()
@@ -137,8 +132,4 @@ class GameOCR:
                 break
         
         # check if the item is new #
-        is_new_item = False
-        if text_array_len > 1:
-            is_new_item = "have discovered" in text_arrays[1].lower()
-
-        return True, text_arrays, item_name, found_rarity, is_new_item
+        return True, cleaned_text, item_name, found_rarity, "have discovered" in lower_cleaned_text

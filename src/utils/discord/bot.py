@@ -570,8 +570,8 @@ Macro States:
 
     def check_new_item(self):
         with mss.mss() as sct:
-            valid, text_arrays, item, rarity, is_new = discord_bot.ocr_util.get_current_item(sct)
-            logging.info(f"Item Detection: valid={valid}, text_arrays={text_arrays}, item={item}, rarity={rarity}, is_new={is_new}")
+            valid, cleaned_text, item, rarity, is_new = discord_bot.ocr_util.get_current_item(sct)
+            logging.info(f"Item Detection:\n    valid={valid}\n    cleaned_text={cleaned_text}\n    item={item}\n    rarity={rarity}\n    is_new={is_new}")
             if valid == True and rarity in discord_bot.allowed_rarities:
                 discord_bot.send_item_notification(item, rarity, is_new)
 
