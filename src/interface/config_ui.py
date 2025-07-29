@@ -317,38 +317,37 @@ class ConfigUI(QWidget):
 
                 if widget_key in self.widgets:
                     widget = self.widgets[widget_key]
+                    
+                    try:
+                        if isinstance(widget, QCheckBox):
+                            widget.setChecked(value)
 
-                    if isinstance(widget, QCheckBox):
-                        widget.setChecked(value)
+                        elif isinstance(widget, QSpinBox):
+                            widget.setValue(value)
+    
+                        elif isinstance(widget, QDoubleSpinBox):
+                            widget.setValue(value)
 
-                    elif isinstance(widget, QSpinBox):
-                        widget.setValue(value)
- 
-                    elif isinstance(widget, QDoubleSpinBox):
-                        widget.setValue(value)
+                        elif isinstance(widget, QLineEdit):
+                            widget.setText(str(value))
 
-                    elif isinstance(widget, QLineEdit):
-                        widget.setText(str(value))
+                        elif isinstance(widget, QComboBox):
+                            index = widget.findText(str(value))
+                            if index != -1:
+                                widget.setCurrentIndex(index)
 
-                    elif isinstance(widget, QComboBox):
-                        index = widget.findText(str(value))
-                        if index != -1:
-                            widget.setCurrentIndex(index)
-
-                    elif isinstance(widget, QMousePicker):
-                        try:
+                        elif isinstance(widget, QMousePicker):
                             widget.set(*value)
-                        except Exception as e:
-                            msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n{str(e)}", log_level=logging.ERROR)
 
-                    elif isinstance(widget, QRegionSelector):
-                        try:
+                        elif isinstance(widget, QRegionSelector):
                             widget.set(*value)
-                        except Exception as e:
-                            msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n{str(e)}", log_level=logging.ERROR)
 
-                    elif isinstance(widget, QMultiComboBox):
-                        widget.setSelectedItems(value)
+                        elif isinstance(widget, QMultiComboBox):
+                            widget.setSelectedItems(value)
+                            
+                    except Exception as e:
+                        msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n\nError: {str(e)}", log_level=logging.ERROR)
+
 
     def save_settings(self):
         reply = QMessageBox.question(self, "Confirm Save", "Are you sure you want to save the current settings?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)

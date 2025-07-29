@@ -31,6 +31,7 @@ gui_modules = [
 ]
 
 available_backends = []
+gui_type = None
 for name, module in gui_modules:
     try:
         importlib.import_module(module)
@@ -38,13 +39,16 @@ for name, module in gui_modules:
     except ImportError as e:
         pass
 
-gui_type = ""
-if current_os == "Windows":
-    gui_type = "edgechromium" if "edgechromium" in available_backends else available_backends[0]
-else:
-    gui_type = "gtk"          if "gtk" in available_backends          else available_backends[0]
+logging.info(f"Avalaible renderers: {available_backends}")
+if len(available_backends) > 0:
+    if current_os == "Windows":
+        gui_type = "edgechromium" if "edgechromium" in available_backends else available_backends[0]
+    else:
+        gui_type = "gtk"          if "gtk" in available_backends          else available_backends[0]
 
-logging.info(f"Using '{gui_type}' as the GUI rendered. Avalaible renderers: {available_backends}")
+    logging.info(f"Using '{gui_type}' as the GUI rendered.")
+else:
+    logging.critical("No avalaible renderer found. You might run into issues with the UI.")
 
 class UIBase:
     def __init__(self, ui_path):
