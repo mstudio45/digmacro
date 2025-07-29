@@ -3,6 +3,7 @@ from PySide6.QtCore import Signal, QTimer, QEventLoop
 
 import logging
 import platform
+import time
 
 current_os = platform.system()
 
@@ -37,9 +38,8 @@ class QRegionSelector(QWidget):
         self.info_label.setText("Waiting...")
         self.picking = True
         
-        from interface.region_selection import RegionSelector
+        # start guide ui #
         from interface.web_ui import GuideUI
-
         guide_ui = GuideUI(image=self.image, steps=self.steps, note=self.note)
         guide_ui.start()
         
@@ -70,12 +70,15 @@ class QRegionSelector(QWidget):
 
         # start region selector #
         logging.info("Starting Region Selector...")
+        from interface.region_selection import RegionSelector
         region_selector = RegionSelector()
         region_selector.start()
-        region_selector.stop()
 
         logging.info("Getting region...")
         region = region_selector.get_selection()
+        time.sleep(0.1)
+        region_selector.stop()
+    
         if region is None:
             self.picking = False
             self.info_label.setText(old_text)

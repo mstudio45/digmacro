@@ -135,6 +135,7 @@ else:
     class RegionSelector:
         def __init__(self, stop_macro=False):
             self.stop_macro = stop_macro
+            self.stopped = False
 
         def start(self):
             self.root = tk.Tk()
@@ -167,6 +168,9 @@ else:
             self.root.mainloop()
 
         def stop(self):
+            if self.stopped: return
+            self.stopped = True
+            
             try:
                 if self.stop_macro == True: Variables.is_running = False
                 self.root.destroy()
