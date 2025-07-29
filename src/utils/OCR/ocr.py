@@ -1,13 +1,10 @@
 import logging
 import re
 import string
-import time
 
 import easyocr
 import numpy as np
 import cv2
-
-import mss
 
 from utils.images.screenshots import take_screenshot
 

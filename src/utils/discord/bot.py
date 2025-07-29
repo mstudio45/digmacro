@@ -40,7 +40,7 @@ class DiscordBot:
         if Config.DISCORD_ENABLE_STATISTICS:
             logging.info("[Discord] Loading OCR...")
             from utils.OCR.ocr import GameOCR
-            from utils.OCR.stats import GameStatLib
+            from utils.OCR.stat_lib import GameStatLib
 
             self.ocr_util = GameOCR()
             self.stat_lib = GameStatLib(self)
