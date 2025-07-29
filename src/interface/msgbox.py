@@ -54,6 +54,7 @@ else:
     import tkinter as tk
     from tkinter import ttk, messagebox
     from utils.images.screen import logical_screen_region
+    from variables import StaticVariables
 
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
@@ -75,24 +76,39 @@ else:
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
         # create dialog #
         dialog = tk.Tk()
+        dialog.iconbitmap(default=StaticVariables.icon_filepath)
 
         if current_os == "Linux": dialog.wait_visibility(dialog)
         dialog.wm_attributes("-topmost", True)
 
         result = tk.StringVar()
 
+        # create dialog #
         dialog.title(title)
         dialog.grab_set()
         dialog.resizable(False, False)
+        dialog.configure(bg="white")
+
+        # create style #
+        style = ttk.Style(dialog)
+        style.configure("White.TFrame", background="white")
+        style.configure("White.TLabel", background="white")
 
         # create layout #
-        main_frame = ttk.Frame(dialog, padding="20 15 20 15")
+        main_frame = ttk.Frame(dialog, padding="20 15 20 15", style="White.TFrame")
         main_frame.pack(expand=True, fill="both")
 
-        message_label = ttk.Label(main_frame, text=message, wraplength=300, justify="center")
-        message_label.pack(pady=(0, 20))
+        # create icon and label frame #
+        content_frame = ttk.Frame(main_frame, style="White.TFrame")
+        content_frame.pack(fill="x", pady=(0, 20))
 
-        button_frame = ttk.Frame(main_frame)
+        icon_label = tk.Label(content_frame, image="::tk::icons::question", bg="white")
+        icon_label.pack(side="left", padx=(0, 5))
+
+        message_label = ttk.Label(content_frame, text=message, wraplength=300, justify="left", anchor="w", style="White.TLabel")
+        message_label.pack(side="left", fill="x", expand=True)
+
+        button_frame = ttk.Frame(main_frame, style="White.TFrame")
         button_frame.pack()
 
         # buttons handler #

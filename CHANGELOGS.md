@@ -2,10 +2,12 @@
 ```diff
 [New Features]
 + Added 'Discord Bot' Configuration
++ Added an handler that prevents crashes when an unexpected error happens
 
 [Changes]
-+ Reworded certain configuration tooltips and names (you might need to fix up your config)
++ Re-worded certain configuration tooltips and names (you might need to fix up your config)
 + Temporarly disabled prediction system until its fixed
++ Confirm messageboxes now have white background and proper dialog icon
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch

@@ -99,6 +99,8 @@ class Variables:
 
 class StaticVariables:
     assets_folder                 = get_resource_path("assets")
+
+    icon_filepath                 = os.path.join(assets_folder, "icons", "icon.ico")
     ui_filepath                   = os.path.join(assets_folder, "ui", "ui.html")
     guide_ui_filepath             = os.path.join(assets_folder, "ui", "guide.html")
     rose_pine_lib_path            = os.path.join(assets_folder, "rose-pine")
@@ -110,9 +112,10 @@ class StaticVariables:
     region_filepath               = os.path.join(storage_folder, "region.json")
     pathfinding_macros_filepath   = os.path.join(storage_folder, "pathfinding_macros.json")
     discord_config_filepath       = os.path.join(storage_folder, "discord_settings.json")
-    money_region_filepath         = os.path.join(storage_folder, "money_region.json")
     
     logs_folder                   = os.path.join(storage_folder, "logs")
+    log_filepath                  = os.path.join(logs_folder, Variables.session_id + ".log")
+    crash_log_filepath            = os.path.join(logs_folder, Variables.session_id + "_crash.log")
 
     screenshots_folder            = os.path.join(storage_folder, "screenshots")
     prediction_screenshots_folder = os.path.join(screenshots_folder, "prediction", Variables.session_id)

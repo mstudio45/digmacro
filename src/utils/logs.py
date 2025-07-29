@@ -19,7 +19,7 @@ def setup_logger():
     file_handler = None
     if Config.ENABLE_LOGGING: 
         file_handler = logging.FileHandler(
-            filename=os.path.join(StaticVariables.logs_folder, Variables.session_id + ".log"),
+            filename=StaticVariables.log_filepath,
             encoding="utf-8",
             mode="a"
         )

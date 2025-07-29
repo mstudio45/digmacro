@@ -38,6 +38,19 @@ def read(filename: str):
         logging.error(f"An unexpected error occurred while reading from '{filename}': {e}")
         return None
 
+def rename(filename: str, new_filename: str):
+    try:
+        os.rename(filename, new_filename)
+        logging.info(f"Successfully renamed '{filename}' to '{new_filename}'.")
+
+    except FileNotFoundError:
+        logging.warning(f"File not found: '{filename}'.")
+        return None
+    
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while reading from '{filename}': {e}")
+        return None
+
 # folders #
 def get_folders(folderpath: str): # (path, is_empty)
     try:
