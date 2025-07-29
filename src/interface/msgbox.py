@@ -1,14 +1,15 @@
 import logging
-import subprocess
 import platform
 
 __all__ = ["alert", "confirm"]
 current_os = platform.system()
 
+from variables import StaticVariables
+
 if current_os == "Darwin":
     logging.info("Using 'Darwin' message box handler...")
 
-    from Cocoa import NSAlert, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
+    from Cocoa import NSAlert, NSImage, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
@@ -17,13 +18,17 @@ if current_os == "Darwin":
         alert.setMessageText_(title)
         alert.setInformativeText_(message)
         alert.addButtonWithTitle_("OK")
-        
+
         if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
             alert.setAlertStyle_(NSCriticalAlertStyle)
         elif log_level == logging.WARNING:
             alert.setAlertStyle_(NSWarningAlertStyle)
         else:
-            alert.setAlertStyle_(NSInformationalAlertStyle)
+            try:
+                icon = NSImage.alloc().initWithContentsOfFile_(StaticVariables.macos_icon_filepath)
+                if icon: alert.setIcon_(icon)
+            except:
+                alert.setAlertStyle_(NSInformationalAlertStyle)
         
         alert.runModal()
 
@@ -35,7 +40,11 @@ if current_os == "Darwin":
         for button in buttons:
             alert.addButtonWithTitle_(button)
         
-        alert.setAlertStyle_(NSInformationalAlertStyle)
+        try:
+            icon = NSImage.alloc().initWithContentsOfFile_(StaticVariables.macos_icon_filepath)
+            if icon: alert.setIcon_(icon)
+        except:
+            alert.setAlertStyle_(NSInformationalAlertStyle)
         
         response = alert.runModal()
         button_index = response - 1000
@@ -49,7 +58,6 @@ else:
     import tkinter as tk
     from tkinter import ttk, messagebox
     from utils.images.screen import logical_screen_region
-    from variables import StaticVariables
 
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return

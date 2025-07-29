@@ -101,6 +101,8 @@ class StaticVariables:
     assets_folder                 = get_resource_path("assets")
 
     icon_filepath                 = os.path.join(assets_folder, "icons", "icon.ico")
+    macos_icon_filepath           = os.path.join(assets_folder, "icons", "macos_icon.icns")
+
     ui_filepath                   = os.path.join(assets_folder, "ui", "ui.html")
     guide_ui_filepath             = os.path.join(assets_folder, "ui", "guide.html")
     rose_pine_lib_path            = os.path.join(assets_folder, "rose-pine")
