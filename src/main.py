@@ -981,8 +981,18 @@ if __name__ == "__main__":
         disable_spammy_loggers()
 
         # load discord bot #
-        if Config.ENABLE_DISCORD_BOT == True: discord_bot.run()
-        else:                                 logging.info("Discord Bot is disabled.")
+        if Config.ENABLE_DISCORD_BOT == True:
+            if Config.DISCORD_ENABLE_STATISTICS:
+                logging.info("[Discord] Loading OCR and Stats modules...")
+                from utils.OCR.ocr import GameOCR
+                from utils.OCR.stat_lib import GameStatLib
+
+                discord_bot.ocr_util = GameOCR()
+                discord_bot.stat_lib = GameStatLib(discord_bot)
+            
+            discord_bot.run()
+        else:
+            logging.info("Discord Bot is disabled.")
 
         # load ui #
         logging.info("Loading UI...")

@@ -241,7 +241,7 @@ class GameStatLib:
                     # add money and send statistic notif #
                     time_now = datetime.datetime.now()
 
-                    if time_now- last_update > update_interval:
+                    if time_now - last_update > update_interval:
                         logging.info(f"Updated money information array. Current Money: {current_money:,}")
                         Variables.money_information.append({ "timestamp": datetime.time(hour=time_now.hour, minute=time_now.minute, second=time_now.second), "money": current_money })
                         last_update = time_now

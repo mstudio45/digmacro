@@ -117,17 +117,23 @@ class DiscordBot:
                         timestamp=datetime.datetime.now()
                     )
 
-                    if current_os == "Windows":
-                        embed.add_field(
-                            name="Statistics",
-                            value=f"`Enabled: {self.bool_to_emoji(self.ocr_util is not None)}`"
-                        )
+                    embed.add_field(
+                        name="Information",
+                        value=f"""
+`OCR Module`:   {self.bool_to_emoji(self.ocr_util is not None)}
+`Stats Module`: {self.bool_to_emoji(Config.DISCORD_ENABLE_STATISTICS and self.stat_lib is not None)}
+"""
+                    )
 
                     await self.channels["logs"].send(embed=embed)
                 except Exception as e: msgbox.alert(f"[Discord] Failed to send startup message: {str(e)}", log_level=logging.CRITICAL)
 
             # main loop #
-            self.stat_lib.run_information_loop(Config.DISCORD_STATISTICS_INTERVAL)
+            if Config.DISCORD_ENABLE_STATISTICS and self.stat_lib is not None:
+                self.stat_lib.run_information_loop(Config.DISCORD_STATISTICS_INTERVAL)
+            else:
+                logging.info("[Discord] Statistics are disabled.")
+            
             logging.info(f"[Discord] Logged in as '{self.bot.user.name}'.")
     
     # commands #
@@ -350,6 +356,10 @@ Macro States:
             if interaction.user.id != self.allowed_user_id:
                 return await interaction.response.send_message("You are not allowed to run this command.")
             
+            if self.ocr_util is None:
+                await interaction.response.send_message("OCR Module is not initialized.", ephemeral=True)
+                return
+
             try:
                 with mss.mss() as sct:
                     await interaction.response.send_message(self.ocr_util.get_current_money(sct), ephemeral=True)
@@ -363,6 +373,10 @@ Macro States:
             if interaction.user.id != self.allowed_user_id:
                 return await interaction.response.send_message("You are not allowed to run this command.")
             
+            if self.stat_lib is None:
+                await interaction.response.send_message("Stats Module is not initialized.", ephemeral=True)
+                return
+
             try:
                 image_array = self.stat_lib.create_image()
 
@@ -388,14 +402,12 @@ Macro States:
         self.discord_config = self._load_config()
         self.allowed_user_id = int(Config.DISCORD_USER_ID)
 
-        # load ocr #
         if Config.DISCORD_ENABLE_STATISTICS:
-            logging.info("[Discord] Loading OCR...")
-            from utils.OCR.ocr import GameOCR
-            from utils.OCR.stat_lib import GameStatLib
-
-            self.ocr_util = GameOCR()
-            self.stat_lib = GameStatLib(self)
+            if self.ocr_util is None:
+                msgbox.alert("[Discord] OCR Module is not initalized.", log_level=logging.CRITICAL)
+            
+            if self.stat_lib is None:
+                msgbox.alert("[Discord] Stats Module is not initliazed.", log_level=logging.CRITICAL)
 
         # register bot #
         intents = nextcord.Intents.default()
@@ -562,6 +574,9 @@ Macro States:
 
     def send_statistic_embed(self):
         logging.info("[Discord] Sending statistic embed...")
+        if self.stat_lib is None:
+            logging.info("[Discord] Stats Module is not initialized.")
+            return
 
         embed = Embed(
             title="Statistics",
