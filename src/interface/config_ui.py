@@ -348,7 +348,6 @@ class ConfigUI(QWidget):
                     except Exception as e:
                         msgbox.alert(f"Failed to apply saved data to '{key}'. This issue only happens with configs made for older versions.\n\nError: {str(e)}", log_level=logging.ERROR)
 
-
     def save_settings(self):
         reply = QMessageBox.question(self, "Confirm Save", "Are you sure you want to save the current settings?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply != QMessageBox.Yes:
@@ -372,20 +371,18 @@ class ConfigUI(QWidget):
                         new_value = widget.value()
 
                     elif isinstance(widget, QLineEdit):
-                        text_value = widget.text()
+                        new_value = widget.text()
+
                         if isinstance(value, bool):
-                            new_value = text_value.lower() == "true"
+                            new_value = new_value.lower() == "true"
 
                         elif isinstance(value, int):
-                            try: new_value = int(text_value)
-                            except ValueError: new_value = value
+                            try: new_value = int(new_value)
+                            except ValueError: pass
 
                         elif isinstance(value, float):
-                            try: new_value = float(text_value)
-                            except ValueError: new_value = value
-
-                        else:
-                            new_value = text_value
+                            try: new_value = float(new_value)
+                            except ValueError: pass
                         
                     elif isinstance(widget, QComboBox):
                         new_value = widget.currentText()

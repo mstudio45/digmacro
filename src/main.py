@@ -296,7 +296,7 @@ if __name__ == "__main__":
         q_app.exec()
         
         # exit or restart #
-        if config_ui.start_macro_now == True: restart_macro()
+        if config_ui.start_macro_now == True: restart_macro(["--skip-install", "--skip-selection"])
         else:                                 os.kill(os.getpid(), 9)
 
     if "--skip-selection" in sys.argv or "--region-check" in sys.argv:
@@ -905,37 +905,67 @@ if __name__ == "__main__":
     logging.info("Initializing MacroHandler...")
     macro = MacroHandler()
 
-    # check discord bot config #
-    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_BOT_TOKEN == "":
-        msgbox.alert("Invalid Bot Token. Discord Bot has been disabled.")
-        Config.ENABLE_DISCORD_BOT = False
+    # check config values #
+    validation_rules = {
+        "ENABLE_DISCORD_BOT": {
+            "GENERAL": {
+                "Invalid Bot Token": Config.DISCORD_BOT_TOKEN == "",
+                "Invalid User ID": Config.DISCORD_USER_ID == "" or not isinstance(Config.DISCORD_USER_ID, int),
+            },
 
-    if Config.ENABLE_DISCORD_BOT == True and (Config.DISCORD_USER_ID == "" or not isinstance(Config.DISCORD_USER_ID, int)):
-        msgbox.alert("Invalid User ID. Discord Bot has been disabled.")
-        Config.ENABLE_DISCORD_BOT = False
+            "DISCORD_ENABLE_STATISTICS": {
+                "Invalid Money Region selected for Statistics": Config.DISCORD_MONEY_LABEL_REGION == None or Config.DISCORD_MONEY_LABEL_REGION == (0,0,0,0)
+            }
+        },
 
-    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_ENABLE_STATISTICS == True and (Config.DISCORD_MONEY_LABEL_REGION == None or Config.DISCORD_MONEY_LABEL_REGION == (0,0,0,0)):
-        msgbox.alert("Invalid money region selected for Discord Bot Statistics. Discord Bot Statistics has been disabled.")
-        Config.DISCORD_ENABLE_STATISTICS = False
+        "ENABLE_AUTO_SELL": {
+            "GENERAL": {
+                "Invalid button position selected": Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0),
+            }
+        },
 
-    # check auto sell config #
-    if Config.ENABLE_AUTO_SELL == True and Config.AUTO_SELL_MODE == "Mouse Movement" and Config.AUTO_SELL_BUTTON_POSITION == (0, 0):
-        msgbox.alert("Invalid button position selected for Auto Sell. Auto Sell has been disabled.")
-        Config.ENABLE_AUTO_SELL = False
+        "ENABLE_PATHFINDING": {
+            "GENERAL": {
+                "Macro 'risk_spin' only works on Windows": current_os != "Windows" and Config.PATHFINDING_MACRO == "risk_spin",
+                "Macro 'risk_spin' requires 'AUTO_START_MINIGAME'": Config.AUTO_START_MINIGAME == False and Config.PATHFINDING_MACRO == "risk_spin"
+            }
+        }
+    }
 
-    # check pathfinding config #
-    if current_os != "Windows" and Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
-        msgbox.alert("Pathfinding macro 'risk_spin' only works on Windows. Pathfinding has been disabled.")
-        Config.ENABLE_PATHFINDING = False
+    for config_name, config_rules in validation_rules.items():
+        if not Config[config_name]:
+            logging.info(f"Skipping config validation for '{config_name}' since it's disabled.")
+            continue
 
+        # check required setting #
+        general_checks = config_rules.get("GENERAL", {})
+        for warning_message, condition_is_met in general_checks.items():
+            if condition_is_met:
+                msgbox.alert(f"{warning_message}. '{config_name}' has been disabled.", log_level=logging.WARNING)
+                setattr(Config, config_name, False)
+                break
+        
+        if not Config[config_name]: continue
+
+        # check specific sub setting #
+        for sub_config_name, sub_config_rules in config_rules.items():
+            if sub_config_name == "GENERAL": continue
+
+            if not Config[sub_config_name]:
+                logging.info(f"Skipping config validation for '[{config_name}] {sub_config_name}' since it's disabled.")
+                continue
+
+            for warning_message, condition_is_met in sub_config_rules.items():
+                if condition_is_met:
+                    msgbox.alert(f"{warning_message}. '[{config_name}] {sub_config_name}' has been disabled.", log_level=logging.WARNING)
+                    setattr(Config, sub_config_name, False)
+                    break
+
+    # required code changes #
     if Config.ENABLE_AUTO_SELL == True and Config.AUTO_SELL_AFTER_PATHFINDING_MACRO == True and Config.ENABLE_PATHFINDING == True:
         if Config.PATHFINDING_MACRO != "risk_spin" and Config.PATHFINDING_MACRO in Config.PathfindingMacros:
             Config.AUTO_SELL_REQUIRED_ITEMS = len(Config.PathfindingMacros[Config.PATHFINDING_MACRO]) + 1
             logging.info(f"Auto Sell (After Pathfinding) enabled, will sell after: {Config.AUTO_SELL_REQUIRED_ITEMS} items (amount of keys + 1)")
-
-    if Config.AUTO_START_MINIGAME == False and Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
-        msgbox.alert("You need to have 'AUTO_START_MINIGAME' minigame enabled to use 'risk_spin' pathfinding macro. Pathfinding has been disabled.")
-        Config.ENABLE_PATHFINDING = False
 
     if Config.ENABLE_PATHFINDING == True and Config.PATHFINDING_MACRO == "risk_spin":
         msgbox.alert("Make sure shiftlock is enabled for the pahtfinding macro to work correctly!")
