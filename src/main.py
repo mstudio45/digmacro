@@ -99,6 +99,7 @@ import threading
 import mss
 import numpy as np
 import cv2
+import asyncio
 import interface.msgbox as msgbox
 
 # anti-crash error logger #
@@ -122,7 +123,8 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     # rename the log file #
     try: FileHandler.rename(StaticVariables.log_filepath, StaticVariables.crash_log_filepath)
     except: pass
-    sys.exit(1)
+
+    os.kill(os.getpid(), 9)
 
 sys.excepthook = log_uncaught_exceptions
 
@@ -999,7 +1001,16 @@ if __name__ == "__main__":
         macro.ui.start(macro.main_loop)
 
         logging.info("UI Closed, starting cleanup...")
-        if discord_bot.running: discord_bot.stop()
+
+        if discord_bot.running:
+            logging.info("[Discord] Stopping Discord Bot...")
+            discord_bot.stop()
+        
+        if discord_bot.stat_lib:
+            logging.info("Stopping Stats Module..")
+            discord_bot.stat_lib.stat_util.stop()
+        
+        logging.info("Cleaning Macro Handler...")
         macro.exit_macro()
 
         if macro.ui.open_config == True:

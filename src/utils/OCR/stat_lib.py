@@ -27,21 +27,28 @@ class Layout(enum.Enum):
     default = "default"
 
 class StatLib:
-    def __init__(self, layout: Layout = Layout.default, compact=True) -> None:
+    def __init__(self, layout: Layout = Layout.default, compact=True, size=5) -> None:
         self.compact = compact
         self.layout = layout
+        self.stopped = False
 
         plt.style.use(os.path.abspath(os.path.join(StaticVariables.rose_pine_lib_path, "rose-pine.mplstyle")))
+        self.fig = plt.figure(figsize=(size, size))
 
-    def generate(self, data: list, size: int = 5):
+    def stop(self):
+        if self.stopped: return
+        self.stopped = True
+        plt.close(self.fig)
+
+    def generate(self, data):
         right_charts = sum(isinstance(d, StatVisualType) and d.right for d in data)
         left_charts = sum(isinstance(d, StatVisualType) and not d.right for d in data)
 
         ncols = 2 if right_charts and left_charts else 1
         nrows = max(right_charts, left_charts, 1)
-
-        fig = plt.figure(figsize=(size, size))
-        spec = fig.add_gridspec(nrows=nrows, ncols=ncols)
+        
+        self.fig.clear() # clear current figure #
+        spec = self.fig.add_gridspec(nrows=nrows, ncols=ncols)
 
         right_index = 0
         left_index = 0
@@ -52,7 +59,7 @@ class StatLib:
 
             col = 1 if item.right and ncols == 2 else 0
             row = right_index if item.right else left_index
-            ax = fig.add_subplot(spec[row, col])
+            ax = self.fig.add_subplot(spec[row, col])
 
             if item.type == StatVisualEnum.line_chart:
                 ax.set_title(item.title)
@@ -100,11 +107,11 @@ class StatLib:
                 left_index += 1
 
         if self.compact:
-            fig.tight_layout()
+            self.fig.tight_layout()
 
         buf = io.BytesIO()
         plt.savefig(buf, format="png")
-        plt.close(fig)
+        self.fig.clear() # clear instead of close #
         buf.seek(0)
 
         img = Image.open(buf)
@@ -129,7 +136,7 @@ import mss
 
 class GameStatLib:
     def __init__(self, discord_bot):
-        self.stat_util = StatLib(compact=True, layout=Layout.grid)
+        self.stat_util = StatLib(compact=True, layout=Layout.grid, size=8)
         self.discord_bot = discord_bot
 
     def calculate_hourly_average(self, cumulative_points): # list of current_money during a certain time, not earnings #
@@ -139,7 +146,7 @@ class GameStatLib:
         
         return (sum(interval_earnings) / len(interval_earnings)) * 6 # average_per_interval * (60 minutes / 10 minutes) (bcs interval is 10 minutes) #
 
-    def create_image(self, size=8):
+    def create_image(self):
         visuals = []
 
         # money line chart #
@@ -212,7 +219,7 @@ class GameStatLib:
         ))
         
         # generate bar chart #
-        return self.stat_util.generate(visuals, size=size)
+        return self.stat_util.generate(visuals)
     
     # main loop #
     def run_information_loop(self, interval_str):

@@ -268,7 +268,7 @@ class DiscordBot:
                 timestamp=datetime.datetime.now()
             )
 
-            if hasattr(self.discord_config, "LOG_CHANNEL") and self.discord_config["LOG_CHANNEL"] is not None:
+            if self.discord_config.get("LOG_CHANNEL", None) is not None:
                 embed.add_field(
                     name="Log Channel",
                     value=f"<#{self.discord_config["LOG_CHANNEL"]}>",
@@ -432,31 +432,43 @@ Macro States:
 
     def _run_bot(self):
         try:
+            self.running = True
             self.loop.run_until_complete(self.bot.start(Config.DISCORD_BOT_TOKEN, reconnect=True))
         except Exception as e:
             logging.error(f"[Discord] An error occurred in the bot thread: {e}")
-        
-        finally:
-            if self.loop.is_running():
-                self.loop.run_until_complete(self.loop.shutdown_asyncgens())
-                self.loop.close()
-            
-            logging.info("[Discord] Bot has been shut down.")
 
     def stop(self):
-        if self.bot and self.bot_thread and self.bot_thread.is_alive():
-            logging.info("[Discord] Shutting down bot...")
-            future = asyncio.run_coroutine_threadsafe(self.bot.close(), self.loop)
-            
-            try:
-                future.result(timeout=5)
-            except asyncio.TimeoutError:
-                logging.error("[Discord] Timed out waiting for bot to close.")
-            except Exception as e:
-                logging.error(f"[Discord] Error closing the bot: {e}")
+        if not self.bot or self.loop.is_closed(): return
+        logging.info("[Discord] Shutting down bot...")
 
-            self.bot_thread.join()
-            logging.info("[Discord] Bot thread has been joined.")
+        # shutdown message #
+        embed = Embed(
+            title="Information",
+            description="Macro is closing, shutting down bot...",
+            color=Color.red(),
+            timestamp=datetime.datetime.now()
+        )
+
+        try:
+            asyncio.run_coroutine_threadsafe(self.channels["logs"].send(embed=embed), self.loop)
+        except Exception as e: logging.warning(f"[Discord] Could not send shutdown message: {e}")
+
+        # shutdown #
+        try:
+            future = asyncio.run_coroutine_threadsafe(self.bot.close(), self.loop)
+            future.result(timeout=5) 
+
+            logging.info("[Discord] Bot has closed successfully.")
+        except Exception as e: logging.error(f"[Discord] Error closing the bot: {str(e)}")
+        
+        # stop loop #
+        try:
+            if self.loop.is_running(): self.stop()
+        except Exception as e: logging.error(f"[Discord] Error stopping loop: {str(e)}")
+
+        try:
+            if not self.loop.is_closed(): self.close()
+        except Exception as e: logging.error(f"[Discord] Error stopping loop: {str(e)}")
 
     # global functions #
     def send_minigame_info(self):
