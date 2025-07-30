@@ -988,6 +988,7 @@ if __name__ == "__main__":
         macro.ui.start(macro.main_loop)
 
         logging.info("UI Closed, starting cleanup...")
+        if discord_bot.running: discord_bot.stop()
         macro.exit_macro()
 
         if macro.ui.open_config == True:

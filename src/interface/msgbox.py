@@ -10,59 +10,107 @@ if current_os == "Darwin":
     logging.info("Using 'Darwin' message box handler...")
 
     from Cocoa import NSApplication, NSAlert, NSImage, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
-    import AppKit # type: ignore 
+    import AppKit # type: ignore
+    import subprocess
+    import threading
 
+    def _escape_applescript(s):
+        if not isinstance(s, str): s = str(s)
+        return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+
+    def run_osascript(script):
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            logging.error(f"AppleScript error: {e.stderr}")
+            return None
+    
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
 
-        app = NSApplication.sharedApplication()
-        app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
+        if threading.current_thread() == threading.main_thread():
+            app = NSApplication.sharedApplication()
+            app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
 
-        alert = NSAlert.alloc().init()
-        alert.setMessageText_(title)
-        alert.setInformativeText_(message)
-        alert.addButtonWithTitle_("OK")
+            alert = NSAlert.alloc().init()
+            alert.setMessageText_(title)
+            alert.setInformativeText_(message)
+            alert.addButtonWithTitle_("OK")
 
-        if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
-            alert.setAlertStyle_(NSCriticalAlertStyle)
-        elif log_level == logging.WARNING:
-            alert.setAlertStyle_(NSWarningAlertStyle)
+            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+                alert.setAlertStyle_(NSCriticalAlertStyle)
+            elif log_level == logging.WARNING:
+                alert.setAlertStyle_(NSWarningAlertStyle)
+            else:
+                try:
+                    icon = NSImage.alloc().initWithContentsOfFile_(StaticVariables.macos_icon_filepath)
+                    if icon: alert.setIcon_(icon)
+                except:
+                    alert.setAlertStyle_(NSInformationalAlertStyle)
+            
+            app.activateIgnoringOtherApps_(True)
+            alert.runModal()
         else:
+            if log_level >= logging.CRITICAL or log_level >= logging.ERROR:
+                icon = "stop"
+            elif log_level == logging.WARNING:
+                icon = "caution"
+            else:
+                icon = "note"
+            
+            safe_message = _escape_applescript(message)
+            safe_title = _escape_applescript(title)
+
+            script = f'display dialog "{safe_message}" with title "{safe_title}" buttons {{"OK"}} default button "OK" with icon {icon}'
+            run_osascript(script)
+
+    def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
+        if not message: return
+
+        if threading.current_thread() == threading.main_thread():
+            app = NSApplication.sharedApplication()
+            app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
+
+            alert = NSAlert.alloc().init()
+            alert.setMessageText_(title)
+            alert.setInformativeText_(message)
+            
+            for button in buttons:
+                alert.addButtonWithTitle_(button)
+            
             try:
                 icon = NSImage.alloc().initWithContentsOfFile_(StaticVariables.macos_icon_filepath)
                 if icon: alert.setIcon_(icon)
             except:
                 alert.setAlertStyle_(NSInformationalAlertStyle)
-        
-        app.activateIgnoringOtherApps_(True)
-        alert.runModal()
+            
+            app.activateIgnoringOtherApps_(True)
+            response = alert.runModal()
 
-    def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
-        if not message: return
+            button_index = response - 1000
+            if 0 <= button_index < len(buttons):
+                return buttons[button_index]
+        else:
+            safe_message = _escape_applescript(message)
+            safe_title = _escape_applescript(title)
+            safe_buttons = (_escape_applescript(btn) for btn in buttons)
+            btn_list = ", ".join(f'"{btn}"' for btn in safe_buttons)
+            
+            default_button = ""
+            if buttons: default_button = f'default button "{_escape_applescript(buttons[0])}"'
 
-        app = NSApplication.sharedApplication()
-        app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
+            script = f'display dialog "{safe_message}" with title "{safe_title}" buttons {{{btn_list}}} {default_button}'
+            response = run_osascript(script)
 
-        alert = NSAlert.alloc().init()
-        alert.setMessageText_(title)
-        alert.setInformativeText_(message)
-        
-        for button in buttons:
-            alert.addButtonWithTitle_(button)
-        
-        try:
-            icon = NSImage.alloc().initWithContentsOfFile_(StaticVariables.macos_icon_filepath)
-            if icon: alert.setIcon_(icon)
-        except:
-            alert.setAlertStyle_(NSInformationalAlertStyle)
-        
-        app.activateIgnoringOtherApps_(True)
-        response = alert.runModal()
-
-        button_index = response - 1000
-        if 0 <= button_index < len(buttons):
-            return buttons[button_index]
+            if response and response.startswith("button returned:"):
+                return response.split(":", 1)[1].strip()
         
         return None
 else:

@@ -1,5 +1,4 @@
 import logging
-import threading
 import io
 import os
 import json
@@ -7,6 +6,8 @@ import asyncio
 import traceback
 import platform
 import datetime
+import time
+import threading
 
 import nextcord
 from nextcord.ext import commands
@@ -34,6 +35,7 @@ class DiscordBot:
         self.running = False
 
         # config #
+        self.config_failed = False
         self.discord_config = {}
         self.allowed_user_id = 0
 
@@ -75,9 +77,11 @@ class DiscordBot:
                     raise Exception("Empty or invalid config. Run /setup in Discord.")
             except Exception as e:
                 msgbox.alert(f"[Discord] Failed to load configuration: {str(e)}")
+                self.config_failed = True
                 return {}
         else:
             msgbox.alert(f"[Discord] Please setup the bot. Use '/setup' command inside Discord.")
+            self.config_failed = True
             return {}
         
     # channels #
@@ -99,31 +103,31 @@ class DiscordBot:
     def _register_events(self):
         @self.bot.event
         async def on_ready():
-            # setup channels #
-            logging.info("[Discord] Fetching channels...")
-            self._setup_channel("LOG_CHANNEL", "logs")
+            if self.config_failed == False:
+                # setup channels #
+                logging.info("[Discord] Fetching channels...")
+                self._setup_channel("LOG_CHANNEL", "logs")
 
-            # startup log #
-            try:
-                embed = Embed(
-                    title="Information",
-                    description="Started successfully.",
-                    color=Color.green(),
-                    timestamp=datetime.datetime.now()
-                )
-
-                if current_os == "Windows":
-                    embed.add_field(
-                        name="Statistics",
-                        value=f"`Enabled: {self.bool_to_emoji(self.ocr_util is not None)}`"
+                # startup log #
+                try:
+                    embed = Embed(
+                        title="Information",
+                        description="Started successfully.",
+                        color=Color.green(),
+                        timestamp=datetime.datetime.now()
                     )
 
-                await self.channels["logs"].send(embed=embed)
-            except Exception as e: msgbox.alert(f"[Discord] Failed to send startup message: {str(e)}", log_level=logging.CRITICAL)
+                    if current_os == "Windows":
+                        embed.add_field(
+                            name="Statistics",
+                            value=f"`Enabled: {self.bool_to_emoji(self.ocr_util is not None)}`"
+                        )
+
+                    await self.channels["logs"].send(embed=embed)
+                except Exception as e: msgbox.alert(f"[Discord] Failed to send startup message: {str(e)}", log_level=logging.CRITICAL)
 
             # main loop #
             self.stat_lib.run_information_loop(Config.DISCORD_STATISTICS_INTERVAL)
-
             logging.info(f"[Discord] Logged in as '{self.bot.user.name}'.")
     
     # commands #
@@ -257,6 +261,7 @@ class DiscordBot:
                 ), ephemeral=True)
 
             if changes_made == True:
+                self.config_failed = False
                 FileHandler.write(StaticVariables.discord_config_filepath, json.dumps(self.discord_config, indent=4))
 
             embed = Embed(
@@ -406,12 +411,43 @@ Macro States:
         self._register_commands()
 
         # start bot #
-        def _run_bot(): 
-            self.running = True
-            self.bot.run(Config.DISCORD_BOT_TOKEN)
+        self.bot_thread = threading.Thread(target=self._run_bot, daemon=True)
+        self.bot_thread.start()
+        logging.info("[Discord] Bot is running in a background thread.")
 
-        thread = threading.Thread(target=_run_bot, name="discord_bot", daemon=True)
-        thread.start()
+    def _run_bot(self):
+        try:
+            try:
+                self.loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self.loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self.loop)
+
+            self.loop.run_until_complete(self.bot.start(Config.DISCORD_BOT_TOKEN, reconnect=True))
+        except Exception as e:
+            logging.error(f"[Discord] An error occurred in the bot thread: {e}")
+        
+        finally:
+            if self.loop.is_running():
+                self.loop.run_until_complete(self.loop.shutdown_asyncgens())
+                self.loop.close()
+            
+            logging.info("[Discord] Bot has been shut down.")
+
+    def stop(self):
+        if self.bot and self.bot_thread and self.bot_thread.is_alive():
+            logging.info("[Discord] Shutting down bot...")
+            future = asyncio.run_coroutine_threadsafe(self.bot.close(), self.loop)
+            
+            try:
+                future.result(timeout=5)
+            except asyncio.TimeoutError:
+                logging.error("[Discord] Timed out waiting for bot to close.")
+            except Exception as e:
+                logging.error(f"[Discord] Error closing the bot: {e}")
+
+            self.bot_thread.join()
+            logging.info("[Discord] Bot thread has been joined.")
 
     # global functions #
     def send_minigame_info(self):
