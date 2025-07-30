@@ -411,18 +411,17 @@ Macro States:
         self._register_commands()
 
         # start bot #
-        self.bot_thread = threading.Thread(target=self._run_bot, daemon=True)
-        self.bot_thread.start()
+        try:
+            self.loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+
+        self.loop.run_in_executor(None, self._run_bot)
         logging.info("[Discord] Bot is running in a background thread.")
 
     def _run_bot(self):
         try:
-            try:
-                self.loop = asyncio.get_running_loop()
-            except RuntimeError:
-                self.loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(self.loop)
-
             self.loop.run_until_complete(self.bot.start(Config.DISCORD_BOT_TOKEN, reconnect=True))
         except Exception as e:
             logging.error(f"[Discord] An error occurred in the bot thread: {e}")

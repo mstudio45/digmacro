@@ -122,6 +122,7 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     # rename the log file #
     try: FileHandler.rename(StaticVariables.log_filepath, StaticVariables.crash_log_filepath)
     except: pass
+    sys.exit(1)
 
 sys.excepthook = log_uncaught_exceptions
 
