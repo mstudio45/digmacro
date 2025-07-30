@@ -212,7 +212,7 @@ class DiscordBot:
         
             msg = await interaction.response.send_message(embed=Embed(
                 title="Setup Started",
-                description="Please follow the instructions.",
+                description="Saving your changes, please wait...",
                 color=Color.blue(),
                 timestamp=datetime.datetime.now()
             ), ephemeral=True)
@@ -239,6 +239,23 @@ class DiscordBot:
                 timestamp=datetime.datetime.now()
             ), ephemeral=True)
 
+            # save changes
+            success, err = FileHandler.write(StaticVariables.discord_config_filepath, json.dumps(self.discord_config, indent=4))
+            if success:
+                await msg.edit(embed=Embed(
+                    title="Setup Finished",
+                    description="Your changes have been saved successfully!",
+                    color=Color.green(),
+                    timestamp=datetime.datetime.now()
+                ))
+            else:
+                await msg.edit(embed=Embed(
+                    title="Setup Failed",
+                    description=f"Failed to save your changes.\n```\n{str(err)}\n```",
+                    color=Color.red(),
+                    timestamp=datetime.datetime.now()
+                ))
+
         @slash_command(name="current_setup", description="Get current configuration.", force_global=True)
         async def current_setup_command(interaction: Interaction):
             if interaction.user.id != self.allowed_user_id:
@@ -251,11 +268,18 @@ class DiscordBot:
                 timestamp=datetime.datetime.now()
             )
 
-            embed.add_field(
-                name="Log Channel",
-                value=f"<#{self.discord_config["LOG_CHANNEL"]}>",
-                inline=False
-            )
+            if hasattr(self.discord_config, "LOG_CHANNEL") and self.discord_config["LOG_CHANNEL"] is not None:
+                embed.add_field(
+                    name="Log Channel",
+                    value=f"<#{self.discord_config["LOG_CHANNEL"]}>",
+                    inline=False
+                )
+            else:
+                embed.add_field(
+                    name="Log Channel",
+                    value=f"None - Use `/setup` to configure this.",
+                    inline=False
+                )
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
 

@@ -8,15 +8,15 @@ def write(filename: str, content: str):
             f.write(content)
 
         logging.info(f"Successfully wrote content to '{filename}'.")
-        return True
+        return True, None
     
     except IOError as e:
         logging.error(f"Failed to write to '{filename}': {e}")
-        return False
+        return False, e
     
     except Exception as e:
         logging.error(f"An unexpected error occurred while writing to '{filename}': {e}")
-        return False
+        return False, e
 
 def read(filename: str):
     try:
