@@ -175,19 +175,6 @@ class DiscordBot:
         except Exception as e:
             logging.warning(f"Failed to send message to '{channel_key}': {str(e)}")
 
-    async def ask_user(self, interaction: Interaction, question: str, timeout=60):
-        await interaction.followup.send(question, ephemeral=True)
-
-        def check(m): 
-            return m.author == interaction.user and m.channel == interaction.channel
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=timeout, check=check)
-            return msg.content
-        except TimeoutError:
-            await interaction.followup.send("You took too long to reply. Please run the setup again.", ephemeral=True)
-            return None
-
     def _register_commands(self):
         logging.info("[Discord] Loading commands...")
 
@@ -215,8 +202,11 @@ class DiscordBot:
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-        @slash_command(name="setup", description="Show the current configuration or configure the bot.", force_global=True)
-        async def screenshot_command(interaction: Interaction):
+        @slash_command(name="setup", description="Configure the bot.", force_global=True)
+        async def screenshot_command(
+            interaction: Interaction,
+            log_channel: nextcord.TextChannel = nextcord.SlashOption(name="log_channel", description="Select the log channel to use", required=True)
+        ):
             if interaction.user.id != self.allowed_user_id:
                 return await interaction.response.send_message("You are not allowed to run this command.")
         
@@ -229,50 +219,34 @@ class DiscordBot:
 
             # vars #
             if self.discord_config is None: self.discord_config = {}
-            changes_made = False
 
-            # create log channel #
-            if self.discord_config.get("LOG_CHANNEL", None) is None:
-                answer = await self.ask_user(interaction, "Please create a log channel in this server, then send the **channel ID** of the log channel.")
-                if answer is None: return
-
-                try:
-                    channel_id = int(answer)
-                except ValueError:
-                    await interaction.followup.send(embed=Embed(
-                        description="Invalid Channel ID provided.",
-                        color=Color.red(),
-                        timestamp=datetime.datetime.now()
-                    ), ephemeral=True)
-                    return
-                
-                log_channel = self.bot.get_channel(channel_id)
-                if log_channel is None or log_channel.guild.id != interaction.guild.id:
-                    await interaction.followup.send(embed=Embed(
-                        description="Invalid channel or channel does not belong to this server.",
-                        color=Color.red(),
-                        timestamp=datetime.datetime.now()
-                    ), ephemeral=True)
-                    return
-                
-                changes_made = True
-                self.discord_config["LOG_CHANNEL"] = channel_id
-                self.channels["logs"] = log_channel
-
-                await interaction.followup.send(embed=Embed(
-                    title="Log Channel Set",
-                    description=f"Log channel set to {log_channel.mention}!",
-                    color=Color.green(),
+            # set log_channel #
+            if log_channel.guild.id != interaction.guild.id:
+                return await msg.edit(embed=Embed(
+                    title="Setup Failed",
+                    description="The log channel is not part of this server.",
+                    color=Color.red(),
                     timestamp=datetime.datetime.now()
-                ), ephemeral=True)
+                ))
 
-            if changes_made == True:
-                self.config_failed = False
-                FileHandler.write(StaticVariables.discord_config_filepath, json.dumps(self.discord_config, indent=4))
+            self.discord_config["LOG_CHANNEL"] = log_channel.id
+            self.channels["logs"] = log_channel
+
+            await interaction.followup.send(embed=Embed(
+                title="Log Channel Set",
+                description=f"Log channel set to {log_channel.mention}!",
+                color=Color.green(),
+                timestamp=datetime.datetime.now()
+            ), ephemeral=True)
+
+        @slash_command(name="current_setup", description="Get current configuration.", force_global=True)
+        async def current_setup_command(interaction: Interaction):
+            if interaction.user.id != self.allowed_user_id:
+                return await interaction.response.send_message("You are not allowed to run this command.")
 
             embed = Embed(
-                title="Configuration Summary",
-                description="Here is your current setup:",
+                title="Configuration",
+                description="Here is your current configuration:",
                 color=Color.blue(),
                 timestamp=datetime.datetime.now()
             )
@@ -283,10 +257,7 @@ class DiscordBot:
                 inline=False
             )
 
-            if changes_made == True:
-                await interaction.followup.send(embed=embed, ephemeral=True)
-            else:
-                await msg.edit(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
         @slash_command(name="screenshot", description="Take a screenshot of your screen.", force_global=True)
         async def screenshot_command(interaction: Interaction):
@@ -423,11 +394,14 @@ Macro States:
         self._register_commands()
 
         # start bot #
-        try:
-            self.loop = asyncio.get_running_loop()
-        except RuntimeError:
-            self.loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self.loop)
+        if self.bot.loop:
+            self.loop = self.bot.loop
+        else:
+            try:
+                self.loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self.loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self.loop)
 
         self.loop.run_in_executor(None, self._run_bot)
         logging.info("[Discord] Bot is running in a background thread.")

@@ -1,17 +1,21 @@
 # v2.0.4
 ```diff
 [New Features]
-+ Added 'Discord Bot' Configuration
++ Added "Discord Bot" feature (allows you to interact with the macro through Discord)
 + Added an handler that prevents crashes when an unexpected error happens
 
+[Improvements]
++ Improved region selector for macOS
++ Improved initialization of keyboard and mouse handlers
+
 [Changes]
-+ Re-worded certain configuration tooltips and names (you might need to fix up your config)
-+ Temporarly disabled prediction system until its fixed
-+ Confirm messageboxes now have white background and proper dialog icon
++ Changed certain tooltips and names inside configuration
++ Changed how config saves values
+- Temporarly disabled prediction system until its fixed
 
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch
-+ Fixed an issue inside pathfinding that caused keys to be allowed to press only once
++ Fixed errors and uncaught exceptions inside pathfinding
 ```
 
 # v2.0.3
@@ -22,14 +26,14 @@
 + Added KEYBOARD_INPUT_PACKAGE configuration
 + Added 'risk_spin' pathfinding macro (only for Windows)
 
+[Improvements]
++ Better performance
++ Global Hotkeys are now supported on macOS
+
 [Changes]
 + Added more buttons to the UI (Pause, Configuration, Restart)
 + Changed "Gradient" method to "ZeroLike" and replaced "Gradient" with a new method
 + Removed "Sobel" method since it was slow and unreliable
-
-[Improvements]
-+ Better performance
-+ Global Hotkeys are now supported on macOS
 
 [Fixes]
 + Fixed Intel CPU macOS standalone
