@@ -976,7 +976,7 @@ if __name__ == "__main__":
 
     # load ui #
     if Variables.is_running:
-        logging("Disabling spammy loggers...")
+        logging.info("Disabling spammy loggers...")
         disable_spammy_loggers()
 
         # load discord bot #
