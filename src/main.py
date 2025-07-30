@@ -360,6 +360,7 @@ if __name__ == "__main__":
 
     ###########################################################################################
 
+    logging.info("Loading MacroHandler...")
     class MacroHandler:
         def __init__(self):
             # threads and functions #
@@ -376,7 +377,8 @@ if __name__ == "__main__":
             self.last_hint = ""
 
             # classes #
-            self.region_selector = RegionSelector(stop_macro=True)
+            self.region_selector = None
+            
             self.finder = MainHandler()
             self.pathfinding = PathfingingHandler()
             self.sell_handler = SellUI()
@@ -480,7 +482,17 @@ if __name__ == "__main__":
 
                 # start region select #
                 logging.info("Starting region selection...")
-                self.region_selector.start()
+                if current_os == "Darwin":
+                    from PySide6.QtWidgets import QApplication
+                    q_app = QApplication(sys.argv)
+                    
+                    self.region_selector = RegionSelector(stop_macro=True)
+                    self.region_selector.start()
+
+                    q_app.exec()
+                else:
+                    self.region_selector = RegionSelector(stop_macro=True)
+
                 region = self.region_selector.get_selection()
                 if region is None:
                     self.exit_macro()
@@ -888,7 +900,7 @@ if __name__ == "__main__":
             logging.info("----------- CLEANUP DONE -------------")
 
     # load main macro handler #
-    logging.info("Loading MacroHandler...")
+    logging.info("Initializing MacroHandler...")
     macro = MacroHandler()
 
     # check discord bot config #
@@ -896,7 +908,7 @@ if __name__ == "__main__":
         msgbox.alert("Invalid Bot Token. Discord Bot has been disabled.")
         Config.ENABLE_DISCORD_BOT = False
 
-    if Config.ENABLE_DISCORD_BOT == True and Config.DISCORD_USER_ID == "" or not isinstance(Config.DISCORD_USER_ID, int):
+    if Config.ENABLE_DISCORD_BOT == True and (Config.DISCORD_USER_ID == "" or not isinstance(Config.DISCORD_USER_ID, int)):
         msgbox.alert("Invalid User ID. Discord Bot has been disabled.")
         Config.ENABLE_DISCORD_BOT = False
 

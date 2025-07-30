@@ -32,31 +32,15 @@ current_os = platform.system()
 class DiscordBot:
     def __init__(self):
         self.running = False
-        self.discord_config = self._load_config()
-        self.allowed_user_id = int(Config.DISCORD_USER_ID)
 
-        # load ocr #
-        self.ocr_util = None 
-        if Config.DISCORD_ENABLE_STATISTICS:
-            logging.info("[Discord] Loading OCR...")
-            from utils.OCR.ocr import GameOCR
-            from utils.OCR.stat_lib import GameStatLib
+        # config #
+        self.discord_config = {}
+        self.allowed_user_id = 0
 
-            self.ocr_util = GameOCR()
-            self.stat_lib = GameStatLib(self)
-
-        # load bot #
-        intents = nextcord.Intents.default()
-        intents.guilds = True
-        intents.members = True
-        intents.messages = True
-        intents.guild_messages = True
-        intents.dm_messages = True
-        intents.message_content = True
-
-        self.bot = commands.Bot(command_prefix="!", intents=intents)
-        self._register_events()
-        self._register_commands()
+        # modules #
+        self.ocr_util = None
+        self.stat_lib = None 
+        self.bot = None
 
         # channels cache #
         self.channels = {}
@@ -398,9 +382,37 @@ Macro States:
         
         logging.info("[Discord] Starting bot...")
 
+        # load config #
+        self.discord_config = self._load_config()
+        self.allowed_user_id = int(Config.DISCORD_USER_ID)
+
+        # load ocr #
+        if Config.DISCORD_ENABLE_STATISTICS:
+            logging.info("[Discord] Loading OCR...")
+            from utils.OCR.ocr import GameOCR
+            from utils.OCR.stat_lib import GameStatLib
+
+            self.ocr_util = GameOCR()
+            self.stat_lib = GameStatLib(self)
+
+        # register bot #
+        intents = nextcord.Intents.default()
+        intents.guilds = True
+        intents.members = True
+        intents.messages = True
+        intents.guild_messages = True
+        intents.dm_messages = True
+        intents.message_content = True
+
+        self.bot = commands.Bot(command_prefix="!", intents=intents)
+        self._register_events()
+        self._register_commands()
+
+        # start bot #
         def _run_bot(): 
             self.running = True
             self.bot.run(Config.DISCORD_BOT_TOKEN)
+
         thread = threading.Thread(target=_run_bot, name="discord_bot", daemon=True)
         thread.start()
 

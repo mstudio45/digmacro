@@ -1,15 +1,19 @@
-## STATLIB BY upio ##
+## STATLIB BY upio, modified by mstudio45 ##
 
 import os
 import enum
 import io
+import platform
 
 import numpy as np
 import cv2
 
-import matplotlib.pyplot as plt
-import pandas as pd
 from PIL import Image
+import pandas as pd
+
+import matplotlib
+import matplotlib.pyplot as plt
+if platform.system() == "Darwin": matplotlib.use("MacOSX")
 
 from variables import Variables, StaticVariables
 

@@ -9,10 +9,15 @@ from variables import StaticVariables
 if current_os == "Darwin":
     logging.info("Using 'Darwin' message box handler...")
 
-    from Cocoa import NSAlert, NSImage, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
+    from Cocoa import NSApplication, NSAlert, NSImage, NSInformationalAlertStyle, NSWarningAlertStyle, NSCriticalAlertStyle # type: ignore
+    import AppKit # type: ignore 
+
     def alert(message, title="DIG Macro by mstudio45", log_level=logging.INFO):
         if not message: return
         logging.log(level=log_level, msg=message, stacklevel=2)
+
+        app = NSApplication.sharedApplication()
+        app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
 
         alert = NSAlert.alloc().init()
         alert.setMessageText_(title)
@@ -30,9 +35,15 @@ if current_os == "Darwin":
             except:
                 alert.setAlertStyle_(NSInformationalAlertStyle)
         
+        app.activateIgnoringOtherApps_(True)
         alert.runModal()
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
+        if not message: return
+
+        app = NSApplication.sharedApplication()
+        app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
+
         alert = NSAlert.alloc().init()
         alert.setMessageText_(title)
         alert.setInformativeText_(message)
@@ -46,7 +57,9 @@ if current_os == "Darwin":
         except:
             alert.setAlertStyle_(NSInformationalAlertStyle)
         
+        app.activateIgnoringOtherApps_(True)
         response = alert.runModal()
+
         button_index = response - 1000
         if 0 <= button_index < len(buttons):
             return buttons[button_index]
@@ -77,6 +90,8 @@ else:
         root.destroy()
 
     def confirm(message, title="DIG Macro by mstudio45", buttons=("Yes", "No")):
+        if not message: return
+        
         # create dialog #
         dialog = tk.Tk()
         dialog.iconbitmap(default=StaticVariables.icon_filepath)

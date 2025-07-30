@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PySide6.QtCore import Signal
 
 import time
@@ -12,17 +12,14 @@ class QMousePicker(QWidget):
         self.picking = False
         self._pos = (0, 0)
 
-        self.info_label = QLabel("No position picked")
-
-        self.pick_button = QPushButton("Pick Position")
+        self.pick_button = QPushButton("Pick Position [ No Position Selected ]")
         self.pick_button.clicked.connect(self.start_picking)
 
-        row_layout = QHBoxLayout()
-
-        row_layout.addWidget(self.info_label)
+        row_layout = QVBoxLayout()
         row_layout.addWidget(self.pick_button)
-
         self.setLayout(row_layout)
+
+    ##############################################################################
 
     def on_click(self, x, y, button, pressed):
         if pressed and button == pynput.mouse.Button.left:
@@ -33,8 +30,9 @@ class QMousePicker(QWidget):
 
     def start_picking(self):
         if self.picking: return
-        self.info_label.setText("Waiting...")
+
         self.picking = True
+        self.pick_button.setText("Waiting...")
         
         self.mouse_listener = pynput.mouse.Listener(on_click=self.on_click)
         self.mouse_listener.start()
@@ -50,6 +48,6 @@ class QMousePicker(QWidget):
         if not x or not y: return
 
         self._pos = (int(x), int(y))
-        self.info_label.setText(f"X={x}, Y={y}")
+        self.pick_button.setText(f"Select Position [ ({x}, {y}) ]")
 
         self.valueChanged.emit(self.value())
