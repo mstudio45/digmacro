@@ -636,7 +636,6 @@ if __name__ == "__main__":
 
             return self.start_minigame(failed_do_equip=True)
 
-
         def main_loop(self, _):
             logging.info("Creating screenshot folders...")
             FileHandler.create_folder(StaticVariables.prediction_screenshots_folder)
@@ -977,15 +976,20 @@ if __name__ == "__main__":
 
     # load ui #
     if Variables.is_running:
+        logging("Disabling spammy loggers...")
         disable_spammy_loggers()
 
         # load discord bot #
-        discord_bot.run()
+        if Config.ENABLE_DISCORD_BOT == True: discord_bot.run()
+        else:                                 logging.info("Discord Bot is disabled.")
 
         # load ui #
         logging.info("Loading UI...")
         macro.ui.start(macro.main_loop)
+
+        logging.info("UI Closed, starting cleanup...")
         macro.exit_macro()
+
         if macro.ui.open_config == True:
             restart_macro(["--open-config", "--skip-install"])
             pass

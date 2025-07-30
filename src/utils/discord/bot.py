@@ -376,10 +376,7 @@ Macro States:
                 await interaction.response.send_message(msg, ephemeral=True)
 
     def run(self):
-        if Config.ENABLE_DISCORD_BOT == False:
-            logging.info("[Discord] Bot is disabled.")
-            return None
-        
+        if Config.ENABLE_DISCORD_BOT == False: return
         logging.info("[Discord] Starting bot...")
 
         # load config #
