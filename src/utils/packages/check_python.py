@@ -34,7 +34,6 @@ required_packages = {
         # { "pip": "torchaudio",           "import": "torchaudio",     "version": "all"   },
 
         { "pip": "pynput",                 "import": "pynput",         "version": "1.8.1" },
-        { "pip": "numpy",                  "import": "numpy",          "version": "2.2.6" },
     ],
 
     "Windows": [
@@ -44,15 +43,18 @@ required_packages = {
         { "pip": "PyGetWindow",            "import": "pygetwindow",    "version": "all"   },
         { "pip": "pywin32",                "import": "win32gui",       "version": "all"   },
         { "pip": "PyAutoIt",               "import": "autoit",         "version": "all"   },
+        { "pip": "numpy",                  "import": "numpy",          "version": "2.2.6" },
     ],
 
     "Linux": [
-        { "pip": "pywebview[gtk]",         "import": "webview",       "version": "all"   },
+        { "pip": "pywebview[gtk]",         "import": "webview",       "version": "all"    },
+        { "pip": "numpy",                  "import": "numpy",         "version": "2.2.6"  },
     ],
 
     "Darwin": [
-        { "pip": "pywebview",              "import": "webview",       "version": "all"   },
-        { "pip": "pyobjc",                 "import": "AppKit",        "version": "all"   },
+        { "pip": "pywebview",              "import": "webview",       "version": "all"    },
+        { "pip": "pyobjc",                 "import": "AppKit",        "version": "all"    },
+        { "pip": "numpy",                  "import": "numpy",         "version": "1.26.4" }, # pytorch doesnt work with numpy 2 on macos for some reason?
     ]
 }
 check_import_only = ["pywebview[gtk]"]
