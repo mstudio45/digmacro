@@ -75,7 +75,7 @@ for arch in "${ARCHS[@]}"; do
 
   $CMD_PREFIX python3 -m nuitka \
     --show-progress \
-    --low-memory --lto=no \
+    --low-memory --lto=no --jobs=2 \
     --standalone \
     --follow-imports \
     --assume-yes-for-downloads \

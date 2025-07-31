@@ -52,7 +52,7 @@ fi
 
 python3 -m nuitka \
   --show-progress \
-  --low-memory --lto=no \
+  --low-memory --lto=no --jobs=2 \
   --onefile \
   --onefile-tempdir-spec="{CACHE_DIR}/{COMPANY}/{PRODUCT}/{VERSION}" \
   --standalone \
