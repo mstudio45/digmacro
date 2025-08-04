@@ -495,6 +495,7 @@ if __name__ == "__main__":
                     q_app.exec()
                 else:
                     self.region_selector = RegionSelector(stop_macro=True)
+                    self.region_selector.start()
 
                 region = self.region_selector.get_selection()
                 if region is None:

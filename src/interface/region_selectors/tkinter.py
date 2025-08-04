@@ -13,6 +13,13 @@ class RegionSelector:
         self.stop_macro = stop_macro
         self.stopped = False
 
+        self.root = None
+
+        self.rect = None
+        self.selection = None
+        self.start_x = 0
+        self.start_y = 0
+
     def start(self):
         self.root = tk.Tk()
         
@@ -30,10 +37,6 @@ class RegionSelector:
         # make canvas #
         self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0, bg="black")
         self.canvas.pack(fill=tk.BOTH, expand=True)
-
-        self.start_x = self.start_y = 0
-        self.rect = None
-        self.selection = None
 
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
