@@ -2,12 +2,10 @@ import os
 import sys
 import time
 import traceback
-import subprocess
 import platform
 import threading
 import logging
 
-import webbrowser
 import webview
 import importlib
 

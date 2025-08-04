@@ -4,8 +4,9 @@ import platform
 import shutil
 import random
 import string
-import subprocess
 import collections
+import logging
+import webbrowser
 
 __all__ = ["Variables", "StaticVariables"]
 current_os = platform.system()
@@ -88,13 +89,9 @@ class Variables:
         if url is None: return
 
         try:
-            if current_os == "Windows":
-                import webbrowser
-                webbrowser.open(url)
-            else:
-                subprocess.run([unix_open_app_cmd, url])
+            logging.info(F"Opening: {url}")
+            webbrowser.open(url)
         except Exception as e:
-            import logging
             logging.error(f"Failed to open link '{url}': {e}")
 
 class StaticVariables:

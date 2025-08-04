@@ -62,15 +62,15 @@ def launch_protocol(protocol):
     RobloxWindow.kill_roblox()
     time.sleep(0.25)
 
+    logging.info(F"Opening: {protocol}")
     if current_os == "Windows":
         webbrowser.open(protocol)
-        return
-
-    subprocess.Popen(
-        [Variables.unix_open_app_cmd, protocol],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
+    else:
+        subprocess.Popen(
+            [Variables.unix_open_app_cmd, protocol],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
 def rejoin_dig():
     if not Config.ENABLE_AUTO_REJOIN: return
