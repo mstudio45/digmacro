@@ -25,7 +25,7 @@ default_mouse_input_package, mouse_input_packages = "", []
 defualt_keyboard_input_package, keyboard_input_packages = "", []
 
 if current_os == "Windows":
-    default_screenshot_package, screenshot_packages = "mss", ["mss", "bettercam"]
+    default_screenshot_package, screenshot_packages = "bettercam", ["mss", "bettercam"]
     default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
 

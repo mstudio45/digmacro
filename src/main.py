@@ -26,26 +26,24 @@ def restart_macro(args=["--skip-selection"]):
                 bundle = NSBundle.mainBundle()
 
                 if bundle and bundle.executablePath():
-                    final_exe = str(bundle.executablePath())
+                    final_exe = os.path.abspath(str(bundle.executablePath()))
                     final_args = args
-            except: 
-                final_exe = sys.argv[0]
-                final_args = args
+            except: pass
     else:
         if compiled:
-            final_exe = sys.argv[0]
+            final_exe = os.path.abspath(sys.argv[0])
             final_args = args
         else:
-            final_exe = sys.executable
-            final_args = [sys.executable, os.path.abspath(__file__)] + args
+            final_exe = os.path.abspath(sys.executable)
+            final_args = [final_exe, os.path.abspath(__file__)] + args
 
     try:
         import logging
         logging.info(f"Restarting: {final_exe} {final_args}")
-    except: 
+    except Exception: 
         print(f"Restarting: {final_exe} {final_args}")
     
-    os.execvp(final_exe, final_args)
+    os.execv(final_exe, final_args)
     return
 
 # install requirements #
