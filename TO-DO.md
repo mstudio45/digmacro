@@ -12,6 +12,11 @@
 
 ---
 
+### 🚩 Known Bugs
+- [ ] Computer Vision is not cleared if Roblox is out of focus or when the macro is in Idle state
+
+---
+
 ### 🚩 Known Issues
 - [ ] Macro struggles on Intel CPUs and on certain macOS devices
 - [ ] Region Selector isn't overlaying over the screen if Roblox is in fullscreen mode (macOS)
