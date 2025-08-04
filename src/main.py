@@ -274,7 +274,7 @@ if __name__ == "__main__":
             logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {Variables.current_version} < {latest_branch_version} = {is_outdated}")
             if is_outdated:
                 res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
-                if res == "Yes": Variables.open_link("https://github.com/mstudio45/digmacro")
+                if res == "Yes": Variables.open_link(f"https://github.com/mstudio45/digmacro/releases/tag/v{latest_branch_version}")
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}")
 
