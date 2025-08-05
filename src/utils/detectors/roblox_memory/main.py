@@ -29,7 +29,6 @@ if platform.system() == "Windows":
             # localplayer instances #
             self.Players = None
             self.localPlayer = None
-            self.character = None
 
             self.playerGui = None
             self.notificationsGui = None
@@ -89,21 +88,6 @@ if platform.system() == "Windows":
             logging.info("Waiting for LocalPlayer...")
             self.Players = PlayersService(self.memory_module, self.game)
             self.localPlayer = self.Players.LocalPlayer
-            self.character = self.localPlayer.Character
-
-            logging.info("Waiting for Character...")
-            while Variables.is_running:
-                self.character = self.localPlayer.Character
-                try:
-                    if self.character and self.character.Parent and self.character.Parent.ClassName == "Workspace": break
-                except: pass
-
-                time.sleep(0.1)
-
-            if not Variables.is_running:
-                self.loading = False
-                self.loaded = False
-                return
 
             logging.info("Waiting for GUIs...")
             self.playerGui = self.localPlayer.WaitForChild("PlayerGui", self, 9e9)
