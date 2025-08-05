@@ -346,7 +346,7 @@ if __name__ == "__main__":
     logging.info("======== AUTOMATIZATION HANDLERS END ========".center(60, "="))
 
     logging.info("======== ROBLOX HANDLERS ========".center(60, "="))
-    from utils.roblox.rejoin import rejoin_dig, can_rejoin
+    from utils.roblox.rejoin import roblox_status_handler, rejoin_dig, can_rejoin
     from utils.roblox.window import is_roblox_focused
     logging.info("======== ROBLOX HANDLERS END ========".center(60, "="))
 
@@ -360,6 +360,12 @@ if __name__ == "__main__":
     logging.info("======== DISCORD BOT END ========".center(60, "="))
 
     ###########################################################################################
+
+    memory_handler = None
+    if Config.GLOBAL_DETECTION_METHOD == "Memory":
+        logging.info("Loading Memory handler...")
+        from utils.detectors.roblox_memory.main import MemoryHandler
+        memory_handler = MemoryHandler()
 
     logging.info("Loading MacroHandler...")
     class MacroHandler:
@@ -380,7 +386,11 @@ if __name__ == "__main__":
             # classes #
             self.region_selector = None
             
-            self.finder = MainHandler()
+            if Config.GLOBAL_DETECTION_METHOD == "Memory":
+                self.finder = MainHandler(memory_handler)
+            else:
+                self.finder = MainHandler()
+            
             self.pathfinding = PathfingingHandler()
             self.sell_handler = SellUI()
 
@@ -451,6 +461,8 @@ if __name__ == "__main__":
             return None
         
         def setup_region_setter(self): # requires to be run in main thread #
+            Variables.is_selecting_region = True
+            
             logging.info("Loading region setter...")
             region = self.check_saved_region()
             
@@ -684,6 +696,11 @@ if __name__ == "__main__":
                             rejoin_dig()
                             continue
 
+                    if memory_handler is not None:
+                        if memory_handler.loaded == False:
+                            self.update_window_status("Waiting", "Waiting for Memory Handler to initialize...", "orange")
+                            continue
+                    
                     # skip main loop if roblox is not focused #
                     if not Variables.is_roblox_focused:
                         self.update_window_status("Waiting for Roblox Window Focus", "Please focus Roblox!", "red")
@@ -722,7 +739,7 @@ if __name__ == "__main__":
                     self.total_idle_time = self.total_idle_time + 0.1
 
                     # no dirt bar #
-                    if self.finder.minigame_detected_by_avg == False:
+                    if Variables.is_minigame_active == False:
                         self.update_window_status("Minigame", "Waiting for minigame to be detected...", "yellow")
 
                     elif self.finder.DirtBar.clickable_position is None:
@@ -749,8 +766,10 @@ if __name__ == "__main__":
                             middle_x, middle_y, offset = self.risk_spin_tuple
 
                             move_mouse(middle_x, middle_y, steps=1)
-                            move_mouse(middle_x + offset, middle_y, delay=0.0125)
-                            left_click()
+                            threading.Thread(target=move_mouse, args=(middle_x + offset, middle_y, 13, 0.0125, ), daemon=True).start()
+                            for i in range(1, 10):
+                                left_click()
+                                time.sleep(0)
                             move_mouse(middle_x - offset, middle_y, delay=0.005)
                             time.sleep(1)
 
@@ -789,34 +808,46 @@ if __name__ == "__main__":
 
                     logging.info(f"Finder thread created with target FPS: {target_fps} (frame time: {self.frame_time:.4f}s)")
 
-                def run(self):
-                    logging.info(f"Finder loop starting...")
+                if memory_handler is not None:
+                    def run(self):
+                        logging.info(f"Finder loop starting...")
+                        finder = self.finder
 
-                    sct = mss.mss()
-                    fps_counter = FPSCounter()
+                        while not self._stop_event.is_set():
+                            if finder.update_state():
+                                finder.handle_click()
+                            time.sleep(0)
 
-                    frame_time = self.frame_time
-                    finder = self.finder
+                        logging.info(f"Finder loop stopped successfully.")
+                else:
+                    def run(self):
+                        logging.info(f"Finder loop starting...")
 
-                    while not self._stop_event.is_set():
-                        frame_start = time.perf_counter()
+                        sct = mss.mss()
+                        fps_counter = FPSCounter()
 
-                        # update state and click #
-                        if finder.update_state(sct) == True:
-                            finder.handle_click()
+                        frame_time = self.frame_time
+                        finder = self.finder
 
-                        # update fps #
-                        fps_counter.accumulate_frame_time(frame_start)
-                        finder.current_fps = fps_counter.get_fps()
-                        
-                        # force target fps #
-                        elapsed = time.perf_counter() - frame_start
-                        sleep_time = max(0, frame_time - elapsed)
-                        if sleep_time > 0: time.sleep(sleep_time)
+                        while not self._stop_event.is_set():
+                            frame_start = time.perf_counter()
 
-                    del fps_counter
-                    del sct
-                    logging.info(f"Finder loop stopped successfully.")
+                            # update state and click #
+                            if finder.update_state(sct):
+                                finder.handle_click()
+
+                            # update fps #
+                            fps_counter.accumulate_frame_time(frame_start)
+                            finder.current_fps = fps_counter.get_fps()
+                            
+                            # force target fps #
+                            elapsed = time.perf_counter() - frame_start
+                            sleep_time = max(0, frame_time - elapsed)
+                            if sleep_time > 0: time.sleep(sleep_time)
+
+                        del fps_counter
+                        del sct
+                        logging.info(f"Finder loop stopped successfully.")
 
                 def stop(self):
                     self._stop_event.set()
@@ -998,7 +1029,10 @@ if __name__ == "__main__":
 
     # region #
     macro.setup_finder_thread()
-    macro.setup_region_setter()
+    if Config.GLOBAL_DETECTION_METHOD == "Memory":
+        logging.info("Region skipped; Using Memory handler...")
+    else:
+        macro.setup_region_setter()
 
     # run threads #
     macro.setup_roblox_focused_thread()
@@ -1014,11 +1048,16 @@ if __name__ == "__main__":
         # load discord bot #
         if Config.ENABLE_DISCORD_BOT == True:
             if Config.DISCORD_ENABLE_STATISTICS:
-                logging.info("[Discord] Loading OCR and Stats modules...")
-                from utils.OCR.ocr import GameOCR
-                from utils.OCR.stat_lib import GameStatLib
+                if memory_handler is not None:
+                    logging.info("[Discord] Loading Stats modules...")
+                    from utils.detectors.gamestats.memory import GameOCR
+                    discord_bot.ocr_util = GameOCR(memory_handler)
+                else:
+                    logging.info("[Discord] Loading OCR and Stats modules...")
+                    from utils.detectors.gamestats.ocr import GameOCR
+                    discord_bot.ocr_util = GameOCR()
 
-                discord_bot.ocr_util = GameOCR()
+                from utils.detectors.stat_lib import GameStatLib
                 discord_bot.stat_lib = GameStatLib(discord_bot)
             
             discord_bot.run()
@@ -1026,6 +1065,24 @@ if __name__ == "__main__":
             logging.info("Discord Bot is disabled.")
 
         # load ui #
+        if memory_handler is not None:
+            logging.info("Loading Memory Module...")
+            def handler_for_memory():
+                memory_handler.reload_roblox_memory()
+                while Variables.is_running:
+                    if Variables.sleep(1): break
+                    if roblox_status_handler.playing: continue
+
+                    memory_handler.clear_everything()
+
+                    logging.info("Waiting for User to join DIG...")
+                    while roblox_status_handler.playing == False:
+                        if Variables.sleep(1): break
+                    
+                    memory_handler.reload_roblox_memory()
+                logging.info("Memory Handler loop stopped.")
+            threading.Thread(target=handler_for_memory, daemon=True).start()
+
         logging.info("Loading UI...")
         macro.ui.start(macro.main_loop)
 

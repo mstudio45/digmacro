@@ -42,7 +42,7 @@ class Variables:
     is_paused = True
 
     is_roblox_focused = True
-    is_selecting_region = True
+    is_selecting_region = None
 
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))

@@ -357,7 +357,7 @@ Macro States:
 
             try:
                 with mss.mss() as sct:
-                    await interaction.response.send_message(self.ocr_util.get_current_money(sct), ephemeral=True)
+                    await interaction.response.send_message(format(self.ocr_util.get_current_money(sct), ","), ephemeral=True)
             except Exception as e:
                 msg = f"Failed to get current money:\n```\n{traceback.format_exc()}\n```"
                 logging.debug(msg)

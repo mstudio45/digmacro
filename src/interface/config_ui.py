@@ -156,7 +156,7 @@ class ConfigUI(QWidget):
 
             # info text #
             info_text = widget_information.get("__INFO", None)
-            if warning_text is not None:
+            if info_text is not None:
                 info_label = QLabel(info_text)
                 group_layout.addWidget(info_label)
             
@@ -195,6 +195,9 @@ class ConfigUI(QWidget):
                     if key == "PATHFINDING_MACRO":
                         items = Config.PathfindingMacros.keys()
                         widget.currentTextChanged.connect(self.pathfinding_macro_change)
+
+                    if key == "GLOBAL_DETECTION_METHOD":
+                        widget.currentTextChanged.connect(self.global_detection_change)
 
                     widget.addItems(items)
           
@@ -260,12 +263,19 @@ class ConfigUI(QWidget):
 
     # on change handler #
     def on_change_made(self): self.changes_made = True
+
     def pathfinding_macro_change(self, text):
-        if hasattr(self, "config_loaded") == True and text == "risk_spin":
-            if current_os != "Windows":
-                msgbox.alert("This pathfinding macro only works on Windows.")
-            else:
-                msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
+        if hasattr(self, "config_loaded") == True:
+            if text == "risk_spin":
+                if current_os != "Windows":
+                    msgbox.alert("This pathfinding macro only works on Windows.")
+                else:
+                    msgbox.alert("You need to have shiftlock enabled BEFORE you start the macro for this method!\n\nThis method abuses a bug inside DIG.\nIt uses your mouse to allow you to dig at one place without moving.\n\nYou are putting yourself at risk for being banned for bug abuse!", log_level=30)
+    
+    def global_detection_change(self, text):
+        if hasattr(self, "config_loaded") == True:
+            if text == "Memory":
+                msgbox.alert("⚠⚠⚠⚠ WARNING ⚠⚠⚠⚠\nThis method reads memory straight from the Roblox proccess.\n\nThis is against the Roblox Terms Of Service, USE AT YOUR OWN RISK!", log_level=30)
 
     def setup_change_handler(self):
         for section, options in Config.config.items():

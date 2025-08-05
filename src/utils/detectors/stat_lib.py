@@ -140,11 +140,14 @@ class GameStatLib:
         self.discord_bot = discord_bot
 
     def calculate_hourly_average(self, cumulative_points): # list of current_money during a certain time, not earnings #
-        interval_earnings = []
-        for i in range(1, len(cumulative_points)):
-            interval_earnings.append(cumulative_points[i] - cumulative_points[i - 1])
-        
-        return (sum(interval_earnings) / len(interval_earnings)) * 6 # average_per_interval * (60 minutes / 10 minutes) (bcs interval is 10 minutes) #
+        try:
+            interval_earnings = []
+            for i in range(1, len(cumulative_points)):
+                interval_earnings.append(cumulative_points[i] - cumulative_points[i - 1])
+            
+            return (sum(interval_earnings) / len(interval_earnings)) * 6 # average_per_interval * (60 minutes / 10 minutes) (bcs interval is 10 minutes) #
+        except ZeroDivisionError:
+            return 0
 
     def create_image(self):
         visuals = []

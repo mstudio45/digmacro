@@ -23,25 +23,32 @@ all_item_rarities = [
 default_screenshot_package, screenshot_packages = "", []
 default_mouse_input_package, mouse_input_packages = "", []
 defualt_keyboard_input_package, keyboard_input_packages = "", []
+default_detection_method, detection_methods = "", []
 
 if current_os == "Windows":
     default_screenshot_package, screenshot_packages = "bettercam", ["mss", "bettercam"]
     default_mouse_input_package, mouse_input_packages = "win32api", ["win32api", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
+    default_detection_method, detection_methods = "OpenCV + OCR", ["OpenCV + OCR", "Memory"]
 
 elif current_os == "Darwin":
     default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["Quartz", "pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "Quartz", ["Quartz", "pynput"]
+    default_detection_method, detection_methods = "OpenCV + OCR", ["OpenCV + OCR"]
 
 elif current_os == "Linux":
     default_screenshot_package, screenshot_packages = "mss", ["mss"]
     default_mouse_input_package, mouse_input_packages = "pynput", ["pynput"]
     defualt_keyboard_input_package, keyboard_input_packages = "pynput", ["pynput"]
+    default_detection_method, detection_methods = "OpenCV + OCR", ["OpenCV + OCR"]
 
 settings_table = {
     # SYSTEM OPTIONS #
     "SYSTEM": {
+        "__WARNING": "<b>Memory</b> method reads data straight from the Roblox proccess. <b>USE AT YOUR OWN RISK!</b>" if "Memory" in detection_methods else None,
+        "__INFO": "<b>Memory</b> method ignores every <b>region</b>, <b>position</b> option and <b>Minigame</b> section,<br />because they are not required." if "Memory" in detection_methods else None,
+
         "TARGET_FPS": {
             "widget": "QSpinBox",
             "tooltip": "Target frames per second (FPS) for the macro. [ On Windows, mss locks FPS based on your monitor's refresh rate. ]",
@@ -60,6 +67,14 @@ settings_table = {
             "widget": "QCheckBox",
             "tooltip": "Enable log files."
         },
+
+        "GLOBAL_DETECTION_METHOD":  {
+            "widget": "QComboBox", 
+            "tooltip":
+                "OpenCV + OCR:\n    - Uses image recognition, image to text models (CPU expensive)" + 
+                ("\n\nMemory:\n    - Uses Roblox Memory and syscalls (very fast, doesn't use CPU)\n     - This is against the Roblox Terms Of Service, USE AT YOUR OWN RISK" if "Memory" in detection_methods else ""),
+            "items": detection_methods
+        }
     },
 
     # DISCORD BOT OPTIONS #
@@ -197,24 +212,14 @@ ZerosLike:
 Gradient: 
     - Recommended for Linux, Apple Silicon MacBooks.
     - Uses gradient mask to find the player bar using numpy.
-Canny: 
-    - Slower than other methods, less false detections when the cooldown icon is present.
-    - Uses Canny edge detection to find the player bar using OpenCV.
-    [ Might not work on certain CPUs, brightness and saturation settings. ]
     """,
-            "items": ["ZerosLike", "Gradient", "Canny"]
+            "items": ["ZerosLike", "Gradient"]
         },
         "PLAYER_BAR_WIDTH": {
             "widget": "QSpinBox",
             "tooltip": "Width of the player bar in pixels.",
             "min": 2,
             "max": 10
-        },
-        "PLAYER_BAR_CANNY_THRESHOLD": {
-            "widget": "QSpinBox",
-            "tooltip": "Threshold for detecting the player bar (vertical lines) in Canny method (0-255).",
-            "min": 0,
-            "max": 255
         },
 
         "DIRT_CLICKABLE_WIDTH": {
@@ -412,7 +417,8 @@ class ConfigManager:
             "SYSTEM": {
                 "TARGET_FPS": 60 if current_os == "Darwin" and current_arch == "x86_64" else 120,
                 "MACOS_DISPLAY_SCALE_OVERRIDE": 0.0,
-                "ENABLE_LOGGING": True
+                "ENABLE_LOGGING": True,
+                "GLOBAL_DETECTION_METHOD": "OpenCV + OCR"
             },
 
             "DISCORD": {
@@ -453,7 +459,6 @@ class ConfigManager:
 
                 "PLAYER_BAR_DETECTION": "ZerosLike" if current_os == "Windows" or current_arch == "x86_64" else "Gradient",
                 "PLAYER_BAR_WIDTH": 5,
-                "PLAYER_BAR_CANNY_THRESHOLD": 100,
 
                 "DIRT_CLICKABLE_WIDTH": 0.125,
                 "DIRT_THRESHOLD": 25,

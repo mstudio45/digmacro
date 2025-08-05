@@ -3,6 +3,7 @@
 [New Features]
 + Added "Discord Bot" feature (allows you to interact with the macro through Discord)
 + Added an handler that prevents crashes when an unexpected error happens
++ Added a new Global Detection Method "Memory" (only for Windows at the moment, reads Roblox memory - USE AT YOUR OWN RISK)
 
 [Improvements]
 + Improved region selector for macOS
@@ -16,6 +17,7 @@
 [Fixes]
 + Fixed 'risk_spin' not appearing in the list during first launch
 + Fixed errors and uncaught exceptions inside pathfinding
++ Fixed small issues that I found during debug
 ```
 
 # v2.0.3

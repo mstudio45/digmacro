@@ -43,7 +43,6 @@ def left_click_lock(click_delay: float = 0) -> None:
 
     mouse_controller.press(button=Button.left)
     mouse_controller.release(button=Button.left)
-
     clicking_lock.release()
 
 def left_click() -> None:

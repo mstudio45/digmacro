@@ -4,6 +4,7 @@ import platform
 import threading
 import logging
 import re
+import traceback
 
 from pathlib import Path
 from watchdog.observers import Observer
@@ -146,12 +147,14 @@ class RobloxStatusHandler:
     def process_log_line(self, line):
         if self.keyword_game_joining in line:
             logging.info("Game joining detected")
+
             self.reset_state()
             self.joining = True
             return
         
         if self.keyword_game_joined in line:
             logging.info("Game joined")
+
             self.reset_state()
             self.playing = True
             return
@@ -166,13 +169,15 @@ class RobloxStatusHandler:
                 if reason_info is not None: reason_code = reason_info
 
             logging.info(f"User Disconnected: {str(reason_code)}")
+
             self.reset_state()
-            self.disconnected_error_code = str(reason_code or "N/A")
+            if self.disconnected_error_code == "N/A": self.disconnected_error_code = str(reason_code or "N/A")
             self.disconnected = True
             return
         
         if self.keyword_game_leaving in line:
             logging.info("User Left")
+
             self.reset_state()
             self.disconnected_error_code = "User Left"
             self.game_left = True
@@ -180,6 +185,7 @@ class RobloxStatusHandler:
         
         if self.keyword_roblox_closing in line:
             logging.info("Roblox Closed")
+
             self.reset_state()
             self.disconnected_error_code = "Roblox Closed"
             self.roblox_closed = True

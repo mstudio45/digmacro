@@ -14,7 +14,7 @@ def setup_logger():
     # setup handlers #
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
-    console_handler.setLevel(logging.NOTSET)
+    console_handler.setLevel(logging.INFO)
 
     file_handler = None
     if Config.ENABLE_LOGGING: 

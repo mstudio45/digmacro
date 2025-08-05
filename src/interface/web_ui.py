@@ -157,7 +157,12 @@ class WebUI(UIBase):
         webview.start(gui=gui_type)
 
     def update(self):
-        if not Config.SHOW_COMPUTER_VISION:
+        if Config.GLOBAL_DETECTION_METHOD == "Memory":
+            self.window.evaluate_js("removeComputerVision()")
+            while not self._stop_event.is_set():
+                time.sleep(0.01)
+
+        elif not Config.SHOW_COMPUTER_VISION:
             self.window.evaluate_js("removeComputerVision()")
             while not self._stop_event.is_set():
                 self.window.evaluate_js(f'updateFps("{self.finder.current_fps:.2f}")')
