@@ -92,15 +92,18 @@ if platform.system() == "Windows":
             self.character = self.localPlayer.Character
 
             logging.info("Waiting for Character...")
-            if self.character is None:
-                while self.character is None:
-                    self.character = self.localPlayer.Character
-                    time.sleep(0.1)
-                    if not Variables.is_running: break
-                if not Variables.is_running:
-                    self.loading = False
-                    self.loaded = False
-                    return
+            while Variables.is_running:
+                self.character = self.localPlayer.Character
+                try:
+                    if self.character and self.character.Parent and self.character.Parent.ClassName == "Workspace": break
+                except: pass
+
+                time.sleep(0.1)
+
+            if not Variables.is_running:
+                self.loading = False
+                self.loaded = False
+                return
 
             logging.info("Waiting for GUIs...")
             self.playerGui = self.localPlayer.WaitForChild("PlayerGui", self, 9e9)
