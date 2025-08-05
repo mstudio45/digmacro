@@ -8,6 +8,7 @@
 [Improvements]
 + Improved region selector for macOS
 + Improved initialization of keyboard and mouse handlers
++ Improved 'risk_spin' stability
 
 [Changes]
 + Changed certain tooltips and names inside configuration

@@ -275,7 +275,7 @@ class ConfigUI(QWidget):
     def global_detection_change(self, text):
         if hasattr(self, "config_loaded") == True:
             if text == "Memory":
-                msgbox.alert("⚠⚠⚠⚠ WARNING ⚠⚠⚠⚠\nThis method reads memory straight from the Roblox proccess.\n\nThis is against the Roblox Terms Of Service, USE AT YOUR OWN RISK!", log_level=30)
+                msgbox.alert("⚠⚠⚠⚠ WARNING ⚠⚠⚠⚠\nThis method reads memory straight from the Roblox proccess.\n\nThis is against the Roblox Terms Of Service, USE AT YOUR OWN RISK - YOUR ROBLOX ACCOUNT COULD GET BANNED IN THE FUTURE!", log_level=30)
 
     def setup_change_handler(self):
         for section, options in Config.config.items():

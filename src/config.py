@@ -47,7 +47,7 @@ settings_table = {
     # SYSTEM OPTIONS #
     "SYSTEM": {
         "__WARNING": "<b>Memory</b> method reads data straight from the Roblox proccess. <b>USE AT YOUR OWN RISK!</b>" if "Memory" in detection_methods else None,
-        "__INFO": "<b>Memory</b> method ignores every <b>region</b>, <b>position</b> option and <b>Minigame</b> section,<br />because they are not required." if "Memory" in detection_methods else None,
+        "__INFO": "<b>Memory</b> method ignores every <b>region</b>, <b>position</b> option and <b>Minigame</b> section,<br />because they are not required for it." if "Memory" in detection_methods else None,
 
         "TARGET_FPS": {
             "widget": "QSpinBox",
