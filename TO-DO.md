@@ -8,7 +8,7 @@
 - [ ] Config presets (allows you to setup multiple config files)
 - [ ] Adaptive dirt bar recognition (special effects, low saturation etc etc)
 - [ ] Monitor Selection UI
-- [ ] Improve "risk_spin" macro (maybe make it work on Linux and macOS)
+- [ ] Make "risk_spin" work on Linux and MacOS
 
 ---
 

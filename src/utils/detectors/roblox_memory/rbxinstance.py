@@ -13,8 +13,7 @@ for key in Offsets:
     except (ValueError, TypeError):
         pass
 
-Offsets["Text"] = int("0xC10", 16) # not ContentText :content:
-Offsets["Character"] = int("0x328", 16)
+Offsets["Text"] = int("0xC10", 16) # not ContentText :content: (OUTDATED)
 
 SCREEN_WIDTH = screen_region["width"]
 SCREEN_HEIGHT = screen_region["height"]
@@ -108,19 +107,6 @@ class RBXInstance:
         if classname == "TextLabel":
             return self.memory_module.read_string(self.raw_address + Offsets["Text"])
         
-        return None
-
-    # localplayer #
-    @property
-    def Character(self):
-        if self.ClassName != "Player":
-            return None
-        
-        # if this errors then offsets changes #
-        try:
-            addr = int.from_bytes(self.memory_module.read(self.raw_address + Offsets["Character"], 8), 'little')
-            return RBXInstance(addr, self.memory_module)
-        except: pass
         return None
     
     # functions #
