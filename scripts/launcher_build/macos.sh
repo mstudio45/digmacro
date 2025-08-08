@@ -69,7 +69,7 @@ if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
   cd "$DYLIBBUNDLER_REPO_PATH" || { echo "Failed to enter $DYLIBBUNDLER_REPO_PATH"; exit 1; }
 
   make || { echo "Failed to build dylibbundler"; exit 1; }
-  cp dylibbundler "$DYLIBBUNDLER_PATH"
+  cp "$DYLIBBUNDLER_REPO_PATH/dylibbundler" "$DYLIBBUNDLER_PATH"
   rm -rf "$DYLIBBUNDLER_REPO_PATH"
 
   echo "dylibbundler built and ready."
