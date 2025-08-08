@@ -167,113 +167,159 @@ if __name__ == "__main__":
             except Exception as e:
                 msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR)
 
-    # macOS Permission Checks (thanks SalValichu) #
+    # macOS Permission Checks (original by SalValichu) #
     if current_os == "Darwin":
-        logging.info("[macOS Permissions] Checking permission...")
+        logging.info("[macOS Permissions] Checking permissions...")
+        permission_urls = {
+            "Accessibility": "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            "Input Monitoring": "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
+            "Screen Recording": "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+        }
 
-        try:
-            from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
-            from Quartz import ( # type: ignore
-                CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess,
-                CGDisplayStreamCreateWithDispatchQueue,
-                CGMainDisplayID
-            )
-            import dispatch # type: ignore
+        def create_permission_message(permission_type, reason):
+            app_name = f"digmacro_macos_{current_arch}"
+            message = f"""This application requires '{permission_type}' permission to {reason}.
+
+Please go to: System Settings → Privacy & Security → {permission_type}
+Then, ensure this application ({app_name}) is enabled.
+
+⚠ If you are opening the macro with Terminal (or any other application), ensure that application also has '{permission_type}' permission enabled. ⚠
+
+Press 'OK' after enabling '{permission_type}' permission, the macro will restart itself.
+If the permission is enabled and you are still being prompted with this notification, press 'Skip'."""
             
-            # used for input monitoring #
-            kIOHIDRequestTypeListenEvent = 1
-            kIOHIDAccessTypeGranted = 0
+            return message
 
-            # arch = platform.machine()
-            message_check = (
-                "This application requires '{permission}' permission to {why}.\n\n"
+        def open_system_preferences(permission_type):
+            try:
+                url = permission_urls.get(permission_type, "x-apple.systempreferences:com.apple.preference.security")
+                subprocess.run(["open", url], check=True)
+                return True
+            except Exception as e:
+                logging.error(f"Failed to open System Preferences: {e}")
+                return False
 
-                "Please go to: System Settings -> Privacy & Security -> {permission}\n"
-                f"Then, ensure this application (digmacro_macos_universal) is enabled.\n"
-                "⚠ If you are opening the macro with Terminal (or any other application), ensure that application also have '{permission}' permission enabled. ⚠\n\n"
+        def check_accessibility_permission():
+            try:
+                from ApplicationServices import AXIsProcessTrustedWithOptions, kAXTrustedCheckOptionPrompt # type: ignore
+                options = {kAXTrustedCheckOptionPrompt: False}
+                return AXIsProcessTrustedWithOptions(options), ""
 
-                "Press 'OK' after enabling '{permission}' permission, the macro will restart itself.\n"
-                "If the permission is enabled and you are still being prompted with this notification, press 'Skip'."
-            )
-
-            # Functions #
-            def has_accessibility_access(prompt=False):
-                options = { kAXTrustedCheckOptionPrompt: prompt }
-                return AXIsProcessTrustedWithOptions(options)
-            
-            def has_input_monitor_access(): # macOS 10.15+
-                try:
-                    import ctypes
-                    iokit = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
-                    return iokit.IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
-                except Exception as e:
-                    logging.info(f"[macOS Permissions] Failed to check Input Monitoring Permission: {str(e)}")
-                    return True # just assume its enabled #
+            except ImportError as e:
+                return False, f"Could not import ApplicationServices: {e}"
                 
-            def has_screen_recording_access():
+            except Exception as e:
+                return False, f"Accessibility check failed: {e}"
+
+        def check_input_monitoring_permission():
+            try:
+                import ctypes
+                from ctypes import cdll
+  
+                iokit = cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
+                kIOHIDRequestTypeListenEvent = 1
+                kIOHIDAccessTypeGranted = 0
+
+                result = iokit.IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
+                has_permission = (result == kIOHIDAccessTypeGranted)
+                return has_permission, ""
+
+            except ImportError as e:
+                return False, f"Could not import ctypes: {e}"
+                
+            except Exception as e:
+                return False, f"Input Monitoring check failed: {e}"
+
+        def check_screen_recording_permission():
+            try:
+                from Quartz import CGPreflightScreenCaptureAccess, CGMainDisplayID # type: ignore
+                from Quartz import CGDisplayStreamCreateWithDispatchQueue # type: ignore
+                import dispatch # type: ignore
+                
+                if CGPreflightScreenCaptureAccess(): return True, ""
+                
+                # Fallback check #
                 try:
-                    if CGPreflightScreenCaptureAccess(): 
-                        return True
-                    
-                    # fallback check #
-                    def stream_callback(status, timestamp, frame, update_ref): pass
+                    def stream_callback(status, timestamp, frame, update_ref): 
+                        pass
                     
                     display_id = CGMainDisplayID()
                     main_queue = dispatch.dispatch_get_main_queue()
-                    stream_ref = CGDisplayStreamCreateWithDispatchQueue(display_id, 1, 1, 1111970369, None, main_queue, stream_callback) # kCVPixelFormatType_32BGRA = 1111970369
+                    stream_ref = CGDisplayStreamCreateWithDispatchQueue(
+                        display_id, 1, 1, 1111970369, None, main_queue, stream_callback
+                    )
+                    
+                    has_permission = (stream_ref is not None)
+                    return has_permission, ""
+                    
+                except Exception as fallback_error:
+                    return False, f"Screen Recording fallback check failed: {fallback_error}"
+                    
+            except ImportError as e:
+                return False, f"Could not import Quartz: {e}"
+                
+            except Exception as e:
+                return False, f"Screen Recording check failed: {e}"
 
-                    has_perms = stream_ref is not None
-                    return has_perms
-                except Exception as e:
-                    logging.info(f"[macOS Permissions] Failed to check Screen Recording Permission: {str(e)}")
-                    return True
-            
-            def prompt_issue_msgbox(permission, why):
-                logging.info(f"[macOS Permissions] {permission} access is required, prompting user to enable it.")
-
-                # open the settings page #
-                try: subprocess.check_call(["open", "x-apple.systempreferences:com.apple.preference.security"])
-                except Exception as e: logging.warning(f"[macOS Permissions] Failed to open system preferences: {str(e)}")
-
-                # warn the user #
-                res = msgbox.confirm(
-                    message_check.replace("{permission}", permission).replace("{why}", why),
-                    title="DIGMacro - Permission Issue",
-                    buttons=("OK", "Skip", "Exit")
-                )
-
+        try:
+            # Check Accessibility #
+            has_accessibility, accessibility_error = check_accessibility_permission()
+            if not has_accessibility:
+                logging.warning(f"[macOS Permissions] Accessibility disabled: {accessibility_error}")
+                open_system_preferences("Accessibility")
+                
+                message = create_permission_message("Accessibility", "control mouse and keyboard")
+                res = msgbox.confirm(message, title="DIGMacro - Permission Issue", buttons=("OK", "Skip", "Exit"))
                 if res == "OK":
                     restart_macro(["--skip-install"])
                     sys.exit(0)
-                    return
                 elif res == "Skip":
-                    print("Skipped...")
+                    logging.info("[macOS Permissions] Accessibility permission skipped")
+                else:
+                    os.kill(os.getpid(), 9) 
+            else: logging.info("[macOS Permissions] Accessibility access is enabled.")
+
+            # Check Input Monitoring #
+            has_input_monitoring, input_error = check_input_monitoring_permission()
+            if not has_input_monitoring:
+                logging.warning(f"[macOS Permissions] Input Monitoring disabled: {input_error}")
+                open_system_preferences("Input Monitoring")
+                
+                message = create_permission_message("Input Monitoring", "allow global hotkeys")
+                res = msgbox.confirm(message, title="DIGMacro - Permission Issue", buttons=("OK", "Skip", "Exit"))
+                if res == "OK":
+                    restart_macro(["--skip-install"])
+                    sys.exit(0)
+                elif res == "Skip":
+                    logging.info("[macOS Permissions] Input Monitoring permission skipped")
                 else:
                     os.kill(os.getpid(), 9)
-                    return
+            else: logging.info("[macOS Permissions] Input Monitoring access is enabled.")
 
-            # Accessibility #
-            if has_accessibility_access(False): # only check #
-                logging.info("[macOS Permissions] Accessibility access is enabled.")
-            else:
-                # has_accessibility_access(True)
-                prompt_issue_msgbox("Accessibility", "control mouse and keyboard")
+            # Check Screen Recording #
+            has_screen_recording, screen_error = check_screen_recording_permission()
+            if not has_screen_recording:
+                logging.warning(f"[macOS Permissions] Screen Recording disabled: {screen_error}")
+                open_system_preferences("Screen Recording")
 
-            # Screen Recording #
-            if has_screen_recording_access(): # only check #
-                logging.info("[macOS Permissions] Screen Recording access is enabled.")
-            else:
-                # CGRequestScreenCaptureAccess()
-                prompt_issue_msgbox("Screen Recording", "detect the minigame")
-            
-            # Input Monitoring #
-            if has_input_monitor_access(): # only check #
-                logging.info("[macOS Permissions] Input Monitoring access is enabled.")
-            else:
-                prompt_issue_msgbox("Input Monitoring", "allow global hotkeys")
-            
-        except ImportError as e: logging.warning(f"[macOS Permissions] Could not import packages for permission check. Skipping... {str(e)}")
-        except Exception as e:   logging.error(f"[macOS Permissions] Error during permission check: {str(e)}")
+                message = create_permission_message("Screen Recording", "detect the minigame")
+                res = msgbox.confirm(message, title="DIGMacro - Permission Issue", buttons=("OK", "Skip", "Exit"))
+                if res == "OK":
+                    restart_macro(["--skip-install"])
+                    sys.exit(0)
+                elif res == "Skip":
+                    logging.info("[macOS Permissions] Screen Recording permission skipped")
+                else:
+                    os.kill(os.getpid(), 9)
+            else: logging.info("[macOS Permissions] Screen Recording access is enabled.")
+
+        except ImportError as e:
+            logging.warning(f"[macOS Permissions] Could not import required packages: {e}")
+
+        except Exception as e:
+            logging.error(f"[macOS Permissions] Error during permission check: {e}")
+
+    ##########################################################################################################################
 
     logging.info("Loading screen information...")
     from utils.images.screenshots import screenshot_cleanup
