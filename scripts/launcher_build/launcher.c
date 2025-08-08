@@ -9,6 +9,7 @@
     #include <windows.h>
 #elif __APPLE__
     #include <mach-o/dyld.h>
+    #include <libgen.h>
 #endif
 
 #ifdef _WIN32
@@ -583,6 +584,26 @@ int launch_digmacro(int argc, char *argv[]) {
 // ------------------- Main ------------------- //
 
 int main(int argc, char *argv[]) {
+#ifdef __APPLE__
+    char exe_path[PATH_MAX];
+    if (!get_executable_path(exe_path, sizeof(exe_path))) {
+        show_error("Could not determine launcher path.\n");
+        exit(0);
+    }
+
+    char real_path[PATH_MAX];
+    if (realpath(exe_path, real_path) == NULL) {
+        show_error("Could not resolve real application path.\n");
+        exit(0);
+    }
+
+    char *app_dir = dirname(dirname(dirname(real_path)));
+    if (chdir(app_dir) != 0) {
+        show_error("Could not change working directory.\n");
+        exit(0);
+    }
+#endif
+
     printf("============ DIG Macro Launcher ============\n");
     
 #ifdef _WIN32
