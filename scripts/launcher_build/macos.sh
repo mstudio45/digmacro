@@ -58,7 +58,7 @@ echo "Creating PList using PlistBuddy..." # macos wants to segfault with manuall
 /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
 
 echo "Fixing dylibs..."
-if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
+if [ ! -f "$DYLIBBUNDLER_PATH" ]; then
   echo "dylibbundler not found, cloning and building from GitHub..."
 
   if [ ! -d "macdylibbundler" ]; then
