@@ -12,11 +12,18 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
+APP_NAME="digmacro_macos"
+APP_BUNDLE_NAME="digmacro_macos.app"
+
+ICON_PATH="src/assets/icons/macos_icon.icns"
+BINARY_PATH="output/digmacro_macos"
+APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
+
 echo "Copying launcher.c to launcher_dynamic.c..."
 cp scripts/launcher_build/launcher.c scripts/launcher_build/launcher_dynamic.c
 
 echo "Building..."
-gcc -Wall -Wextra -std=c99 -o output/digmacro_macos scripts/launcher_build/launcher_dynamic.c
+gcc -Wall -Wextra -std=c99 -o output/$APP_NAME scripts/launcher_build/launcher_dynamic.c
 if [ $? -ne 0 ]; then
   echo "Compilation failed. Exiting."
   exit 1
@@ -26,11 +33,6 @@ echo "Deleting launcher_dynamic.c..."
 rm scripts/launcher_build/launcher_dynamic.c
 
 echo "Creating .app bundle..."
-ICON_PATH="src/assets/icons/macos_icon.icns"
-BINARY_PATH="output/digmacro_macos"
-APP_BUNDLE_NAME="digmacro_macos.app"
-APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
-
 rm -rf "$APP_BUNDLE_PATH"
 mkdir -p "$APP_BUNDLE_PATH/Contents/MacOS"
 mkdir -p "$APP_BUNDLE_PATH/Contents/Resources"
@@ -48,6 +50,8 @@ cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
 <dict>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
   <key>CFBundleIconFile</key>
   <string>macos_icon.icns</string>
   <key>CFBundleIdentifier</key>
@@ -69,7 +73,7 @@ cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
 EOF
 
 echo "Signing launch script and universal binary..."
-codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/digmacro_macos"
+codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
 codesign --force --deep --sign - "$APP_BUNDLE_PATH"
 
 echo "Deleting $BINARY_PATH..."
