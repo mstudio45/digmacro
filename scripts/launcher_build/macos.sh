@@ -56,9 +56,32 @@ echo "Creating PList using PlistBuddy..." # macos wants to segfault with manuall
 /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
 
-# echo "Signing launch script and universal binary..."
-# codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
-# codesign --force --deep --sign - "$APP_BUNDLE_PATH"
+echo "Fixing dylibs..."
+if [ ! -x "./dylibbundler" ]; then
+  echo "dylibbundler not found, cloning and building from GitHub..."
+
+  if [ ! -d "macdylibbundler" ]; then
+    git clone https://github.com/auriamg/macdylibbundler.git
+  fi
+
+  cd macdylibbundler || { echo "Failed to enter macdylibbundler dir"; exit 1; }
+  make || { echo "Failed to build dylibbundler"; exit 1; }
+  cp dylibbundler ../
+  cd ..
+fi
+
+./dylibbundler \
+  -x "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME" \
+  -b \
+  -d "$APP_BUNDLE_PATH/Contents/libs" \
+  -p @executable_path/../libs/ \
+  -od \
+  --overwrite-files \
+  --no-codesign
+
+echo "Signing launch script and universal binary..."
+codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
+codesign --force --deep --sign - "$APP_BUNDLE_PATH"
 
 echo "Deleting $BINARY_PATH..."
 rm $BINARY_PATH
