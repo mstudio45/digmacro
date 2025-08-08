@@ -12,25 +12,25 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
+CURRENT_ARCH="$(uname -m)"
+
 APP_NAME="digmacro_macos"
-APP_BUNDLE_NAME="digmacro_macos.app"
+APP_BUNDLE_NAME="digmacro_macos_$CURRENT_ARCH.app"
 
 ICON_PATH="src/assets/icons/macos_icon.icns"
-BINARY_PATH="output/digmacro_macos"
+BINARY_PATH="output/$APP_NAME"
 APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
 
-echo "Copying launcher.c to launcher_dynamic.c..."
-cp scripts/launcher_build/launcher.c scripts/launcher_build/launcher_dynamic.c
+LAUNCHERC_PATH="scripts/launcher_build/launcher.c"
 
 echo "Building..."
-gcc -Wall -Wextra -std=c99 -o output/$APP_NAME scripts/launcher_build/launcher_dynamic.c
+# gcc -Wall -Wextra -std=c99 -o output/$APP_NAME "$LAUNCHERC_PATH"
+clang -target "$CURRENT_ARCH-apple-darwin" -mmacos-version-min=10.12 -o "$BINARY_PATH" "$LAUNCHERC_PATH"
+
 if [ $? -ne 0 ]; then
   echo "Compilation failed. Exiting."
   exit 1
 fi
-
-echo "Deleting launcher_dynamic.c..."
-rm scripts/launcher_build/launcher_dynamic.c
 
 echo "Creating .app bundle..."
 rm -rf "$APP_BUNDLE_PATH"
