@@ -675,9 +675,14 @@ int main(int argc, char *argv[]) {
     int result = launch_digmacro(python_argc, python_argv);
     free(python_argv);
     
-    if (result != 0) {
+    if (result != 0 && result != 9) {
         printf("\nDIG Macro exited with code: %d\n", result);
     }
+
+#ifdef __APPLE__
+    printf("\nPress Enter to close this window...");
+    getchar();
+#endif
 
     return result;
 }

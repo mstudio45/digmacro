@@ -44,8 +44,7 @@ cp "$ICON_PATH" "$APP_BUNDLE_PATH/Contents/Resources/"
 
 cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" 
-    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key>
@@ -62,6 +61,8 @@ cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
   <string>$APP_VERSION</string>
   <key>CFBundleShortVersionString</key>
   <string>$APP_VERSION</string>
+  <key>NSHumanReadableCopyright</key>
+  <string>© mstudio45 2025 - https://github.com/mstudio45/digmacro</string>
   <key>LSMinimumSystemVersion</key>
   <string>10.12</string>
   <key>NSHighResolutionCapable</key>
