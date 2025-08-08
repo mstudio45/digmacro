@@ -404,36 +404,7 @@ int install_python_macos() {
 #else
 int install_python_unix() {
     // TO-DO
-    printf("Installing Python 3.12.8 on Unix-like system...\n");
-
-    if (file_exists("/etc/debian_version")) {
-        printf("Detected Debian/Ubuntu system.\n");
-
-        if (execute_command("sudo apt update") != 0) return 0;
-
-        const char *install_cmds[] = {
-            "sudo apt install -y software-properties-common",
-            "sudo add-apt-repository -y ppa:deadsnakes/ppa",
-            "sudo apt update",
-            "sudo apt install -y python3.12 python3.12-pip python3.12-venv"
-        };
-
-        for (int i = 0; i < 4; i++) {
-            if (execute_command(install_cmds[i]) != 0) return 0;
-        }
-
-    } else if (file_exists("/etc/redhat-release")) {
-        printf("Detected Red Hat/CentOS/Fedora system.\n");
-        if (execute_command("sudo dnf install -y python3.12 python3.12-pip") != 0 &&
-            execute_command("sudo yum install -y python3.12 python3.12-pip") != 0) {
-            return 0;
-        }
-    } else {
-        printf("Unsupported Linux distribution. Please install Python 3.12 manually.\n");
-        return 0;
-    }
-
-    printf("Python installation completed.\n");
+    
     return 1;
 }
 #endif
