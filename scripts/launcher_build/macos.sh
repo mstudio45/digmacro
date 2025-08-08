@@ -25,6 +25,9 @@ PLIST_PATH="$APP_BUNDLE_PATH/Contents/Info.plist"
 
 LAUNCHERC_PATH="scripts/launcher_build/launcher.c"
 
+DYLIBBUNDLER_REPO_PATH="scripts/launcher_build/macdylibbundler"
+DYLIBBUNDLER_PATH="scripts/launcher_build/dylibbundler"
+
 echo "Building..."
 # gcc -Wall -Wextra -std=c99 -o output/$APP_NAME "$LAUNCHERC_PATH"
 clang -target "$CURRENT_ARCH-apple-darwin" -mmacos-version-min=10.12 -o "$BINARY_PATH" "$LAUNCHERC_PATH"
@@ -57,20 +60,22 @@ echo "Creating PList using PlistBuddy..." # macos wants to segfault with manuall
 /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
 
 echo "Fixing dylibs..."
-if [ ! -x "./dylibbundler" ]; then
+if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
   echo "dylibbundler not found, cloning and building from GitHub..."
 
-  if [ ! -d "macdylibbundler" ]; then
-    git clone https://github.com/auriamg/macdylibbundler.git
+  if [ ! -d "$DYLIBBUNDLER_REPO_PATH" ]; then
+    git clone https://github.com/auriamg/macdylibbundler.git "$DYLIBBUNDLER_REPO_PATH"
   fi
+  cd "$DYLIBBUNDLER_REPO_PATH" || { echo "Failed to enter $DYLIBBUNDLER_REPO_PATH"; exit 1; }
 
-  cd macdylibbundler || { echo "Failed to enter macdylibbundler dir"; exit 1; }
   make || { echo "Failed to build dylibbundler"; exit 1; }
-  cp dylibbundler ../
-  cd ..
+  cp dylibbundler "$DYLIBBUNDLER_PATH"
+  rm -rf "$DYLIBBUNDLER_REPO_PATH"
+
+  echo "dylibbundler built and ready."
 fi
 
-./dylibbundler \
+"$DYLIBBUNDLER_PATH" \
   -x "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME" \
   -b \
   -d "$APP_BUNDLE_PATH/Contents/libs" \
