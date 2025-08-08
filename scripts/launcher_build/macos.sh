@@ -56,9 +56,9 @@ echo "Creating PList using PlistBuddy..." # macos wants to segfault with manuall
 /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
 
-echo "Signing launch script and universal binary..."
-codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
-codesign --force --deep --sign - "$APP_BUNDLE_PATH"
+# echo "Signing launch script and universal binary..."
+# codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
+# codesign --force --deep --sign - "$APP_BUNDLE_PATH"
 
 echo "Deleting $BINARY_PATH..."
 rm $BINARY_PATH
