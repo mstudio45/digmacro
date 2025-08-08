@@ -566,16 +566,12 @@ int launch_digmacro(int argc, char *argv[]) {
     int pos = snprintf(launch_cmd, sizeof(launch_cmd), "cd %s && %s %s --from-launcher=%s", PROJECT_NAME, MAIN_SCRIPT_PREFIX, MAIN_SCRIPT, exe_path);
     
     for (int i = 1; i < argc; i++) {
-        if (pos >= sizeof(launch_cmd) - 100) {
-            printf("Warning: Too many arguments, some may be truncated.\n");
-            break;
-        }
-        
-        if (strchr(argv[i], ' ') != NULL) {
-            pos += snprintf(launch_cmd + pos, sizeof(launch_cmd) - pos, " \"%s\"", argv[i]);
-        } else {
-            pos += snprintf(launch_cmd + pos, sizeof(launch_cmd) - pos, " %s", argv[i]);
-        }
+        int remaining = sizeof(launch_cmd) - pos - 1;
+        if (remaining <= 0) break;
+
+        int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", argv[i]);
+        if (written < 0 || written >= remaining) break;
+        pos += written;
     }
     
     return execute_command(launch_cmd);
@@ -618,19 +614,6 @@ int main(int argc, char *argv[]) {
     return 1; // unsupported platform
 #endif
 
-    const char *branch = get_branch_from_args(argc, argv);
-
-    int force_update = 0;
-    int python_arg_start = 1;
-    
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--update-source") == 0) {
-            force_update = 1;
-            python_arg_start = i + 1;
-            break;
-        }
-    }
-
     printf("============ Checking Python ============\n");
     if (!check_python_version()) {
         printf("Python 3.12.8 not found. Installing...\n");
@@ -659,22 +642,27 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\n============ Checking DIG Macro Files ============\n");
+    const char *branch = get_branch_from_args(argc, argv);
+    int force_update = 0;
+
+    char *new_argv[argc];
+    int new_argc = 0;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--update-source") == 0) {
+            force_update = 1;
+        } else {
+            new_argv[new_argc++] = argv[i];
+        }
+    }
+    new_argv[new_argc] = NULL;
+
     if (!install_digmacro(force_update, branch)) {
         show_error("Failed to set up DIG Macro. Exiting.\n");
         return 1;
     }
     
     printf("\n============ Launching DIG Macro... ============\n");
-
-    char **python_argv = malloc(argc * sizeof(char*));
-    python_argv[0] = argv[0];
-    
-    int python_argc = 1;
-    for (int i = python_arg_start; i < argc; i++) {
-        python_argv[python_argc++] = argv[i];
-    }
-    
-    int result = launch_digmacro(python_argc, python_argv);
+    int result = launch_digmacro(new_argc, new_argc);
     free(python_argv);
     
     if (result != 0 && result != 9) {
