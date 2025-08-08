@@ -177,6 +177,16 @@ void show_note(const char *message) {
 void show_note(const char *message) {
     show_notification(message, "DIG Macro", "information");
 }
+
+#ifdef __APPLE__
+void update_dock_progress(const char *stage) {
+    char command[2048];
+    snprintf(command, sizeof(command), "osascript -e 'tell application \"Dock\" to set dock icon of application \"DIG Macro\" to \"%s\"'", stage);
+    system(command);
+}
+#else
+void update_dock_progress(const char *stage) {
+}
 #endif
 
 // ------------------- Path Check ------------------- //
@@ -510,6 +520,10 @@ const char *get_branch_from_args(int argc, char *argv[]) {
 
 int download_and_extract(const char *branch) {
     printf("Downloading DIG Macro ZIP file...\n");
+    
+#ifdef __APPLE__
+    update_dock_progress("caution");
+#endif
 
     char project_zip_url[256];
     snprintf(project_zip_url, sizeof(project_zip_url), PROJECT_URL_TEMPLATE, branch);
@@ -575,6 +589,11 @@ int download_and_extract(const char *branch) {
     }
 
     printf("DIG Macro extracted successfully.\n");
+    
+#ifdef __APPLE__
+    update_dock_progress("note");
+#endif
+    
     return 1;
 }
 
@@ -627,6 +646,10 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
 
     if (!dir_exists(venv_folder)) {
         printf("Creating virtual environment for Darwin...\n");
+        
+#ifdef __APPLE__
+        update_dock_progress("caution");
+#endif
 
         char cmd[4096];
         snprintf(cmd, sizeof(cmd), "%s -m venv \"%s\"", python_cmd, venv_folder);
@@ -635,6 +658,10 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
             show_error("Failed to create virtual environment folder.\n");
             exit(1);
         }
+        
+#ifdef __APPLE__
+        update_dock_progress("note");
+#endif
     }
 
     char venv_python[PATH_MAX];
@@ -778,6 +805,10 @@ int main(int argc, char *argv[]) {
 
     printf("============ DIG Macro Launcher ============\n");
     
+#ifdef __APPLE__
+    update_dock_progress("note");
+#endif
+    
 #ifdef _WIN32
     if (!check_path_windows()) {
         return 1;
@@ -791,6 +822,11 @@ int main(int argc, char *argv[]) {
 #endif
 
     printf("============ Checking Python ============\n");
+    
+#ifdef __APPLE__
+    update_dock_progress("caution");
+#endif
+
     char python_cmd[64];
     if (!check_python_version(python_cmd, sizeof(python_cmd))) {
         printf("Python 3.12.8 not found. Installing...\n");
@@ -820,6 +856,11 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\n============ Checking DIG Macro Files ============\n");
+    
+#ifdef __APPLE__
+    update_dock_progress("note");
+#endif
+
     const char *branch = get_branch_from_args(argc, argv);
     int force_update = 0;
 
@@ -845,6 +886,10 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\n============ Launching DIG Macro... ============\n");
+    
+#ifdef __APPLE__
+    update_dock_progress("note");
+#endif
     
     char **final_argv = malloc((new_argc + 2) * sizeof(char *));
     if (!final_argv) {
