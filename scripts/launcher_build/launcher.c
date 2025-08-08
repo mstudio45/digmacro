@@ -601,14 +601,6 @@ int launch_digmacro(int argc, char *argv[]) {
 
 // ------------------- Main ------------------- //
 
-#if __APPLE__
-void launch_debug_terminal(const char* binary_path, int argc, char *argv[]) {
-    char cmd[4096];
-    snprintf(cmd, sizeof(cmd), "osascript -e 'tell application \"Terminal\" to do script \"%s; echo; echo Press any key to exit...; read -n 1\"'", binary_path);
-    system(cmd);
-}
-#endif
-
 int main(int argc, char *argv[]) {
     printf("============ DIG Macro Launcher ============\n");
     
@@ -623,15 +615,6 @@ int main(int argc, char *argv[]) {
 #else
     return 1; // unsupported platform
 #endif
-
-    // macos debug //
-    if (argc > 1 && strcmp(argv[1], "--debug") == 0) {
-        char path[4096];
-        uint32_t size = sizeof(path);
-        _NSGetExecutablePath(path, &size);
-        launch_debug_terminal(path, argc - 1, &argv[1]);
-        return 0;
-    }
 
     const char *branch = get_branch_from_args(argc, argv);
 
