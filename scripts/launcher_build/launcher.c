@@ -103,6 +103,16 @@ int get_executable_path(char *buffer, size_t size) {
 }
 
 // ------------------- Notifications ------------------- //
+#ifdef __APPLE__
+void update_dock_progress(const char *stage) {
+    char command[2048];
+    snprintf(command, sizeof(command), "osascript -e 'tell application \"Dock\" to set dock icon of application \"DIG Macro\" to \"%s\"'", stage);
+    system(command);
+}
+#else
+void update_dock_progress(const char *stage) {
+}
+#endif
 
 void show_notification(const char *message, const char *title, const char *icon_type) {
     printf("[%s - %s] %s\n", title, icon_type, message);
@@ -176,16 +186,6 @@ void show_note(const char *message) {
 #else
 void show_note(const char *message) {
     show_notification(message, "DIG Macro", "information");
-}
-
-#ifdef __APPLE__
-void update_dock_progress(const char *stage) {
-    char command[2048];
-    snprintf(command, sizeof(command), "osascript -e 'tell application \"Dock\" to set dock icon of application \"DIG Macro\" to \"%s\"'", stage);
-    system(command);
-}
-#else
-void update_dock_progress(const char *stage) {
 }
 #endif
 
