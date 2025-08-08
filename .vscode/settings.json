@@ -2,6 +2,7 @@
     "files.eol": "\n",
     "files.associations": {
         "future": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "limits.h": "c"
     }
 }
