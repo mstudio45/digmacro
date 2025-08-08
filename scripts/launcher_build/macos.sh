@@ -19,7 +19,9 @@ APP_BUNDLE_NAME="digmacro_macos_$CURRENT_ARCH.app"
 
 ICON_PATH="src/assets/icons/macos_icon.icns"
 BINARY_PATH="output/$APP_NAME"
+
 APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
+PLIST_PATH="$APP_BUNDLE_PATH/Contents/Info.plist"
 
 LAUNCHERC_PATH="scripts/launcher_build/launcher.c"
 
@@ -39,37 +41,20 @@ mkdir -p "$APP_BUNDLE_PATH/Contents/Resources"
 
 cp "$BINARY_PATH" "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
 chmod +x "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
-
 cp "$ICON_PATH" "$APP_BUNDLE_PATH/Contents/Resources/"
 
-cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleExecutable</key>
-  <string>$APP_NAME</string>
-  <key>CFBundleIconFile</key>
-  <string>macos_icon.icns</string>
-  <key>CFBundleIdentifier</key>
-  <string>com.mstudio45.digmacro</string>
-  <key>CFBundleName</key>
-  <string>DIG Macro</string>
-  <key>CFBundleVersion</key>
-  <string>$BUILD_VERSION</string>
-  <key>CFBundleShortVersionString</key>
-  <string>$BUILD_VERSION</string>
-  <key>NSHumanReadableCopyright</key>
-  <string>© mstudio45 2025 - https://github.com/mstudio45/digmacro</string>
-  <key>LSMinimumSystemVersion</key>
-  <string>10.12</string>
-  <key>NSHighResolutionCapable</key>
-  <true/>
-  <key>NSAppSleepDisabled</key>
-  <true/>
-</dict>
-</plist>
-EOF
+echo "Creating PList using PlistBuddy..." # macos wants to segfault with manually created plists (i hope this works or im gonna :boom:)
+/usr/libexec/PlistBuddy -c "Clear dict" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $APP_NAME" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string macos_icon.icns" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.mstudio45.digmacro" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleName string DIG Macro" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $BUILD_VERSION" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $BUILD_VERSION" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string © mstudio45 2025 - https://github.com/mstudio45/digmacro" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 10.12" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
 
 echo "Signing launch script and universal binary..."
 codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
