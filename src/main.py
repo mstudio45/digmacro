@@ -12,33 +12,63 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
     sys.exit(0)
 
 # restart macro handler #
+def get_launcher_path():
+    for arg in sys.argv:
+        if arg.startswith("--from-launcher="):
+            return arg.split("=", 1)[1]
+    return None
+
 def restart_macro(args=["--skip-selection"]):
-    final_exe, final_args = "", []
+    cwd, binary, arguments = None, "", []
 
-    if current_os == "Darwin":
-        final_exe = sys.argv[0]
-        final_args = args
+    launcher_path = get_launcher_path()
+    if launcher_path:
+        if current_os == "Darwin":
+            binary = launcher_path
+            arguments = args
+        else:
+            binary = launcher_path
+            arguments = [launcher_path] + args
 
-        if ".app/Contents/MacOS" in __file__:
-            try:
-                from AppKit import NSBundle # type: ignore
-                bundle = NSBundle.mainBundle()
-
-                if bundle and bundle.executablePath():
-                    final_exe = os.path.abspath(str(bundle.executablePath()))
-                    final_args = args
-            except: pass
+        cwd = os.path.dirname(os.path.abspath(launcher_path))
     else:
-        final_exe = os.path.abspath(sys.executable)
-        final_args = [final_exe, os.path.abspath(__file__)] + args
+        if current_os == "Darwin":
+            binary = sys.argv[0]
+            arguments = args
+            
+            if ".app/Contents/MacOS" in __file__:
+                try:
+                    from AppKit import NSBundle  # type: ignore
+                    bundle = NSBundle.mainBundle()
+                    if bundle and bundle.executablePath():
+                        binary = os.path.abspath(str(bundle.executablePath()))
+                        arguments = args
+                except:
+                    pass
+        else:
+            binary = os.path.abspath(sys.executable)
+            arguments = [binary, os.path.abspath(__file__)] + args
 
-    try:
-        import logging
-        logging.info(f"Restarting: {final_exe} {final_args}")
-    except Exception: 
-        print(f"Restarting: {final_exe} {final_args}")
-    
-    os.execv(final_exe, final_args)
+    # log the command #
+    log_info = (
+        f"=== Restart Requested ===\n"
+        f"Sys Executable: {sys.executable}\n"
+
+        f"Original CWD: {os.getcwd()}\n"
+        f"Restart CWD: {cwd or os.getcwd()}\n"
+
+        f"Binary Path: {os.path.abspath(binary)}\n"
+        f"Arguments: {' '.join(map(str, arguments))}\n"
+        f"=========================\n"
+    )
+
+    try: import logging; logging.info(log_info)
+    except Exception: print(log_info)
+
+    # restart macro #
+    if cwd: os.chdir(cwd)
+    os.execv(binary, arguments)
+    os._exit(0)
     return
 
 # install requirements #

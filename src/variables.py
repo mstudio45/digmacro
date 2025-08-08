@@ -21,15 +21,13 @@ launcher_path = get_launcher_path()
 is_from_launcher = launcher_path is not None
 
 # get paths #
-resource_path_str = ""
-base_path_str = os.path.abspath(os.getcwd())
-
-if current_os == "Darwin" and ".app/Contents/MacOS" in __file__:
-    base_path_str = os.path.abspath(os.path.join(__file__[:__file__.find(".app/") + len(".app")], ".."))
-else:
-    if is_from_launcher: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
-    
 resource_path_str = os.path.dirname(os.path.abspath(__file__))
+base_path_str = ""
+
+if is_from_launcher: 
+    base_path_str = os.path.dirname(os.path.abspath(launcher_path))
+else:
+    base_path_str = os.path.abspath(os.getcwd())
 
 # path funcs #
 def get_resource_path(*paths): return os.path.join(resource_path_str, *paths)
