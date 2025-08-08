@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import platform
 import shutil
@@ -10,23 +11,25 @@ import webbrowser
 
 __all__ = ["Variables", "StaticVariables"]
 current_os = platform.system()
-compiled = "__compiled__" in globals()
+def get_launcher_path():
+    for arg in sys.argv:
+        if arg.startswith("--from-launcher="):
+            return arg.split("=", 1)[1]
+    return None
 
-# get compiled paths #
+launcher_path = get_launcher_path()
+is_from_launcher = launcher_path is not None
+
+# get paths #
 resource_path_str = ""
 base_path_str = os.path.abspath(os.getcwd())
 
-if compiled:
-    try:
-        from __nuitka_binary_dir import __nuitka_binary_dir # type: ignore
-        resource_path_str = __nuitka_binary_dir
-    except ImportError: pass
-
-# fix paths #
 if current_os == "Darwin" and ".app/Contents/MacOS" in __file__:
     base_path_str = os.path.abspath(os.path.join(__file__[:__file__.find(".app/") + len(".app")], ".."))
-
-if resource_path_str.strip() == "": resource_path_str = os.path.dirname(os.path.abspath(__file__))
+else:
+    if is_from_launcher: base_path_str = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    
+resource_path_str = os.path.dirname(os.path.abspath(__file__))
 
 # path funcs #
 def get_resource_path(*paths): return os.path.join(resource_path_str, *paths)
@@ -37,7 +40,9 @@ unix_open_app_cmd = next((cmd for cmd in ["open", "xdg-open", "gnome-open", "kde
 where_cmd         = next((cmd for cmd in ["where", "which"] if shutil.which(cmd)), None)
 
 class Variables:
-    is_compiled = compiled
+    is_from_launcher = is_from_launcher
+    launcher_path    = launcher_path
+
     is_running = True
     is_paused = True
 
@@ -46,8 +51,8 @@ class Variables:
 
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    current_version = "MATRIX.VERSION" if compiled else "2.0.4"
-    current_branch = "MATRIX.BRANCH" if compiled else "dev"
+    current_version = "2.0.4" if not is_from_launcher else "MATRIX.VERSION"
+    current_branch  = "dev"   if not is_from_launcher else "MATRIX.BRANCH"
 
     # minigame information #
     dig_count = 0

@@ -113,11 +113,6 @@ else:
             return None
 
     def check_pip_packages():
-        compiled = "__compiled__" in globals()
-        if compiled: 
-            log_install("[check_pip_packages] Compiled mode, skipping...")
-            return False
-
         freeze_list = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
         installed_packages = [r.decode().split("==") for r in freeze_list.split()]
 

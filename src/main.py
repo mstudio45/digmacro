@@ -12,14 +12,13 @@ if current_os not in ["Linux", "Darwin", "Windows"]:
     sys.exit(0)
 
 # restart macro handler #
-compiled = "__compiled__" in globals()
 def restart_macro(args=["--skip-selection"]):
     final_exe, final_args = "", []
 
     if current_os == "Darwin":
         final_exe = sys.argv[0]
         final_args = args
-    
+
         if ".app/Contents/MacOS" in __file__:
             try:
                 from AppKit import NSBundle # type: ignore
@@ -30,12 +29,8 @@ def restart_macro(args=["--skip-selection"]):
                     final_args = args
             except: pass
     else:
-        if compiled:
-            final_exe = os.path.abspath(sys.argv[0])
-            final_args = args
-        else:
-            final_exe = os.path.abspath(sys.executable)
-            final_args = [final_exe, os.path.abspath(__file__)] + args
+        final_exe = os.path.abspath(sys.executable)
+        final_args = [final_exe, os.path.abspath(__file__)] + args
 
     try:
         import logging
@@ -273,8 +268,28 @@ if __name__ == "__main__":
 
             logging.info(f"Running on '{Variables.current_branch}' - {Variables.current_version} | Latest '{Variables.current_branch}' version: {latest_branch_version} | {Variables.current_version} < {latest_branch_version} = {is_outdated}")
             if is_outdated:
-                res = msgbox.confirm(f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\nDo you want to open the Github repository?\n\n -- If you encounter any issues don't report them, you are using an outdated version. -- ")
-                if res == "Yes": Variables.open_link(f"https://github.com/mstudio45/digmacro/releases/tag/v{latest_branch_version}")
+                confirm, autoupdate = "No", False
+                if Variables.launcher_path is None:
+                    confirm = msgbox.confirm((
+                        f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\n"
+                        "Do you want to open the GitHub page?\n\n" 
+                        "[ If you don't want to update, don't encounter any issues don't report them - you are using an outdated version. ] "
+                    ))
+                else:
+                    confirm = msgbox.confirm((
+                        f"A new version is avalaible at https://github.com/mstudio45/digmacro!\n{Variables.current_version} > {latest_branch_version}\n"
+                        "Do you want to update the macro automatically?\n\n" 
+                        "[ If you don't want to update, don't encounter any issues don't report them - you are using an outdated version. ] "
+                    ))
+                    autoupdate = True
+
+                if confirm == "Yes":
+                    if autoupdate:
+                        subprocess.Popen([Variables.launcher_path, "--update-source"], cwd=os.path.dirname(os.path.abspath(Variables.launcher_path)))
+                        os.kill(os.getpid(), 9)
+                    else:
+                        Variables.open_link(f"https://github.com/mstudio45/digmacro/releases/tag/v{latest_branch_version}")
+
     except Exception as e:
         msgbox.alert(f"Failed to check for new updates. {str(e)}")
 

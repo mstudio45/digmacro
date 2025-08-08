@@ -11,3 +11,4 @@ tests/
 .DS_Store
 
 nuitka-crash-report.xml
+scripts/launcher_build/rcedit.exe

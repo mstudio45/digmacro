@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+echo Not used anymore, create an launcher instead.
+exit
+
 set "BUILD_VERSION=MATRIX.VERSION"
 
 if "%BUILD_VERSION%"=="MATRIX.VERSION" (
@@ -10,6 +13,7 @@ if "%BUILD_VERSION%"=="MATRIX.VERSION" (
     echo Using provided BUILD_VERSION: !BUILD_VERSION!
 )
 
+cd ..
 echo Creating environment directories...
 
 if not exist "env" (

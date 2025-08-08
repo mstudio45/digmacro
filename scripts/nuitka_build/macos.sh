@@ -1,4 +1,6 @@
 #!/bin/bash
+echo Not used anymore, create an launcher instead.
+exit
 
 BUILD_VERSION="MATRIX.VERSION"
 if [[ "$BUILD_VERSION" == *"MATRIX."* ]]; then
@@ -7,6 +9,8 @@ if [[ "$BUILD_VERSION" == *"MATRIX."* ]]; then
 else
   echo "Using provided BUILD_VERSION: $BUILD_VERSION"
 fi
+
+cd ..
 
 if [ "$#" -eq 0 ]; then
   ARCHS=("$(uname -m)")

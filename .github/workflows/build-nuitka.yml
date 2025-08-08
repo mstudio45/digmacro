@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Build Binaries Using Nuitka (not used)
 
 on:
   workflow_dispatch:
@@ -69,25 +69,25 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          sed -i "s/MATRIX.VERSION/${VERSION}/g" scripts/build_linux.sh
+          sed -i "s/MATRIX.VERSION/${VERSION}/g" scripts/nuitka_build/linux.sh
 
-          sh scripts/build_linux.sh ${{ matrix.arch }}
+          sh scripts/nuitka_build/linux.sh ${{ matrix.arch }}
 
       - name: Build for Windows
         if: startsWith(matrix.os, 'windows')
         run: |
           $version = "${{ github.event.inputs.version }}"
-          (Get-Content scripts\build_win.bat) -replace 'MATRIX.VERSION', $version | Set-Content scripts\build_win.bat
+          (Get-Content scripts\nuitka_build\win.bat) -replace 'MATRIX.VERSION', $version | Set-Content scripts\nuitka_build\win.bat
 
-          scripts\build_win.bat ${{ matrix.arch }}
+          scripts\nuitka_build\win.bat ${{ matrix.arch }}
 
       - name: Build for macOS
         if: startsWith(matrix.os, 'macos')
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          sed -i '' "s/MATRIX.VERSION/${VERSION}/g" scripts/build_macos.sh
+          sed -i '' "s/MATRIX.VERSION/${VERSION}/g" scripts/nuitka_build/macos.sh
 
-          sh scripts/build_macos.sh ${{ matrix.arch }}
+          sh scripts/nuitka_build/macos.sh ${{ matrix.arch }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

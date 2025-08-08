@@ -1,0 +1,96 @@
+name: Build Binaries Using Nuitka
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Build Branch'
+        required: false
+        default: 'main'
+      version:
+        description: 'Build Version'
+        required: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x64
+            runs_on: ubuntu-latest
+          - os: windows-latest
+            arch: x64
+            runs_on: windows-latest
+          - os: macos-latest
+            arch: x64
+            runs_on: macos-13
+          - os: macos-latest
+            arch: arm64
+            runs_on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.8'
+          architecture: ${{ matrix.arch }}
+
+      - name: Set branch and version (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $branch = "${{ github.event.inputs.branch || github.ref_name }}"
+          $version = "${{ github.event.inputs.version }}"
+
+          (Get-Content src\variables.py) -replace 'MATRIX.BRANCH', $branch -replace 'MATRIX.VERSION', $version | Set-Content src\variables.py
+          Write-Host "Branch set to '$branch' and version set to '$version'."
+
+      - name: Set branch and version (Linux/macOS)
+        if: (!startsWith(matrix.os, 'windows'))
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch || github.ref_name }}"
+          VERSION="${{ github.event.inputs.version }}"
+
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            sed -i '' "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
+            sed -i '' "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
+          else
+            sed -i "s/MATRIX.BRANCH/${BRANCH_NAME}/g" src/variables.py
+            sed -i "s/MATRIX.VERSION/${VERSION}/g" src/variables.py
+          fi
+
+          echo "Branch set to '${BRANCH_NAME}' and version set to '${VERSION}'."
+
+      - name: Build for Linux
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i "s/MATRIX.VERSION/${VERSION}/g" scripts/nuitka_build/linux.sh
+
+          sh scripts/nuitka_build/linux.sh ${{ matrix.arch }}
+
+      - name: Build for Windows
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          (Get-Content scripts\nuitka_build\win.bat) -replace 'MATRIX.VERSION', $version | Set-Content scripts\nuitka_build\win.bat
+
+          scripts\nuitka_build\win.bat ${{ matrix.arch }}
+
+      - name: Build for macOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i '' "s/MATRIX.VERSION/${VERSION}/g" scripts/nuitka_build/macos.sh
+
+          sh scripts/nuitka_build/macos.sh ${{ matrix.arch }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: digmacro-${{ startsWith(matrix.os, 'ubuntu') && 'linux' || (startsWith(matrix.os, 'windows') && 'windows' || 'macos') }}-${{ matrix.arch == 'x64' && 'x86_64' || matrix.arch }}
+          path: output/

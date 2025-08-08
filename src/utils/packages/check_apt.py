@@ -68,8 +68,7 @@ else:
             log_install("[check_apt_packages] All required system packages are installed.\n")
             return False
         
-        compiled = "__compiled__" in globals()
-        if compiled:
+        if "--from-launcher" in sys.argv:
             if current_os == "Linux":
                 try: subprocess.run(["notify-send", "-t", "60", "DIG Macro", f"You are missing required packages. Install them manually: {missing_packages}"])
                 except: pass

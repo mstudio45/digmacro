@@ -52,5 +52,4 @@ cd ..
 echo Starting the src version...
 !PY_CMD! src/main.py %*
 
-pause
 endlocal
