@@ -63,14 +63,16 @@ echo "Fixing dylibs..."
 if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
   echo "dylibbundler not found, cloning and building from GitHub..."
 
-  if [ ! -d "$DYLIBBUNDLER_REPO_PATH" ]; then
-    git clone https://github.com/auriamg/macdylibbundler.git "$DYLIBBUNDLER_REPO_PATH"
+  if [ ! -d "macdylibbundler" ]; then
+    git clone https://github.com/auriamg/macdylibbundler.git
   fi
-  cd "$DYLIBBUNDLER_REPO_PATH" || { echo "Failed to enter $DYLIBBUNDLER_REPO_PATH"; exit 1; }
 
+  cd "macdylibbundler" || { echo "Failed to enter macdylibbundler"; exit 1; }
   make || { echo "Failed to build dylibbundler"; exit 1; }
-  cp "$DYLIBBUNDLER_REPO_PATH/dylibbundler" "$DYLIBBUNDLER_PATH"
-  rm -rf "$DYLIBBUNDLER_REPO_PATH"
+  cp "dylibbundler" "$DYLIBBUNDLER_PATH"
+
+  cd ..
+  rm -rf "macdylibbundler"
 
   echo "dylibbundler built and ready."
 fi
