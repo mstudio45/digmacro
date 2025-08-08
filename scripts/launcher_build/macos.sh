@@ -56,9 +56,9 @@ cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
   <key>CFBundleName</key>
   <string>DIG Macro</string>
   <key>CFBundleVersion</key>
-  <string>$APP_VERSION</string>
+  <string>$BUILD_VERSION</string>
   <key>CFBundleShortVersionString</key>
-  <string>$APP_VERSION</string>
+  <string>$BUILD_VERSION</string>
   <key>NSHumanReadableCopyright</key>
   <string>© mstudio45 2025 - https://github.com/mstudio45/digmacro</string>
   <key>LSMinimumSystemVersion</key>

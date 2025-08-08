@@ -660,10 +660,5 @@ int main(int argc, char *argv[]) {
         printf("\nDIG Macro exited with code: %d\n", result);
     }
 
-#ifdef __APPLE__
-    printf("\nPress Enter to close this window...");
-    getchar();
-#endif
-
     return result;
 }
