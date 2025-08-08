@@ -744,50 +744,16 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
     return execute_command(launch_cmd);
 }
 
-int launch_digmacro_using_launch(int argc, char *argv[]) {
-    printf("Launching DIG Macro...\n");
-    
-    char main_script_path[512];
-    snprintf(main_script_path, sizeof(main_script_path), "%s%s%s", PROJECT_NAME, PATH_SEPARATOR, MAIN_SCRIPT);
-    
-    if (!file_exists(main_script_path)) {
-        char msg[550];
-        snprintf(msg, sizeof(msg), "DIG Macro Source Launcher not found: %s\n", main_script_path);
-        show_error(msg);
-        exit(1);
-    }
-
-    char exe_path[2048];
-    if (!get_executable_path(exe_path, sizeof(exe_path))) {
-        show_error("Could not determine launcher path.\n");
-        exit(1);
-    }
-    
-    char launch_cmd[2048];
-    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "cd %s && %s %s --from-launcher=%s", PROJECT_NAME, MAIN_SCRIPT_PREFIX, MAIN_SCRIPT, exe_path);
-    
-    for (int i = 1; i < argc; i++) {
-        int remaining = sizeof(launch_cmd) - pos - 1;
-        if (remaining <= 0) break;
-
-        int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", argv[i]);
-        if (written < 0 || written >= remaining) break;
-        pos += written;
-    }
-    
-    return execute_command(launch_cmd);
-}
-
 // ------------------- Main ------------------- //
 
 int main(int argc, char *argv[]) {
-#ifdef __APPLE__
     char exe_path[PATH_MAX];
     if (!get_executable_path(exe_path, sizeof(exe_path))) {
         show_error("Could not determine launcher path.\n");
         exit(1);
     }
 
+#ifdef __APPLE__
     char real_path[PATH_MAX];
     if (realpath(exe_path, real_path) == NULL) {
         show_error("Could not resolve real application path.\n");
@@ -879,10 +845,27 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\n============ Launching DIG Macro... ============\n");
-    int result = launch_digmacro(new_argc, new_argv, python_cmd);
+    
+    char **final_argv = malloc((new_argc + 2) * sizeof(char *));
+    if (!final_argv) {
+        perror("malloc");
+        exit(1);
+    }
+    
+    for (int i = 0; i < new_argc; i++) {
+        final_argv[i] = new_argv[i];
+    }
+    
+    char launcher_arg[2048];
+    snprintf(launcher_arg, sizeof(launcher_arg), "--from-launcher=%s", exe_path);
+    final_argv[new_argc] = launcher_arg;
+    final_argv[new_argc + 1] = NULL;
+    
+    int result = launch_digmacro(new_argc + 1, final_argv, python_cmd);
     if (result != 0 && result != 9) {
         printf("\nDIG Macro exited with code: %d\n", result);
     }
+    free(final_argv);
 
     return result;
 }
