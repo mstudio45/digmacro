@@ -12,3 +12,4 @@ tests/
 
 nuitka-crash-report.xml
 scripts/launcher_build/rcedit.exe
+scripts/launcher_build/dylibbundler
