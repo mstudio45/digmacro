@@ -67,7 +67,7 @@ if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
 
   cd "macdylibbundler" || { echo "Failed to enter macdylibbundler"; exit 1; }
   make || { echo "Failed to build dylibbundler"; exit 1; }
-  cp "dylibbundler" "scripts/launcher_build"
+  cp "dylibbundler" "../$DYLIBBUNDLER_PATH"
 
   cd ..
   rm -rf "macdylibbundler"
