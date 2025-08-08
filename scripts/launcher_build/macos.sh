@@ -49,8 +49,6 @@ cat > "$APP_BUNDLE_PATH/Contents/Info.plist" <<EOF
 <dict>
   <key>CFBundleExecutable</key>
   <string>$APP_NAME</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
   <key>CFBundleIconFile</key>
   <string>macos_icon.icns</string>
   <key>CFBundleIdentifier</key>

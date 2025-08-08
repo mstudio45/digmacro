@@ -265,6 +265,16 @@ int check_path_posix() {
     strncpy(current_lower, current_dir, sizeof(current_lower));
     current_lower[sizeof(current_lower) - 1] = 0;
     strtolower(current_lower);
+
+    const char *user = get_username();
+    char usernamehome[PATH_MAX];
+#if defined(__APPLE__)
+    snprintf(usernamehome, sizeof(usernamehome), "/Users/%s", user);
+#else
+    snprintf(usernamehome, sizeof(usernamehome), "/home/%s", user);
+#endif
+    strtolower(usernamehome);
+
     
     const char *problematic_folders[] = {
         "/downloads",
@@ -277,6 +287,7 @@ int check_path_posix() {
         "/google drive",
         "/icloud",
         "/tmp",
+        usernamehome
     };
     
     int num_problematic = sizeof(problematic_folders) / sizeof(problematic_folders[0]);
@@ -298,7 +309,6 @@ int check_path_posix() {
     }
     
     if (found_problematic) {
-        const char *user = get_username();
         char problem_msg[2048];
         snprintf(problem_msg, sizeof(problem_msg),
             "The launcher is running from a potentially problematic location:\n%s\n"
