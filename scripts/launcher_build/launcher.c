@@ -597,7 +597,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    char *app_dir = dirname(dirname(dirname(real_path)));
+    char *app_dir = dirname(dirname(dirname(dirname(real_path))));
     if (chdir(app_dir) != 0) {
         show_error("Could not change working directory.\n");
         exit(0);
