@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <unistd.h>
+#include <time.h>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -10,11 +12,9 @@
 #elif __APPLE__
     #include <mach-o/dyld.h>
     #include <libgen.h>
-    #include <sys/stat.h> 
-    #include <unistd.h>
+    #include <sys/stat.h>
 #else
-    #include <sys/stat.h> 
-    #include <unistd.h>
+    #include <sys/stat.h>
 #endif
 
 #ifdef _WIN32
@@ -123,9 +123,28 @@ void show_notification(const char *message, const char *title, const char *icon_
     MessageBox(NULL, message, title, MB_OK | icon_flag);
 
 #elif __APPLE__
+    const char *apple_icon = "note";
+    
+    if (icon_type) {
+        if (strcmp(icon_type, "error") == 0) {
+            apple_icon = "stop";
+        } else if (strcmp(icon_type, "warning") == 0) {
+            apple_icon = "caution";
+        } else if (strcmp(icon_type, "information") == 0 || strcmp(icon_type, "info") == 0) {
+            apple_icon = "note";
+        } else if (strcmp(icon_type, "note") == 0) {
+            apple_icon = "note";
+        }
+    }
+    
     char command[2048];
-    snprintf(command, sizeof(command), "osascript -e 'display dialog \"%s\" with title \"%s\" buttons {\"OK\"} default button \"OK\" with icon %s'", message, title, icon_type);
-    system(command);
+    snprintf(command, sizeof(command), "osascript -e 'display dialog \"%s\" with title \"%s\" buttons {\"OK\"} default button \"OK\" with icon %s'", message, title, apple_icon);
+    
+    int result = system(command);
+    if (result != 0) {
+        snprintf(command, sizeof(command), "osascript -e 'display dialog \"%s\" with title \"%s\" buttons {\"OK\"} default button \"OK\"'", message, title);
+        system(command);
+    }
 
 #else
     if (system("which notify-send > /dev/null 2>&1") == 0) {
@@ -444,9 +463,12 @@ int install_python_windows() {
 #elif __APPLE__
 int install_python_macos() {
     printf("Python 3.12.8 not found. Prompting user...\n");
+
     show_warning("Python 3.12.8 is required.\nYou will be directed to the official installer.");
 
     execute_command("open 'https://www.python.org/ftp/python/3.12.8/python-3.12.8-macos11.pkg'");
+    sleep(2);
+    
     show_note("Once you have installed Python 3.12.8, click OK to continue.");
 
     char python_cmd[64];
@@ -772,10 +794,19 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    char *app_dir = dirname(dirname(dirname(dirname(real_path))));
+    // Contents/MacOS -> Contents -> .app
+    char *app_dir = dirname(dirname(dirname(real_path)));
     if (chdir(app_dir) != 0) {
         show_error("Could not change working directory.\n");
         exit(1);
+    }
+    
+    setenv("DYLD_LIBRARY_PATH", "", 1);
+    setenv("DYLD_FRAMEWORK_PATH", "", 1);
+    
+    if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
+        printf("Running from app bundle - setting up environment for Python operations\n");
+        setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
     }
 #endif
 

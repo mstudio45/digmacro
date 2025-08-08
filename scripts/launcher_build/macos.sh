@@ -56,6 +56,8 @@ echo "Creating PList using PlistBuddy..." # macos wants to segfault with manuall
 /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 10.12" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Add :NSAppSleepDisabled bool true" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :LSBackgroundOnly bool false" "$PLIST_PATH"
+/usr/libexec/PlistBuddy -c "Add :LSUIElement bool false" "$PLIST_PATH"
 
 echo "Fixing dylibs..."
 if [ ! -f "$DYLIBBUNDLER_PATH" ]; then
@@ -84,7 +86,7 @@ fi
   --overwrite-files \
   --no-codesign
 
-echo "Signing launch script and universal binary..."
+echo "Signing universal binary..."
 codesign --force --sign - "$APP_BUNDLE_PATH/Contents/MacOS/$APP_NAME"
 codesign --force --deep --sign - "$APP_BUNDLE_PATH"
 
