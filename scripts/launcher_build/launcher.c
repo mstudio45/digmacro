@@ -169,7 +169,7 @@ void show_info(const char *message) {
     show_notification(message, "DIG Macro", "information");
 }
 
-#if __APPLE__
+#ifdef __APPLE__
 void show_note(const char *message) {
     show_notification(message, "DIG Macro", "note");
 }
@@ -191,7 +191,7 @@ void update_dock_progress(const char *stage) {
 
 // ------------------- Path Check ------------------- //
 
-#if _WIN32
+#ifdef _WIN32
 #include <Lmcons.h>
 
 const char *get_username() {
@@ -334,7 +334,7 @@ int check_path_posix() {
 
     const char *user = get_username();
     char usernamehome[PATH_MAX];
-#if defined(__APPLE__)
+#ifdef __APPLE__
     snprintf(usernamehome, sizeof(usernamehome), "/Users/%s", user);
 #else
     snprintf(usernamehome, sizeof(usernamehome), "/home/%s", user);
