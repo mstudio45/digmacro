@@ -14,14 +14,8 @@ if not exist "output" (
     mkdir output
 )
 
-echo Copying launcher.c to launcher_dynamic.c...
-copy /Y scripts\launcher_build\launcher.c scripts\launcher_build\launcher_dynamic.c >nul
-
 echo Building...
-gcc -Wall -Wextra -std=c99 -o output\digmacro_windows.exe scripts\launcher_build\launcher_dynamic.c
-
-echo Deleting launcher_dynamic.c...
-del scripts\launcher_build\launcher_dynamic.c
+gcc -Wall -Wextra -std=c99 -o output\digmacro_windows.exe scripts\launcher_build\launcher.c
 
 echo Editing metadata...
 set RCEDIT_URL=https://github.com/electron/rcedit/releases/download/v1.1.1/rcedit-x64.exe
