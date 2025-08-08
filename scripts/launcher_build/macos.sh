@@ -24,8 +24,6 @@ APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
 PLIST_PATH="$APP_BUNDLE_PATH/Contents/Info.plist"
 
 LAUNCHERC_PATH="scripts/launcher_build/launcher.c"
-
-DYLIBBUNDLER_REPO_PATH="scripts/launcher_build/macdylibbundler"
 DYLIBBUNDLER_PATH="scripts/launcher_build/dylibbundler"
 
 echo "Building..."
@@ -69,7 +67,7 @@ if [ ! -x "$DYLIBBUNDLER_PATH" ]; then
 
   cd "macdylibbundler" || { echo "Failed to enter macdylibbundler"; exit 1; }
   make || { echo "Failed to build dylibbundler"; exit 1; }
-  cp "dylibbundler" "$DYLIBBUNDLER_PATH"
+  cp "dylibbundler" "scripts/launcher_build"
 
   cd ..
   rm -rf "macdylibbundler"
