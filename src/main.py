@@ -35,16 +35,6 @@ def restart_macro(args=["--skip-selection"]):
         if current_os == "Darwin":
             binary = sys.argv[0]
             arguments = args
-            
-            if ".app/Contents/MacOS" in __file__:
-                try:
-                    from AppKit import NSBundle  # type: ignore
-                    bundle = NSBundle.mainBundle()
-                    if bundle and bundle.executablePath():
-                        binary = os.path.abspath(str(bundle.executablePath()))
-                        arguments = args
-                except:
-                    pass
         else:
             binary = os.path.abspath(sys.executable)
             arguments = [binary, os.path.abspath(__file__)] + args
@@ -68,8 +58,6 @@ def restart_macro(args=["--skip-selection"]):
     # restart macro #
     if cwd: os.chdir(cwd)
     os.execv(binary, arguments)
-    os._exit(0)
-    return
 
 # install requirements #
 from utils.packages.distro_variables import log_install, start_log_file, close_log_file, current_arch
@@ -195,6 +183,7 @@ If the permission is enabled and you are still being prompted with this notifica
                 url = permission_urls.get(permission_type, "x-apple.systempreferences:com.apple.preference.security")
                 subprocess.run(["open", url], check=True)
                 return True
+
             except Exception as e:
                 logging.error(f"Failed to open System Preferences: {e}")
                 return False
