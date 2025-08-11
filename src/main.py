@@ -105,7 +105,8 @@ import threading
 import mss
 import numpy as np
 import cv2
-import asyncio
+import json
+
 import interface.msgbox as msgbox
 
 # anti-crash error logger #
@@ -317,7 +318,6 @@ If the permission is enabled and you are still being prompted with this notifica
             logging.info("Checking current version...")
 
             import requests
-            import json
             req = requests.get("https://raw.githubusercontent.com/mstudio45/digmacro/refs/heads/storage/versions.json", timeout=2.5)
             versions = json.loads(req.text)
 
