@@ -661,6 +661,62 @@ int install_digmacro(int force_update, const char *branch) {
 
 // ------------------- Launch ------------------- //
 
+// ------------------- Kill Python Instances (macOS only) ------------------- //
+
+#ifdef __APPLE__
+int kill_python_instances() {
+    printf("Checking for Python instances launched by this binary...\n");
+    char find_cmd[STR_PATH_MAX + 256];
+    snprintf(find_cmd, sizeof(find_cmd), "ps aux | grep '%s/src/main.py' | grep -v grep | awk '{print $2}'", PROJECT_NAME);
+    
+    FILE *fp = popen(find_cmd, "r");
+    if (fp == NULL) {
+        printf("Failed to check for running processes.\n");
+        return 0;
+    }
+    
+    char pid_str[32];
+    int killed_count = 0;
+    
+    while (fgets(pid_str, sizeof(pid_str), fp) != NULL) {
+        pid_str[strcspn(pid_str, "\n")] = '\0';
+        if (strlen(pid_str) > 0) {
+            pid_t pid = (pid_t)atoi(pid_str);
+            if (pid > 1 && pid != getpid()) {
+                printf("Terminating DIG Macro process PID: %d\n", pid);
+                
+                if (kill(pid, SIGTERM) == 0) {
+                    killed_count++;
+                    usleep(500000);
+                    
+                    if (kill(pid, 0) == 0) {
+                        printf("Process %d still running, using SIGKILL\n", pid);
+                        kill(pid, SIGKILL);
+                        usleep(100000);
+                    }
+                } else {
+                    printf("Process %d already terminated or inaccessible\n", pid);
+                }
+            }
+        }
+    }
+    pclose(fp);
+    
+    if (killed_count > 0) {
+        printf("Terminated %d DIG Macro instance(s).\n", killed_count);
+        sleep(1);
+    } else {
+        printf("No running DIG Macro instances found.\n");
+    }
+    
+    return 1;
+}
+#else
+int kill_python_instances() {
+    return 1;
+}
+#endif
+
 int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
     char env_folder[STR_PATH_MAX];
     char env_dev_folder[STR_PATH_MAX];
@@ -770,6 +826,7 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
         pos += written;
     }
 
+    kill_python_instances();
     return execute_command(launch_cmd);
 }
 
