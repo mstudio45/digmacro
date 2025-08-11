@@ -664,6 +664,8 @@ int install_digmacro(int force_update, const char *branch) {
 // ------------------- Kill Python Instances (macOS only) ------------------- //
 
 #ifdef __APPLE__
+#include <signal.h>
+
 int kill_python_instances() {
     printf("Checking for Python instances launched by this binary...\n");
     char find_cmd[STR_PATH_MAX + 256];
