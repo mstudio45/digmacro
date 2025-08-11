@@ -722,8 +722,6 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
 
     for (int i = 0; i < argc; i++) {
         int remaining = sizeof(launch_cmd) - pos;
-        printf("Adding arg %d: '%s', remaining space: %d\n", i, argv[i], remaining);
-        
         if (remaining <= 10) {
             printf("Not enough space for more arguments\n");
             break;
@@ -746,7 +744,7 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
         char escaped_arg[STR_PATH_MAX];
         char *src = argv[i];
         char *dst = escaped_arg;
-        
+
         while (*src && (dst - escaped_arg) < sizeof(escaped_arg) - 10) {
             if (*src == '\'') {
                 strcpy(dst, "'\"'\"'");
@@ -770,8 +768,6 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
             break;
         }
         pos += written;
-        
-        printf("Command now: %s\n", launch_cmd);
     }
 
     return execute_command(launch_cmd);
