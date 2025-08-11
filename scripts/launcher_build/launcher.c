@@ -400,6 +400,9 @@ int check_python_version(char *out_cmd, size_t out_cmd_size) {
             }
             pclose(fp_path);
         }
+#else
+        strncpy(full_path, python_execs[i], sizeof(full_path) - 1);
+        full_path[sizeof(full_path) - 1] = '\0';
 #endif
 
         if (strlen(full_path) > 0) {
