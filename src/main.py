@@ -23,13 +23,8 @@ def restart_macro(args=["--skip-selection"]):
 
     launcher_path = get_launcher_path()
     if launcher_path:
-        if current_os == "Darwin":
-            binary = launcher_path
-            arguments = args
-        else:
-            binary = launcher_path
-            arguments = [launcher_path] + args
-
+        binary = launcher_path
+        arguments = [launcher_path] + args
         cwd = os.path.dirname(os.path.abspath(launcher_path))
     else:
         if current_os == "Darwin":
