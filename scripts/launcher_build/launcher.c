@@ -720,16 +720,47 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
     int pos = snprintf(launch_cmd, sizeof(launch_cmd), "%s \"%s\\src\\main.py\"", venv_python, project_name_path);
 #endif
 
-    for (int i = 1; i < argc; i++) {
+    for (int i = 0; i < argc; i++) {
         int remaining = sizeof(launch_cmd) - pos;
         printf("Adding arg %d: '%s', remaining space: %d\n", i, argv[i], remaining);
         
-        if (remaining <= 1) {
+        if (remaining <= 10) {
             printf("Not enough space for more arguments\n");
             break;
         }
 
-        int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", argv[i]);
+#ifdef _WIN32
+        char escaped_arg[STR_PATH_MAX];
+        char *src = argv[i];
+        char *dst = escaped_arg;
+        while (*src && (dst - escaped_arg) < sizeof(escaped_arg) - 2) {
+            if (*src == '"') {
+                *dst++ = '\\';
+            }
+            *dst++ = *src++;
+        }
+        *dst = '\0';
+        
+        int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", escaped_arg);
+#else
+        char escaped_arg[STR_PATH_MAX];
+        char *src = argv[i];
+        char *dst = escaped_arg;
+        
+        while (*src && (dst - escaped_arg) < sizeof(escaped_arg) - 10) {
+            if (*src == '\'') {
+                strcpy(dst, "'\"'\"'");
+                dst += 5;
+            } else {
+                *dst++ = *src;
+            }
+            src++;
+        }
+        *dst = '\0';
+        
+        int written = snprintf(launch_cmd + pos, remaining, " '%s'", escaped_arg);
+#endif
+        
         if (written < 0) {
             printf("snprintf failed\n");
             break;
@@ -740,7 +771,7 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
         }
         pos += written;
         
-        printf("Command now: %s\n", launch_cmd); // Debug output
+        printf("Command now: %s\n", launch_cmd);
     }
 
     return execute_command(launch_cmd);
