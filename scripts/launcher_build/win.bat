@@ -15,7 +15,7 @@ if not exist "output" (
 )
 
 echo Building...
-gcc -Wall -Wextra -std=c99 -o output\digmacro_windows.exe scripts\launcher_build\launcher.c
+gcc -Wall -Wextra -Wno-format-truncation -std=c99 -o output\digmacro_windows.exe scripts\launcher_build\launcher.c
 
 echo Editing metadata...
 set RCEDIT_URL=https://github.com/electron/rcedit/releases/download/v1.1.1/rcedit-x64.exe

@@ -40,6 +40,10 @@
     #define MAIN_SCRIPT_PREFIX "sh"
 #endif
 
+#define STR_PATH_MAX 4096
+static char g_cwd[STR_PATH_MAX];
+static char g_exe_path[STR_PATH_MAX];
+
 // ------------------- Utility ------------------- //
 
 int file_exists(const char *filename) {
@@ -195,33 +199,17 @@ const char *get_username() {
 }
 
 int check_path_windows() {
-    char current_dir[MAX_PATH];
-    char exe_path[MAX_PATH];
-    
-    if (GetCurrentDirectory(MAX_PATH, current_dir) == 0) {
-        show_error("Warning: Could not determine current directory.\n");
-        return 1;
-    }
-    
-    if (GetModuleFileName(NULL, exe_path, MAX_PATH) == 0) {
-        show_error("Warning: Could not determine executable path.\n");
-        return 1;
-    }
-    
-    printf("Launcher location: %s\n", exe_path);
-    printf("Current directory: %s\n", current_dir);
-    
-    if (strchr(current_dir, ' ') != NULL) {
+    if (strchr(g_cwd, ' ') != NULL) {
         char warn_msg[512];
         snprintf(warn_msg, sizeof(warn_msg),
             "The current path contains spaces: %s\n"
             "This may cause issues.\nConsider moving the launcher to a path without spaces.",
-            current_dir);
+            g_cwd);
         show_warning(warn_msg);
     }
     
     char current_lower[MAX_PATH];
-    strcpy(current_lower, current_dir);
+    strcpy(current_lower, g_cwd);
     _strlwr(current_lower);
     
     const char *problematic_folders[] = {
@@ -269,7 +257,7 @@ int check_path_windows() {
             "- C:\\Users\\%s\\Desktop\\digmacro\n"
             "- C:\\Users\\%s\\Documents\\digmacro\n"
             "- C:\\digmacro\n",
-            current_dir, user, user);
+            g_cwd, user, user);
         
         show_error(problem_msg);
         exit(1);
@@ -308,21 +296,13 @@ void strtolower(char *s) {
 }
 
 int check_path_posix() {
-    char current_dir[PATH_MAX];
-    if (getcwd(current_dir, sizeof(current_dir)) == NULL) {
-        printf("Warning: Could not determine current directory.\n");
-        return 1;
-    }
-    
-    printf("Current directory: %s\n", current_dir);
-    
-    char current_lower[PATH_MAX];
-    strncpy(current_lower, current_dir, sizeof(current_lower));
+    char current_lower[STR_PATH_MAX];
+    strncpy(current_lower, g_cwd, sizeof(current_lower));
     current_lower[sizeof(current_lower) - 1] = 0;
     strtolower(current_lower);
 
     const char *user = get_username();
-    char usernamehome[PATH_MAX];
+    char usernamehome[STR_PATH_MAX];
 #ifdef __APPLE__
     snprintf(usernamehome, sizeof(usernamehome), "/Users/%s", user);
 #else
@@ -370,7 +350,7 @@ int check_path_posix() {
             "- /home/%s/digmacro/\n"
             "- /opt/digmacro/\n"
             "- /usr/local/digmacro/\n",
-            current_dir, user);
+            g_cwd, user);
         
         show_error(problem_msg);
         exit(1);
@@ -389,47 +369,71 @@ int parse_python_version(const char *output, int *major, int *minor, int *patch)
 int check_python_version(char *out_cmd, size_t out_cmd_size) {
     printf("Checking Python installation...\n");
 
-    const char *python_commands[] = {
-        "python3 --version 2>&1",
-        "python --version 2>&1",
-        "py -3.12 --version 2>&1",
-        "py --version 2>&1",
-    };
     const char *python_execs[] = {
         "python3",
         "python",
         "py -3.12",
         "py",
     };
-
-    int num_commands = sizeof(python_commands) / sizeof(python_commands[0]);
-    int major, minor, patch;
+    int num_commands = sizeof(python_execs) / sizeof(python_execs[0]);
 
     for (int i = 0; i < num_commands; i++) {
-        FILE *fp = popen(python_commands[i], "r");
-        if (fp != NULL) {
-            char output[128];
-            if (fgets(output, sizeof(output), fp) != NULL) {
-                pclose(fp);
-                printf("Found: %s", output);
+        char full_path[256] = "";
 
-                if (parse_python_version(output, &major, &minor, &patch)) {
-                    if (major == 3 && minor == 12 && (patch == 7 || patch == 8)) {
-                        printf("Python %d.%d.%d is acceptable.\n", major, minor, patch);
-                        
-                        strncpy(out_cmd, python_execs[i], out_cmd_size - 1);
-                        out_cmd[out_cmd_size - 1] = '\0';
-
-                        return 1;
-                    }
+#ifdef _WIN32
+        char path_cmd[256];
+        snprintf(path_cmd, sizeof(path_cmd), "where %s", python_execs[i]);
+        
+        FILE *fp_path = popen(path_cmd, "r");
+        if (fp_path != NULL) {
+            char path_output[256];
+            while (fgets(path_output, sizeof(path_output), fp_path) != NULL) {
+                path_output[strcspn(path_output, "\r\n")] = '\0';
+                if (strstr(path_output, "msys64") != NULL || strstr(path_output, "usr\\bin") != NULL) {
+                    printf("Skipping MSYS2/Git Bash Python: %s\n", path_output);
+                    continue;
                 }
-            } else {
-                pclose(fp);
+                
+                strncpy(full_path, path_output, sizeof(full_path) - 1);
+                full_path[sizeof(full_path) - 1] = '\0';
+                break;
+            }
+            pclose(fp_path);
+        }
+#endif
+
+        if (strlen(full_path) > 0) {
+            char version_cmd[512];
+#ifdef IS_WINDOWS
+            snprintf(version_cmd, sizeof(version_cmd), "\"%s\" --version 2>&1", full_path);
+#else
+            snprintf(version_cmd, sizeof(version_cmd), "%s --version 2>&1", full_path);
+#endif
+            FILE *fp_version = popen(version_cmd, "r");
+            if (fp_version != NULL) {
+                char version_output[128];
+                if (fgets(version_output, sizeof(version_output), fp_version) != NULL) {
+                    pclose(fp_version);
+                    printf("Found Python: %s", version_output);
+
+                    int major, minor, patch;
+                    if (parse_python_version(version_output, &major, &minor, &patch)) {
+                        if (major == 3 && minor == 12 && (patch == 7 || patch == 8)) {
+                            printf("Python %d.%d.%d is acceptable.\n", major, minor, patch);
+                            
+                            strncpy(out_cmd, full_path, out_cmd_size - 1);
+                            out_cmd[out_cmd_size - 1] = '\0';
+                            return 1;
+                        }
+                    }
+                } else {
+                    pclose(fp_version);
+                }
             }
         }
     }
 
-    show_error("Python 3.12.8 not found on your system.\n");
+    show_error("Python 3.12.7 or 3.12.8 not found on your system or is from an unsupported environment (MSYS2/Git Bash).\n");
     return 0;
 }
 
@@ -470,7 +474,7 @@ int install_python_macos() {
     
     show_note("Once you have installed Python 3.12.8, click OK to continue.");
 
-    char python_cmd[64];
+    char python_cmd[STR_PATH_MAX];
     if (!check_python_version(python_cmd, sizeof(python_cmd))) {
         show_error("Python 3.12.8 is still not installed.\nPlease install it before running DIG Macro again.");
         exit(1);
@@ -510,16 +514,32 @@ const char *get_branch_from_args(int argc, char *argv[]) {
 int download_and_extract(const char *branch) {
     printf("Downloading DIG Macro ZIP file...\n");
 
-    char project_zip_url[256];
+    char project_zip_url[1024];
     snprintf(project_zip_url, sizeof(project_zip_url), PROJECT_URL_TEMPLATE, branch);
     printf("Using branch: %s\n", branch);
 
+    char project_zip_path[STR_PATH_MAX];
+    char temp_extract_path[STR_PATH_MAX];
+    char project_name_path[STR_PATH_MAX];
+    char env_path[STR_PATH_MAX];
+    char env_backup_path[STR_PATH_MAX];
+
+    char download_cmd[STR_PATH_MAX + 256];
+    char extract_cmd[STR_PATH_MAX * 2 + 128];
+    char move_cmd[STR_PATH_MAX * 3 + 256];
+    char rm_cmd[STR_PATH_MAX + 64];    
+    char backup_cmd[STR_PATH_MAX * 3 + 256];
+    char restore_cmd[STR_PATH_MAX * 3 + 256];
+
+    snprintf(project_zip_path, sizeof(project_zip_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_ZIP_FILE);
+    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+    snprintf(env_path, sizeof(env_path), "%s%senv", project_name_path, PATH_SEPARATOR);
+    snprintf(env_backup_path, sizeof(env_backup_path), "%s%senv_backup", g_cwd, PATH_SEPARATOR);
+
 #ifdef _WIN32
-    char download_cmd[512];
-    snprintf(download_cmd, sizeof(download_cmd), "powershell -Command \"Invoke-WebRequest -Uri '%s' -OutFile '%s'\"", project_zip_url, PROJECT_ZIP_FILE);
+    snprintf(download_cmd, sizeof(download_cmd), "powershell -Command \"Invoke-WebRequest -Uri '%s' -OutFile '%s'\"", project_zip_url, project_zip_path);
 #else
-    char download_cmd[512];
-    snprintf(download_cmd, sizeof(download_cmd), "curl -L -o %s %s || wget -O %s %s", PROJECT_ZIP_FILE, project_zip_url, PROJECT_ZIP_FILE, project_zip_url);
+    snprintf(download_cmd, sizeof(download_cmd), "curl -L -o \"%s\" \"%s\" || wget -O \"%s\" \"%s\"", project_zip_path, project_zip_url, project_zip_path, project_zip_url);
 #endif
 
     if (execute_command(download_cmd) != 0) {
@@ -527,50 +547,78 @@ int download_and_extract(const char *branch) {
         exit(1);
     }
 
-    if (!file_exists(PROJECT_ZIP_FILE)) {
+    if (!file_exists(project_zip_path)) {
         show_error("DIG Macro Source ZIP file was not downloaded.");
         exit(1);
     }
 
+    if (dir_exists(env_path) && !dir_exists(env_backup_path)) {
+        printf("Backing up env folder...\n");
+#ifdef _WIN32
+        snprintf(backup_cmd, sizeof(backup_cmd), "move \"%s\" \"%s\"", env_path, env_backup_path);
+#else
+        snprintf(backup_cmd, sizeof(backup_cmd), "mv \"%s\" \"%s\"", env_path, env_backup_path);
+#endif
+        execute_command(backup_cmd);
+    }
+
+    if (dir_exists(project_name_path)) {
+        char remove_cmd[STR_PATH_MAX + 64];
+#ifdef _WIN32
+        snprintf(remove_cmd, sizeof(remove_cmd), "rmdir /s /q \"%s\"", project_name_path);
+#else
+        snprintf(remove_cmd, sizeof(remove_cmd), "rm -rf \"%s\"", project_name_path);
+#endif
+        execute_command(remove_cmd);
+    }
+
     printf("Extracting DIG Macro files...\n");
+    snprintf(temp_extract_path, sizeof(temp_extract_path), "%s%stemp_extract", g_cwd, PATH_SEPARATOR);
 
 #ifdef _WIN32
-    char extract_cmd[512];
-    snprintf(extract_cmd, sizeof(extract_cmd), "powershell -Command \"Expand-Archive -Path '%s' -DestinationPath 'temp_extract' -Force\"", PROJECT_ZIP_FILE);
+    snprintf(extract_cmd, sizeof(extract_cmd), "powershell -Command \"Expand-Archive -Path '%s' -DestinationPath '%s' -Force\"", project_zip_path, temp_extract_path);
 #else
-    char extract_cmd[256];
-    snprintf(extract_cmd, sizeof(extract_cmd), "unzip -o %s -d temp_extract", PROJECT_ZIP_FILE);
+    snprintf(extract_cmd, sizeof(extract_cmd), "unzip -o \"%s\" -d \"%s\"", project_zip_path, temp_extract_path);
 #endif
 
     if (execute_command(extract_cmd) != 0) {
         show_error("Failed to extract DIG Macro Source ZIP file.");
-        remove(PROJECT_ZIP_FILE);
+        remove(project_zip_path);
         exit(1);
     }
 
-    char move_cmd[512];
 #ifdef _WIN32
-    snprintf(move_cmd, sizeof(move_cmd), "powershell -Command \"Get-ChildItem temp_extract | Move-Item -Destination '%s' -Force\"", PROJECT_NAME);
+    snprintf(move_cmd, sizeof(move_cmd), "powershell -Command \"Get-ChildItem -Path '%s\\*' | Move-Item -Destination '%s' -Force\"", temp_extract_path, project_name_path);
 #else
     snprintf(move_cmd, sizeof(move_cmd),
-        "find temp_extract -maxdepth 1 -type d ! -path temp_extract -exec mv {} %s \\; 2>/dev/null || "
-        "mv temp_extract/*/ %s/ 2>/dev/null || "
-        "mv temp_extract/* %s/ 2>/dev/null",
-        PROJECT_NAME, PROJECT_NAME, PROJECT_NAME);
+        "mv \"%s\"/*/* \"%s\"/ 2>/dev/null || mv \"%s\"/* \"%s\"/ 2>/dev/null",
+        temp_extract_path, project_name_path,
+        temp_extract_path, project_name_path);
 #endif
-
+    
     execute_command(move_cmd);
-
-    remove(PROJECT_ZIP_FILE);
+    remove(project_zip_path);
+    
 #ifdef _WIN32
-    execute_command("rmdir /s /q temp_extract 2>nul");
+    snprintf(rm_cmd, sizeof(rm_cmd), "rmdir /s /q \"%s\"", temp_extract_path);
 #else
-    execute_command("rm -rf temp_extract");
+    snprintf(rm_cmd, sizeof(rm_cmd), "rm -rf \"%s\"", temp_extract_path);
 #endif
+    execute_command(rm_cmd);
 
-    if (!file_exists(PROJECT_NAME)) {
-        show_error("DIG Macro extraction failed.");
+    if (!dir_exists(project_name_path)) {
+        show_error("DIG Macro extraction failed. The project folder was not created correctly.");
         exit(1);
+    }
+
+    if (dir_exists(env_backup_path)) {
+        printf("Importing env backup...\n");
+#ifdef _WIN32
+        snprintf(restore_cmd, sizeof(restore_cmd), "move \"%s\" \"%s\"", env_backup_path, env_path);
+#else
+        snprintf(restore_cmd, sizeof(restore_cmd), "mv \"%s\" \"%s\"", env_backup_path, env_path);
+#endif
+        execute_command(restore_cmd);
     }
 
     printf("DIG Macro extracted successfully.\n");
@@ -580,17 +628,12 @@ int download_and_extract(const char *branch) {
 int install_digmacro(int force_update, const char *branch) {
     printf("Setting up DIG Macro...\n");
 
-    if (file_exists(PROJECT_NAME)) {
+    char project_path[STR_PATH_MAX];
+    snprintf(project_path, sizeof(project_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+
+    if (dir_exists(project_path)) {
         if (force_update) {
-            printf("Force update requested. Removing existing directory...\n");
-#ifdef _WIN32
-            char remove_cmd[256];
-            snprintf(remove_cmd, sizeof(remove_cmd), "rmdir /s /q %s", PROJECT_NAME);
-#else
-            char remove_cmd[256];
-            snprintf(remove_cmd, sizeof(remove_cmd), "rm -rf %s", PROJECT_NAME);
-#endif
-            execute_command(remove_cmd);
+            printf("Force update requested...\n");
             if (!download_and_extract(branch)) {
                 printf("Failed to download and extract DIG Macro.\n");
                 exit(1);
@@ -604,100 +647,43 @@ int install_digmacro(int force_update, const char *branch) {
             exit(1);
         }
     }
-    
+
     return 1;
 }
 
 // ------------------- Launch ------------------- //
 
 int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
+    char env_folder[STR_PATH_MAX];
+    char env_dev_folder[STR_PATH_MAX];
+    char venv_folder[STR_PATH_MAX];
+    char cmd[STR_PATH_MAX + 128];
+    char venv_python[STR_PATH_MAX];
+    char venv_python_tmp[STR_PATH_MAX];
+    char launch_cmd[STR_PATH_MAX * 2];
+    char project_name_path[STR_PATH_MAX];
+
+    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+    
 #ifdef __APPLE__
-    char env_folder[sizeof(PROJECT_NAME) + 4];
-    snprintf(env_folder, sizeof(env_folder), "%s/env", PROJECT_NAME);
-
-    char env_dev_folder[sizeof(PROJECT_NAME) + 8];
-    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s/dev", env_folder);
-
-    char venv_folder[sizeof(PROJECT_NAME) + 15];
-    snprintf(venv_folder, sizeof(venv_folder), "%s/Darwin", env_dev_folder);
-    
-    make_dir(env_folder);
-    make_dir(env_dev_folder);
-
-    if (!dir_exists(venv_folder)) {
-        printf("Creating virtual environment for Darwin...\n");
-
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd), "%s -m venv \"%s\"", python_cmd, venv_folder);
-
-        if (execute_command(cmd) != 0) {
-            show_error("Failed to create virtual environment folder.\n");
-            exit(1);
-        }
-    }
-
-    char venv_python[PATH_MAX];
-    char venv_python_tmp[PATH_MAX];
-    snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s/bin/python3", venv_folder);
-    if (get_realpath(venv_python_tmp, venv_python) != 0) {
-        show_error("Failed to get real path for virtual environment.\n");
-        exit(1);
-    }
-
-    char launch_cmd[8192];
-    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "\"%s\" %s/src/main.py", venv_python, PROJECT_NAME);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
+    snprintf(venv_folder, sizeof(venv_folder), "%s%sDarwin", env_dev_folder, PATH_SEPARATOR);
 #elif __linux__
-    char env_folder[sizeof(PROJECT_NAME) + 4];
-    snprintf(env_folder, sizeof(env_folder), "%s/env", PROJECT_NAME);
-
-    char env_dev_folder[sizeof(PROJECT_NAME) + 8];
-    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s/dev", env_folder);
-
-    char venv_folder[sizeof(PROJECT_NAME) + 14];
-    snprintf(venv_folder, sizeof(venv_folder), "%s/Linux", env_dev_folder);
-    
-    make_dir(env_folder);
-    make_dir(env_dev_folder);
-
-    if (!dir_exists(venv_folder)) {
-        printf("Creating virtual environment for Linux...\n");
-
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd), "%s -m venv \"%s\"", python_cmd, venv_folder);
-
-        if (execute_command(cmd) != 0) {
-            show_error("Failed to create virtual environment folder.\n");
-            exit(1);
-        }
-    }
-
-    char venv_python[PATH_MAX];
-    char venv_python_tmp[PATH_MAX];
-    snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s/bin/python3", venv_folder);
-    if (get_realpath(venv_python_tmp, venv_python) != 0) {
-        show_error("Failed to get real path for virtual environment.\n");
-        exit(1);
-    }
-
-    char launch_cmd[8192];
-    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "\"%s\" %s/src/main.py", venv_python, PROJECT_NAME);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
+    snprintf(venv_folder, sizeof(venv_folder), "%s%sLinux", env_dev_folder, PATH_SEPARATOR);
 #elif _WIN32
-    char env_folder[sizeof(PROJECT_NAME) + 4];
-    snprintf(env_folder, sizeof(env_folder), "%s\\env", PROJECT_NAME);
-
-    char env_dev_folder[sizeof(PROJECT_NAME) + 8];
-    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s\\dev", env_folder);
-
-    char venv_folder[sizeof(PROJECT_NAME) + 16];
-    snprintf(venv_folder, sizeof(venv_folder), "%s\\Windows", env_dev_folder);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
+    snprintf(venv_folder, sizeof(venv_folder), "%s%sWindows", env_dev_folder, PATH_SEPARATOR);
+#endif
     
     make_dir(env_folder);
     make_dir(env_dev_folder);
 
     if (!dir_exists(venv_folder)) {
-        printf("Creating virtual environment for Windows...\n");
-
-        char cmd[4096];
+        printf("Creating virtual environment...\n");
         snprintf(cmd, sizeof(cmd), "%s -m venv \"%s\"", python_cmd, venv_folder);
 
         if (execute_command(cmd) != 0) {
@@ -706,34 +692,29 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
         }
     }
 
-    char venv_python[4096];
-    char venv_python_tmp[4096];
-    snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s\\bin\\python.exe", venv_folder);
-    if (get_realpath(venv_python_tmp, venv_python) != 0) {
-        show_error("Failed to get real path for virtual environment. (bin)\n");
+#if defined(__APPLE__) || defined(__linux__)
+    snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s/bin/python3", venv_folder);
+    if (get_realpath(venv_python_tmp, venv_python) != 0 || !file_exists(venv_python)) {
+        show_error("Failed to find Python executable in virtual environment.");
         exit(1);
     }
-
-    if (!file_exists(venv_python)) {
-        snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s\\Scripts\\python.exe", venv_folder);
-        if (get_realpath(venv_python_tmp, venv_python) != 0) {
-            show_error("Failed to get real path for virtual environment (Scripts).\n");
-            exit(1);
-        }
-        
-        if (!file_exists(venv_python)) {
-            show_error("Python executable not found in virtual environment.\n");
-            exit(1);
-        }
+#elif _WIN32
+    snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s\\Scripts\\python.exe", venv_folder);
+    if (get_realpath(venv_python_tmp, venv_python) != 0 || !file_exists(venv_python)) {
+        show_error("Failed to find Python executable in virtual environment (try removing MSYS2/Git Bash Python from your PATH).");
+        exit(1);
     }
+#endif
 
-    char launch_cmd[8192];
-    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "\"%s\" %s\\src\\main.py", venv_python, PROJECT_NAME);
+#if defined(__APPLE__) || defined(__linux__)
+    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "%s \"%s/src/main.py\"", venv_python, project_name_path);
+#elif _WIN32
+    int pos = snprintf(launch_cmd, sizeof(launch_cmd), "%s \"%s\\src\\main.py\"", venv_python, project_name_path);
 #endif
 
     for (int i = 1; i < argc; i++) {
-        int remaining = sizeof(launch_cmd) - pos - 1;
-        if (remaining <= 0) break;
+        int remaining = sizeof(launch_cmd) - pos;
+        if (remaining <= 1) break;
 
         int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", argv[i]);
         if (written < 0 || written >= remaining) break;
@@ -746,15 +727,14 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
 // ------------------- Main ------------------- //
 
 int main(int argc, char *argv[]) {
-    char exe_path[PATH_MAX];
-    if (!get_executable_path(exe_path, sizeof(exe_path))) {
+    if (!get_executable_path(g_exe_path, sizeof(g_exe_path))) {
         show_error("Could not determine launcher path.\n");
         exit(1);
     }
 
 #ifdef __APPLE__
-    char real_path[PATH_MAX];
-    if (realpath(exe_path, real_path) == NULL) {
+    char real_path[STR_PATH_MAX];
+    if (realpath(g_exe_path, real_path) == NULL) {
         show_error("Could not resolve real application path.\n");
         exit(1);
     }
@@ -772,9 +752,18 @@ int main(int argc, char *argv[]) {
     if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
         printf("Running from app bundle - setting up environment for Python operations\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
-        strcpy(exe_path, app_dir);
+        strcpy(g_exe_path, app_dir);
     }
 #endif
+
+    if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
+        printf("Warning: Could not determine current directory.\n");
+        return 1;
+    }
+
+    printf("Launcher location: %s\n", g_exe_path);
+    printf("Current directory: %s\n", g_cwd);
+    
 
     printf("============ DIG Macro Launcher ============\n");
     
@@ -791,7 +780,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     printf("============ Checking Python ============\n");
-    char python_cmd[64];
+    char python_cmd[STR_PATH_MAX];
     if (!check_python_version(python_cmd, sizeof(python_cmd))) {
         printf("Python 3.12.8 not found. Installing...\n");
 
@@ -856,7 +845,7 @@ int main(int argc, char *argv[]) {
     }
     
     char launcher_arg[2048];
-    snprintf(launcher_arg, sizeof(launcher_arg), "--from-launcher=%s", exe_path);
+    snprintf(launcher_arg, sizeof(launcher_arg), "--from-launcher=%s", g_exe_path);
     final_argv[new_argc] = launcher_arg;
     final_argv[new_argc + 1] = NULL;
     
