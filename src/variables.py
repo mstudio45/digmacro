@@ -25,12 +25,11 @@ resource_path_str = os.path.dirname(os.path.abspath(__file__))
 base_path_str = ""
 
 if is_from_launcher: 
-    launcher_path_abs = os.path.abspath(launcher_path)
-    if '.app/Contents/MacOS/' in launcher_path_abs:
-        app_bundle_path = launcher_path_abs.split('.app/Contents/MacOS/')[0] + '.app'
-        base_path_str = os.path.dirname(app_bundle_path)
+    if ".app/Contents" in launcher_path:
+        app_bundle_path = launcher_path.split(".app/")[0] + ".app"
+        base_path_str = os.path.dirname(os.path.abspath(app_bundle_path))
     else:
-        base_path_str = os.path.dirname(launcher_path_abs)
+        base_path_str = os.path.dirname(os.path.abspath(launcher_path))
 else:
     base_path_str = os.path.abspath(os.getcwd())
 

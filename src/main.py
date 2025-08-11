@@ -617,6 +617,7 @@ If the permission is enabled and you are still being prompted with this notifica
             Variables.is_selecting_region = False
             Variables.minigame_region = region
             self.finder.setup_region_image_size()
+            logging.info("Setup region has finished.")
 
         # window functions #
         def update_window_status(self, text, hint, circleColor):
@@ -934,7 +935,8 @@ If the permission is enabled and you are still being prompted with this notifica
 
         def setup_roblox_focused_thread(self):
             if not Variables.is_running: return
-
+            logging.info("Loading Roblox Focus thread...")
+            
             class RobloxFocusThread(threading.Thread):
                 def __init__(self):
                     super().__init__()
@@ -955,6 +957,7 @@ If the permission is enabled and you are still being prompted with this notifica
             
             thread = RobloxFocusThread()
             self.add_thread("roblox_focused_thread", thread=thread)
+            logging.info("Starting Roblox Focus thread...")
             thread.start()
         
         # cleanup function #
