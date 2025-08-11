@@ -760,7 +760,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Contents/MacOS -> Contents -> .app
-    char *app_dir = dirname(dirname(dirname(real_path)));
+    char *app_dir = dirname(real_path); // dirname(dirname(dirname(real_path)));
     if (chdir(app_dir) != 0) {
         show_error("Could not change working directory.\n");
         exit(1);
