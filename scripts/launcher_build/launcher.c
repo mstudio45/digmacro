@@ -404,7 +404,7 @@ int check_python_version(char *out_cmd, size_t out_cmd_size) {
 
         if (strlen(full_path) > 0) {
             char version_cmd[512];
-#ifdef IS_WINDOWS
+#ifdef _WIN32
             snprintf(version_cmd, sizeof(version_cmd), "\"%s\" --version 2>&1", full_path);
 #else
             snprintf(version_cmd, sizeof(version_cmd), "%s --version 2>&1", full_path);
@@ -433,7 +433,11 @@ int check_python_version(char *out_cmd, size_t out_cmd_size) {
         }
     }
 
+#ifdef _WIN32   
     show_error("Python 3.12.7 or 3.12.8 not found on your system or is from an unsupported environment (MSYS2/Git Bash).\n");
+#else
+    show_error("Python 3.12.7 or 3.12.8 not found on your system.\n");
+#endif
     return 0;
 }
 
@@ -478,6 +482,7 @@ int install_python_macos() {
     if (!check_python_version(python_cmd, sizeof(python_cmd))) {
         show_error("Python 3.12.8 is still not installed.\nPlease install it before running DIG Macro again.");
         exit(1);
+        return 1;
     }
 
     printf("Python installation verified.\n");
