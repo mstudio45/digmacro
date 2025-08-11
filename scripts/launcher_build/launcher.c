@@ -722,11 +722,25 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
 
     for (int i = 1; i < argc; i++) {
         int remaining = sizeof(launch_cmd) - pos;
-        if (remaining <= 1) break;
+        printf("Adding arg %d: '%s', remaining space: %d\n", i, argv[i], remaining);
+        
+        if (remaining <= 1) {
+            printf("Not enough space for more arguments\n");
+            break;
+        }
 
         int written = snprintf(launch_cmd + pos, remaining, " \"%s\"", argv[i]);
-        if (written < 0 || written >= remaining) break;
+        if (written < 0) {
+            printf("snprintf failed\n");
+            break;
+        }
+        if (written >= remaining) {
+            printf("Argument truncated\n");
+            break;
+        }
         pos += written;
+        
+        printf("Command now: %s\n", launch_cmd); // Debug output
     }
 
     return execute_command(launch_cmd);

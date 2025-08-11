@@ -21,7 +21,7 @@ def get_launcher_path():
 def restart_macro(args=["--skip-selection"]):
     cwd, binary, arguments = None, "", []
 
-    launcher_path = get_launcher_path()
+    launcher_path = get_launcher_path()  
     if launcher_path:
         binary = launcher_path
         arguments = [launcher_path] + args
