@@ -92,37 +92,34 @@ class ConfigUI(QWidget):
         region_group_box.setLayout(region_group_layout)
 
         self.avalaible_regions = []
-        if Config.USE_SAVED_POSITION:
-            if os.path.isfile(StaticVariables.region_filepath):
-                try:
-                    pos = FileHandler.read(StaticVariables.region_filepath)
-                    if pos is None: pass
+        if os.path.isfile(StaticVariables.region_filepath):
+            try:
+                pos = FileHandler.read(StaticVariables.region_filepath)
+                if pos is None: pass
 
-                    self.avalaible_regions = json.loads(pos)
-                    if self.avalaible_regions:
-                        region_group_layout.addWidget(QLabel("Region Format Example: 'Windows 0x0 1920x1080' (os leftxtop widthxheight)"))
+                self.avalaible_regions = json.loads(pos)
+                if self.avalaible_regions:
+                    region_group_layout.addWidget(QLabel("Region Format Example: 'Windows 0x0 1920x1080' (os leftxtop widthxheight)"))
 
-                        # list #
-                        self.region_widget = QComboBox()
-                        self.region_widget.addItems(self.avalaible_regions)
-                        region_group_layout.addWidget(self.region_widget)
+                    # list #
+                    self.region_widget = QComboBox()
+                    self.region_widget.addItems(self.avalaible_regions)
+                    region_group_layout.addWidget(self.region_widget)
 
-                        # btns #
-                        region_button_layout = QHBoxLayout()
+                    # btns #
+                    region_button_layout = QHBoxLayout()
 
-                        region_delete_button = QPushButton("Delete Selected Region")
-                        region_delete_button.clicked.connect(self.delete_selected_region)
-                        region_button_layout.addWidget(region_delete_button)
+                    region_delete_button = QPushButton("Delete Selected Region")
+                    region_delete_button.clicked.connect(self.delete_selected_region)
+                    region_button_layout.addWidget(region_delete_button)
 
-                        region_group_layout.addLayout(region_button_layout)
-                    else:
-                        region_group_layout.addWidget(QLabel("There were no valid regions found."))
-                except Exception as e:
-                    region_group_layout.addWidget(QLabel(f"Saved regions failed to load: {str(e)}"))
-            else:
-                region_group_layout.addWidget(QLabel("There were no valid regions found."))
+                    region_group_layout.addLayout(region_button_layout)
+                else:
+                    region_group_layout.addWidget(QLabel("There were no valid regions found."))
+            except Exception as e:
+                region_group_layout.addWidget(QLabel(f"Saved regions failed to load: {str(e)}"))
         else:
-            region_group_layout.addWidget(QLabel("Saved regions disabled."))
+            region_group_layout.addWidget(QLabel("There were no valid regions found."))
 
         self.layout.addWidget(region_group_box)
 

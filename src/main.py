@@ -510,8 +510,8 @@ If the permission is enabled and you are still being prompted with this notifica
             self.region_key = f"{current_os} {screen_res_str}" # TO-DO: Windows MonitorID:0x0 1920x1080
             logging.info(f"Checking saved region: {self.region_key}...")
 
-            if Config.USE_SAVED_POSITION == False or not os.path.isfile(StaticVariables.region_filepath):
-                logging.info("Saved regions are disabled or storage/region.json file doesn't exist.")
+            if not os.path.isfile(StaticVariables.region_filepath):
+                logging.info("storage/region.json file doesn't exist.")
                 return None
             
             try:
@@ -605,11 +605,14 @@ If the permission is enabled and you are still being prompted with this notifica
                     self.exit_macro()
                     return
                 
-                if Config.USE_SAVED_POSITION: 
-                    FileHandler.write(StaticVariables.region_filepath, json.dumps(self.saved_regions, indent=4))
-                    logging.info(f"Region saved successfully as {self.region_key}.")
-
+                FileHandler.write(StaticVariables.region_filepath, json.dumps(self.saved_regions, indent=4))
+                logging.info(f"Region saved successfully as {self.region_key}.")
                 logging.info(f"Region '{self.region_key}' selected successfully.")
+
+                if current_os == "Darwin":
+                    self.exit_macro()
+                    restart_macro(["--skip-selection", "--skip-install"])
+                    return
 
             # region selected correctly #
             logging.info("Region has been loaded successfully.\n")

@@ -187,10 +187,6 @@ settings_table = {
 
     # MINIGAME OPTIONS #
     "MINIGAME": {
-        "USE_SAVED_POSITION": {
-            "widget": "QCheckBox",
-            "tooltip": "Save selected regions."
-        },
         "AUTO_START_MINIGAME": {
             "widget": "QCheckBox",
             "tooltip": "Automatically start the minigame by clicking."
@@ -452,8 +448,6 @@ class ConfigManager:
             },
 
             "MINIGAME": {
-                "USE_SAVED_POSITION": True,
-
                 "AUTO_START_MINIGAME": False,
                 "MIN_CLICK_INTERVAL": 75,
 
