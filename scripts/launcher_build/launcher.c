@@ -1,20 +1,29 @@
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <limits.h>
 #include <unistd.h>
+#include <string.h>
 #include <time.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #ifdef _WIN32
     #include <windows.h>
     #include <direct.h>
+    #include <Lmcons.h>
 #elif __APPLE__
+    #include <ctype.h>
     #include <mach-o/dyld.h>
     #include <libgen.h>
     #include <sys/stat.h>
 #else
+    #include <ctype.h>
+    #include <pwd.h>
     #include <sys/stat.h>
+    #include <sys/types.h>
 #endif
 
 #ifdef _WIN32
@@ -69,18 +78,21 @@ void make_dir(const char *path) {
     }
 }
 
-int get_realpath(const char *path, char *resolved_path) {
 #ifdef _WIN32
+int get_realpath(const char *path, char *resolved_path) {
     if (_fullpath(resolved_path, path, 2048) == NULL) {
         return -1;
     }
-#else
-    if (realpath(path, resolved_path) == NULL) {
-        return -1;
-    }
-#endif
     return 0;
 }
+#else
+int get_realpath(const char *path, char *resolved_path) {
+    if (realpath(path, resolved_path) == NULL) {
+        return -1;
+    }   
+    return 0;
+}
+#endif
 
 int execute_command(const char *command) {
     printf("Executing: %s\n", command);
@@ -185,8 +197,6 @@ void show_note(const char *message) {
 // ------------------- Path Check ------------------- //
 
 #ifdef _WIN32
-#include <Lmcons.h>
-
 const char *get_username() {
     static char username[256] = {0};
 
@@ -261,19 +271,33 @@ int check_path_windows() {
         
         show_error(problem_msg);
         exit(1);
+        return 0;
     }
     
     printf("\n");
     return 1;
 }
 #elif defined(__linux__) || defined(__APPLE__)
-#include <ctype.h>
-
 const char *get_username() {
     static char username[256] = {0};
+    
     const char *user = getenv("USER");
     if (user && user[0] != '\0') {
         strncpy(username, user, sizeof(username) - 1);
+        username[sizeof(username) - 1] = '\0';
+        return username;
+    }
+
+    user = getenv("LOGNAME");
+    if (user && user[0] != '\0') {
+        strncpy(username, user, sizeof(username) - 1);
+        username[sizeof(username) - 1] = '\0';
+        return username;
+    }
+
+    struct passwd *pw = getpwuid(getuid());
+    if (pw && pw->pw_name && pw->pw_name[0] != '\0') {
+        strncpy(username, pw->pw_name, sizeof(username) - 1);
         username[sizeof(username) - 1] = '\0';
         return username;
     }
@@ -289,6 +313,7 @@ const char *get_username() {
 }
 
 void strtolower(char *s) {
+    if (!s) return;
     while (*s) {
         *s = tolower((unsigned char)*s);
         s++;
@@ -297,11 +322,17 @@ void strtolower(char *s) {
 
 int check_path_posix() {
     char current_lower[STR_PATH_MAX];
-    strncpy(current_lower, g_cwd, sizeof(current_lower));
-    current_lower[sizeof(current_lower) - 1] = 0;
+    strncpy(current_lower, g_cwd, sizeof(current_lower) - 1);
+    current_lower[sizeof(current_lower) - 1] = '\0';
     strtolower(current_lower);
 
     const char *user = get_username();
+    if (!user) {
+        show_error("Failed to get the username.");
+        exit(1);
+        return 1;
+    }
+
     char usernamehome[STR_PATH_MAX];
 #ifdef __APPLE__
     snprintf(usernamehome, sizeof(usernamehome), "/Users/%s", user);
@@ -354,6 +385,7 @@ int check_path_posix() {
         
         show_error(problem_msg);
         exit(1);
+        return 0;
     }
 
     return 1;
@@ -371,6 +403,7 @@ int check_python_version(char *out_cmd, size_t out_cmd_size) {
 
     const char *python_execs[] = {
         "python3",
+        "python3.12",
         "python",
         "py -3.12",
         "py",
@@ -456,6 +489,7 @@ int install_python_windows() {
     if (execute_command(download_cmd) != 0) {
         show_error("Failed to download Python installer.\n");
         exit(1);
+        return 0;
     }
 
     char install_cmd[256];
@@ -464,6 +498,7 @@ int install_python_windows() {
     if (execute_command(install_cmd) != 0) {
         show_error("Failed to install Python.\n");
         exit(1);
+        return 0;
     }
 
     remove(PYTHON_INSTALLER);
@@ -485,7 +520,7 @@ int install_python_macos() {
     if (!check_python_version(python_cmd, sizeof(python_cmd))) {
         show_error("Python 3.12.8 is still not installed.\nPlease install it before running DIG Macro again.");
         exit(1);
-        return 1;
+        return 0;
     }
 
     printf("Python installation verified.\n");
@@ -493,9 +528,10 @@ int install_python_macos() {
 }
 #else
 int install_python_unix() {
-    // TO-DO
-    
-    return 1;
+    printf("Python 3.12.8 not found. Prompting user...\n");
+    show_warning("Python 3.12.8 is required.\nPlease install it before running DIG Macro again.");
+    exit(1);
+    return 0;
 }
 #endif
 
@@ -553,11 +589,13 @@ int download_and_extract(const char *branch) {
     if (execute_command(download_cmd) != 0) {
         show_error("Failed to download DIG Macro Source ZIP file.");
         exit(1);
+        return 0;
     }
 
     if (!file_exists(project_zip_path)) {
         show_error("DIG Macro Source ZIP file was not downloaded.");
         exit(1);
+        return 0;
     }
 
     if (dir_exists(env_path) && !dir_exists(env_backup_path)) {
@@ -593,6 +631,7 @@ int download_and_extract(const char *branch) {
         show_error("Failed to extract DIG Macro Source ZIP file.");
         remove(project_zip_path);
         exit(1);
+        return 0;
     }
 
 #ifdef _WIN32
@@ -617,6 +656,7 @@ int download_and_extract(const char *branch) {
     if (!dir_exists(project_name_path)) {
         show_error("DIG Macro extraction failed. The project folder was not created correctly.");
         exit(1);
+        return 0;
     }
 
     if (dir_exists(env_backup_path)) {
@@ -645,6 +685,7 @@ int install_digmacro(int force_update, const char *branch) {
             if (!download_and_extract(branch)) {
                 printf("Failed to download and extract DIG Macro.\n");
                 exit(1);
+                return 0;
             }
         } else {
             printf("DIG Macro directory already exists. Use --update-source to force re-download.\n");
@@ -653,6 +694,7 @@ int install_digmacro(int force_update, const char *branch) {
         if (!download_and_extract(branch)) {
             show_error("Failed to download and extract DIG Macro.\n");
             exit(1);
+            return 0;
         }
     }
 
@@ -699,6 +741,7 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
         if (execute_command(cmd) != 0) {
             show_error("Failed to create virtual environment folder.\n");
             exit(1);
+            return 0;
         }
     }
 
@@ -707,12 +750,14 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
     if (get_realpath(venv_python_tmp, venv_python) != 0 || !file_exists(venv_python)) {
         show_error("Failed to find Python executable in virtual environment.");
         exit(1);
+        return 0;
     }
 #elif _WIN32
     snprintf(venv_python_tmp, sizeof(venv_python_tmp), "%s\\Scripts\\python.exe", venv_folder);
     if (get_realpath(venv_python_tmp, venv_python) != 0 || !file_exists(venv_python)) {
         show_error("Failed to find Python executable in virtual environment (try removing MSYS2/Git Bash Python from your PATH).");
         exit(1);
+        return 0;
     }
 #endif
 
@@ -781,13 +826,15 @@ int main(int argc, char *argv[]) {
     if (!get_executable_path(g_exe_path, sizeof(g_exe_path))) {
         show_error("Could not determine launcher path.\n");
         exit(1);
+        return 0;
     }
 
 #ifdef __APPLE__
     char real_path[STR_PATH_MAX];
-    if (realpath(g_exe_path, real_path) == NULL) {
+    if (get_realpath(g_exe_path, real_path) == NULL) {
         show_error("Could not resolve real application path.\n");
         exit(1);
+        return 0;
     }
 
     // Contents/MacOS -> Contents -> .app
@@ -797,6 +844,7 @@ int main(int argc, char *argv[]) {
     if (chdir(app_dir) != 0) {
         show_error("Could not change working directory.\n");
         exit(1);
+        return 0;
     }
     
     setenv("DYLD_LIBRARY_PATH", "", 1);
@@ -810,26 +858,24 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
-        printf("Warning: Could not determine current directory.\n");
-        return 1;
+        show_error("Warning: Could not determine current directory.");
+        exit(1);
+        return 0;
     }
 
     printf("Launcher location: %s\n", g_exe_path);
     printf("Current directory: %s\n", g_cwd);
-    
 
     printf("============ DIG Macro Launcher ============\n");
     
 #ifdef _WIN32
     if (!check_path_windows()) {
-        return 1;
+        return 0;
     }
 #elif defined(__linux__) || defined(__APPLE__)
     if (!check_path_posix()) {
-        return 1;
+        return 0;
     }
-#else
-    return 1; // unsupported platform
 #endif
 
     printf("============ Checking Python ============\n");
@@ -840,24 +886,23 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
         if (!install_python_windows()) {
             show_error("Failed to install Python 3.12.8, exiting.\n");
-            return 1;
+            return 0;
         }
 #elif __APPLE__
         if (!install_python_macos()) {
             show_error("Failed to install Python 3.12.8, exiting.\n");
-            return 1;
+            return 0;
         }
 #else
         if (!install_python_unix()) {
             show_error("Failed to install Python 3.12.8, exiting.\n");
-            return 1;
+            return 0;
         }
 #endif
-
         memset(python_cmd, 0, sizeof(python_cmd));
         if (!check_python_version(python_cmd, sizeof(python_cmd))) {
             show_error("Python 3.12.8 installation verification failed. Please install manually.\n");
-            return 1;
+            return 0;
         }
     }
     
@@ -869,6 +914,7 @@ int main(int argc, char *argv[]) {
     if (!new_argv) {
         perror("malloc");
         exit(1);
+        return 0;
     }
 
     int new_argc = 0;
@@ -883,7 +929,7 @@ int main(int argc, char *argv[]) {
 
     if (!install_digmacro(force_update, branch)) {
         show_error("Failed to set up DIG Macro. Exiting.\n");
-        return 1;
+        return 0;
     }
     
     printf("\n============ Launching DIG Macro... ============\n");
@@ -891,6 +937,7 @@ int main(int argc, char *argv[]) {
     if (!final_argv) {
         perror("malloc");
         exit(1);
+        return 0;
     }
     
     for (int i = 0; i < new_argc; i++) {
@@ -899,14 +946,24 @@ int main(int argc, char *argv[]) {
     
     char launcher_arg[2048];
     snprintf(launcher_arg, sizeof(launcher_arg), "--from-launcher=%s", g_exe_path);
-    final_argv[new_argc] = launcher_arg;
-    final_argv[new_argc + 1] = NULL;
+    final_argv[new_argc] = strdup(launcher_arg);
+
+    char cwd_arg[2048];
+    char python_cwd[STR_PATH_MAX];
+
+    snprintf(python_cwd, sizeof(python_cwd), "%s%s%s%ssrc", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(cwd_arg, sizeof(cwd_arg), "--cwd=%s", python_cwd);
+    final_argv[new_argc + 1] = strdup(cwd_arg);
+
+    final_argv[new_argc + 2] = NULL;
     
-    int result = launch_digmacro(new_argc + 1, final_argv, python_cmd);
+    int result = launch_digmacro(new_argc + 2, final_argv, python_cmd);
     if (result != 0 && result != 9) {
         printf("\nDIG Macro exited with code: %d\n", result);
     }
-    free(final_argv);
 
+    free(final_argv[new_argc]);
+    free(final_argv[new_argc + 1]);
+    free(final_argv);
     return result;
 }

@@ -18,8 +18,14 @@ def get_launcher_path():
             return arg.split("=", 1)[1]
     return None
 
+def get_working_dir():
+    for arg in sys.argv:
+        if arg.startswith("--cwd="):
+            return arg.split("=", 1)[1]
+    return None
+
 def restart_macro(args=["--skip-selection"]):
-    cwd, binary, arguments = None, "", []
+    cwd, binary, arguments = os.getcwd(), "", []
 
     launcher_path = get_launcher_path()  
     if launcher_path:
@@ -40,7 +46,7 @@ def restart_macro(args=["--skip-selection"]):
         f"Sys Executable: {sys.executable}\n"
 
         f"Original CWD: {os.getcwd()}\n"
-        f"Restart CWD: {cwd or os.getcwd()}\n"
+        f"Restart CWD: {cwd}\n"
 
         f"Binary Path: {os.path.abspath(binary)}\n"
         f"Arguments: {' '.join(map(str, arguments))}\n"
@@ -51,7 +57,7 @@ def restart_macro(args=["--skip-selection"]):
     except Exception: print(log_info)
 
     # restart macro #
-    if cwd: os.chdir(cwd)
+    if cwd is not None: os.chdir(cwd)
     os.execv(binary, arguments)
 
 # install requirements #
@@ -137,6 +143,11 @@ sys.excepthook = log_uncaught_exceptions
 
 # main thread #
 if __name__ == "__main__":
+    cwdir = get_working_dir()
+    if cwdir is not None:
+        os.chdir(cwdir)
+        if cwdir not in sys.path: sys.path.insert(0, cwdir)
+
     # set DPI awareness #
     if current_os == "Windows":
         import ctypes

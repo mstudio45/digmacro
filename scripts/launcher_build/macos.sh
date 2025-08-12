@@ -1,5 +1,4 @@
 #!/bin/bash
-
 BUILD_VERSION="MATRIX.VERSION"
 if [[ "$BUILD_VERSION" == *"MATRIX."* ]]; then
   BUILD_VERSION="2.0.4"
@@ -93,4 +92,4 @@ codesign --force --deep --sign - "$APP_BUNDLE_PATH"
 echo "Deleting $BINARY_PATH..."
 rm $BINARY_PATH
 
-echo "Done."
+echo "macOS launcher created."

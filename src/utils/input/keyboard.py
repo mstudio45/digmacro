@@ -8,39 +8,39 @@ current_os = platform.system()
 
 # import correct handlers #
 if current_os == "Darwin" and Config.KEYBOARD_INPUT_PACKAGE == "Quartz":
-    from .key_converter.darwin import KeyConverter
-    from .keyboard_listener.quartz import setup_global_hotkeys
+    from utils.input.key_converter.darwin import KeyConverter
+    from utils.input.keyboard_listener.quartz import setup_global_hotkeys
     
     get_key = KeyConverter().get_key
-    from .keyboard_handler.quartz import press, release
+    from utils.input.keyboard_handler.quartz import press, release
 
     logging.info(f"Keyboard Input Package: Quartz")
     logging.info(f"Keyboard Listener Package: Quartz")
 
 elif Config.KEYBOARD_INPUT_PACKAGE == "pynput":
     if current_os == "Windows":
-        from .key_converter.windows import KeyConverter
-        from .keyboard_listener.pynput import setup_global_hotkeys
+        from utils.input.key_converter.windows import KeyConverter
+        from utils.input.keyboard_listener.pynput import setup_global_hotkeys
 
         logging.info(f"Keyboard Input Package: pynput")
         logging.info(f"Keyboard Listener Package: pynput")
         
     elif current_os == "Linux":
-        from .key_converter.linux import KeyConverter
-        from .keyboard_listener.pynput import setup_global_hotkeys
+        from utils.input.key_converter.linux import KeyConverter
+        from utils.input.keyboard_listener.pynput import setup_global_hotkeys
     
         logging.info(f"Keyboard Input Package: pynput")
         logging.info(f"Keyboard Listener Package: pynput")
 
     elif current_os == "Darwin":
-        from .key_converter.darwin import KeyConverter
-        from .keyboard_listener.quartz import setup_global_hotkeys
+        from utils.input.key_converter.darwin import KeyConverter
+        from utils.input.keyboard_listener.quartz import setup_global_hotkeys
 
         logging.info(f"Keyboard Input Package: pynput")
         logging.info(f"Keyboard Listener Package: Quartz")
     
     get_key = KeyConverter().get_key
-    from .keyboard_handler.pynput import press, release
+    from utils.input.keyboard_handler.pynput import press, release
 
 # main functions #
 def press_key(raw_key, duration=0):

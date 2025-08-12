@@ -142,7 +142,8 @@ else:
         
         # create dialog #
         dialog = tk.Tk()
-        dialog.iconbitmap(default=StaticVariables.icon_filepath)
+        try: dialog.wm_iconbitmap(StaticVariables.icon_filepath)
+        except: pass
 
         if current_os == "Linux": dialog.wait_visibility(dialog)
         dialog.wm_attributes("-topmost", True)
