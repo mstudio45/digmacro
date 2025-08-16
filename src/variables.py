@@ -53,8 +53,8 @@ class Variables:
 
     # macro settings #
     session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    current_version = "2.0.4" if not is_from_launcher else "MATRIX.VERSION"
-    current_branch  = "dev"   if not is_from_launcher else "MATRIX.BRANCH"
+    current_version = "2.0.4"
+    current_branch  = "dev"
 
     # minigame information #
     dig_count = 0

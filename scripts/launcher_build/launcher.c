@@ -528,7 +528,7 @@ int install_python_macos() {
 }
 #else
 int install_python_unix() {
-    printf("Python 3.12.8 not found. Prompting user...\n");
+    printf("Python 3.12.8 not found.\n");
     show_warning("Python 3.12.8 is required.\nPlease install it before running DIG Macro again.");
     exit(1);
     return 0;
