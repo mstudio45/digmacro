@@ -833,7 +833,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef __APPLE__
     char real_path[STR_PATH_MAX];
-    if (get_realpath(g_exe_path, real_path) == NULL) {
+    if (get_realpath(g_exe_path, real_path) == -1) {
         show_error("Could not resolve real application path.\n");
         exit(1);
         return 0;
