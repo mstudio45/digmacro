@@ -288,6 +288,7 @@ const char *get_username() {
         return username;
     }
 
+#ifdef __linux__
     user = getenv("LOGNAME");
     if (user && user[0] != '\0') {
         strncpy(username, user, sizeof(username) - 1);
@@ -301,6 +302,7 @@ const char *get_username() {
         username[sizeof(username) - 1] = '\0';
         return username;
     }
+#endif
 
     user = getlogin();
     if (user && user[0] != '\0') {
