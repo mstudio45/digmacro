@@ -7,8 +7,8 @@ else
   echo "Using provided BUILD_VERSION: $BUILD_VERSION"
 fi
 
-if [ ! -d "build" ]; then
-  mkdir build
+if [ ! -d "output" ]; then
+  mkdir output
 fi
 
 echo "Building..."
