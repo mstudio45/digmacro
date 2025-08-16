@@ -69,12 +69,13 @@ _If you have improvements or patches for additional (or currently supported) ope
 
 ### 📥 Download and Run
 
-> [!WARNING]
-> Some antivirus software may flag the standalone (pre-built) version as a **false positive**. <br />
-> This is a common issue with **binary files (`.exe`/`.app`/`.bin`)** generated using Python compilers such as **Nuitka** or **PyInstaller/auto-py-to-exe**. These tools bundle Python code into a single binary file, which can sometimes trigger antivirus alerts despite the code being completely safe. <br /> <br />
-> **All of our code is open source and publicly available!**
+> [!NOTE]
+> **Python 3.12.8** is required.  
+> On Windows, the Launcher will install it automatically.  
+> On macOS, the Launcher will install the Python package, and you’ll need to complete the installation.  
+> On Linux, the Launcher will exit if Python is missing — you must install Python 3.12.8 manually.
 
-#### Standalone (pre-built) version
+#### Launcher version
 
 1. **Download the latest version for your Operating System:**
    - [Click here to go to Releases](https://github.com/mstudio45/digmacro/releases)
@@ -86,23 +87,12 @@ _If you have improvements or patches for additional (or currently supported) ope
    - **Linux:** Double-click `digmacro_linux.bin` or run `./digmacro_linux.bin` in your terminal.
    - **macOS:** Refer to the [macOS section](#-MacOS-Setup) below for help.
 
-#### Source version
+#### Run a specific branch
 
-> [!NOTE]
-> **Python 3.12.8** is required. You might run into weird issues and package issues with other versions.
+To use a specific branch (main/dev), start the macro with the `--branch=` argument from Command Prompt or Terminal.  
+- Example: `digmacro_windows.exe --branch=dev`
 
-1. **Download the latest version:**
-   - [MAIN (stable) - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/main.zip) | [DEV - Download](https://github.com/mstudio45/digmacro/archive/refs/heads/dev.zip)
-2. **Extract the ZIP File:**
-   - **Windows/Linux:** Right-click the downloaded zip file and select `Extract Here` or `Extract All`.
-   - **macOS:** Double-click the downloaded zip file.
-3. **Open the Folder:**
-   - **Windows:** Go into the extracted `digmacro-[main/dev]` folder.
-   - **Linux:** Right-click the extracted `digmacro-[main/dev]` folder and select `Open in Terminal`.
-   - **macOS:** Right-click the extracted `digmacro-[main/dev]` folder and select `New Terminal at Folder` (that option might be inside `Services` dropdown).
-4. **Run the macro:**
-   - **Windows:** Double-click `launch.bat` or run `launch.bat` in Command Prompt opened in the extracted folder.
-   - **Linux/macOS:** Run `sh launch.sh` in the Terminal you opened.
+Alternatively, you can download the specific branch manually and replace the `src` folder inside `digmacro_src` created by the launcher.
 
 ---
 
