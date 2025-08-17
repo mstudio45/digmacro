@@ -49,6 +49,8 @@
     #define MAIN_SCRIPT_PREFIX "sh"
 #endif
 
+#define DEFAULT_BRANCH "MATRIX.BRANCH"
+
 #define STR_PATH_MAX 4096
 static char g_cwd[STR_PATH_MAX];
 static char g_exe_path[STR_PATH_MAX];
@@ -549,12 +551,12 @@ const char *get_branch_from_args(int argc, char *argv[]) {
             if (strcmp(branch, "main") == 0 || strcmp(branch, "dev") == 0) {
                 return branch;
             } else {
-                printf("Warning: Unknown branch '%s', defaulting to 'main'\n", branch);
-                return "main";
+                printf("Warning: Unknown branch '%s', defaulting to '%s'\n", branch, DEFAULT_BRANCH);
+                return DEFAULT_BRANCH;
             }
         }
     }
-    return "main";
+    return DEFAULT_BRANCH;
 }
 
 int download_and_extract(const char *branch) {

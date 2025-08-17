@@ -2,7 +2,6 @@
 setlocal enabledelayedexpansion
 
 set "BUILD_VERSION=MATRIX.VERSION"
-
 if "%BUILD_VERSION%"=="MATRIX.VERSION" (
     set "BUILD_VERSION=2.0.4"
     echo Using default BUILD_VERSION: !BUILD_VERSION!
@@ -10,12 +9,25 @@ if "%BUILD_VERSION%"=="MATRIX.VERSION" (
     echo Using provided BUILD_VERSION: !BUILD_VERSION!
 )
 
+set "BUILD_BRANCH=MATRIX.BRANCH"
+if "%BUILD_BRANCH%"=="MATRIX.BRANCH" (
+    set "BUILD_BRANCH=dev"
+    echo Using default BUILD_BRANCH: !BUILD_BRANCH!
+) else (
+    echo Using provided BUILD_BRANCH: !BUILD_BRANCH!
+)
+
 if not exist "output" (
     mkdir output
 )
 
 echo Building...
-gcc -Wall -Wextra -Wno-format-truncation -std=c99 -o output\digmacro_windows.exe scripts\launcher_build\launcher.c
+set LAUNCHERC_PATH=scripts\launcher_build\launcher.c
+set LAUNCHERC_COPY_PATH=scripts\launcher_build\launcher_copy.c
+
+powershell -Command "(Get-Content '%LAUNCHERC_PATH%') -replace 'MATRIX.BRANCH', $env:BUILD_BRANCH | Set-Content '%LAUNCHERC_COPY_PATH%'"
+gcc -Wall -Wextra -Wno-format-truncation -std=c99 -o output\digmacro_windows.exe "%LAUNCHERC_COPY_PATH%"
+del "%LAUNCHERC_COPY_PATH%"
 
 echo Editing metadata...
 set RCEDIT_URL=https://github.com/electron/rcedit/releases/download/v1.1.1/rcedit-x64.exe

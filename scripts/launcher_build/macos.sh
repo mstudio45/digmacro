@@ -7,6 +7,14 @@ else
   echo "Using provided BUILD_VERSION: $BUILD_VERSION"
 fi
 
+BUILD_BRANCH="MATRIX.BRANCH"
+if [[ "$BUILD_BRANCH" == *"MATRIX."* ]]; then
+  BUILD_BRANCH="dev"
+  echo "Using default BUILD_BRANCH: $BUILD_BRANCH"
+else
+  echo "Using provided BUILD_BRANCH: $BUILD_BRANCH"
+fi
+
 if [ ! -d "output" ]; then
   mkdir output
 fi
@@ -23,11 +31,13 @@ APP_BUNDLE_PATH="output/$APP_BUNDLE_NAME"
 PLIST_PATH="$APP_BUNDLE_PATH/Contents/Info.plist"
 
 LAUNCHERC_PATH="scripts/launcher_build/launcher.c"
+LAUNCHERC_COPY_PATH="scripts/launcher_build/launcher_copy.c"
 DYLIBBUNDLER_PATH="scripts/launcher_build/dylibbundler"
 
 echo "Building..."
-# gcc -Wall -Wextra -std=c99 -o output/$APP_NAME "$LAUNCHERC_PATH"
-clang -target "$CURRENT_ARCH-apple-darwin" -mmacos-version-min=10.12 -o "$BINARY_PATH" "$LAUNCHERC_PATH"
+sed "s/MATRIX.BRANCH/${BUILD_BRANCH}/g" "$LAUNCHERC_PATH" > "$LAUNCHERC_COPY_PATH"
+clang -target "$CURRENT_ARCH-apple-darwin" -mmacos-version-min=10.12 -o "$BINARY_PATH" "$LAUNCHERC_COPY_PATH"
+rm "$LAUNCHERC_COPY_PATH"
 
 if [ $? -ne 0 ]; then
   echo "Compilation failed. Exiting."
