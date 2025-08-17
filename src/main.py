@@ -57,8 +57,11 @@ def restart_macro(args=["--skip-selection"]):
     except Exception: print(log_info)
 
     # restart macro #
-    if cwd is not None: os.chdir(cwd)
-    os.execv(binary, arguments)
+    # if cwd is not None: os.chdir(cwd)
+    # os.execv(binary, arguments)
+
+    subprocess.Popen(arguments, cwd=cwd)
+    os.kill(os.getpid(), 9)
 
 # install requirements #
 from utils.packages.distro_variables import log_install, start_log_file, close_log_file, current_arch
