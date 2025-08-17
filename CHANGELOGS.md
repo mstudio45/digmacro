@@ -1,5 +1,9 @@
 # v2.0.4
 ```diff
+[IMPORTANT CHANGES]
++ Switched to an launcher that will automatically setup the source for you.
++ The new launcher should fix the issues with permissions on macOS.
+
 [New Features]
 + Added "Discord Bot" feature (allows you to interact with the macro through Discord)
 + Added an handler that prevents crashes when an unexpected error happens
