@@ -46,8 +46,8 @@ jobs:
           $branch = "${{ github.event.inputs.branch || github.ref_name }}"
           $version = "${{ github.event.inputs.version }}"
 
-          (Get-Content scripts\launcher_build\win.bat) -replace 'MATRIX.BRANCH', '$branch' | Set-Content scripts\launcher_build\win.bat
-          (Get-Content scripts\launcher_build\win.bat) -replace 'MATRIX.VERSION', '$version' | Set-Content scripts\launcher_build\win.bat
+          (Get-Content scripts\launcher_build\win.bat) -replace 'BUILD_BRANCH=MATRIX.BRANCH', 'BUILD_BRANCH=$branch' | Set-Content scripts\launcher_build\win.bat
+          (Get-Content scripts\launcher_build\win.bat) -replace 'BUILD_VERSION=MATRIX.VERSION', 'BUILD_VERSION=$version' | Set-Content scripts\launcher_build\win.bat
 
           scripts\launcher_build\win.bat ${{ matrix.arch }}
 
