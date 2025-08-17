@@ -20,8 +20,7 @@ if [ ! -d "output" ]; then
 fi
 
 echo "Building..."
-
-sed "s/MATRIX.BRANCH/${BUILD_BRANCH}/g" scripts/launcher_build/launcher.c > scripts/launcher_build/launcher_copy.c
+sed "s/MATRIX\.BRANCH/${BUILD_BRANCH}/g" scripts/launcher_build/launcher.c > scripts/launcher_build/launcher_copy.c
 gcc -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Wno-format-truncation -std=gnu11 -o output/digmacro_linux.bin scripts/launcher_build/launcher_copy.c
 rm scripts/launcher_build/launcher_copy.c
 

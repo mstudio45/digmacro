@@ -43,7 +43,7 @@ LAUNCHERC_COPY_PATH="scripts/launcher_build/launcher_copy.c"
 DYLIBBUNDLER_PATH="scripts/launcher_build/dylibbundler"
 
 echo "Building..."
-sed "s/MATRIX.BRANCH/${BUILD_BRANCH}/g" "$LAUNCHERC_PATH" > "$LAUNCHERC_COPY_PATH"
+sed "s/MATRIX\.BRANCH/${BUILD_BRANCH}/g" "$LAUNCHERC_PATH" > "$LAUNCHERC_COPY_PATH"
 clang -target "$CURRENT_ARCH-apple-darwin" -mmacos-version-min=10.12 -o "$BINARY_PATH" "$LAUNCHERC_COPY_PATH"
 rm "$LAUNCHERC_COPY_PATH"
 
