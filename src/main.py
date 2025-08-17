@@ -48,7 +48,7 @@ def restart_macro(args=["--skip-selection"]):
         f"Original CWD: {os.getcwd()}\n"
         f"Restart CWD: {cwd}\n"
 
-        f"Binary Path: {os.path.abspath(binary)}\n"
+        f"Binary Path: {binary}\n"
         f"Arguments: {' '.join(map(str, arguments))}\n"
         f"=========================\n"
     )

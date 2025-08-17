@@ -112,6 +112,11 @@ int get_executable_path(char *buffer, size_t size) {
 #elif __APPLE__
     uint32_t bufsize = (uint32_t)size;
     if (_NSGetExecutablePath(buffer, &bufsize) != 0) return 0;
+
+    char resolved[PATH_MAX];
+    if (realpath(buffer, resolved) == NULL) return 0;
+    strncpy(buffer, resolved, size - 1);
+    buffer[size - 1] = '\0';
 #else
     ssize_t len = readlink("/proc/self/exe", buffer, size - 1);
     if (len == -1) return 0;
@@ -854,11 +859,11 @@ int main(int argc, char *argv[]) {
     setenv("DYLD_LIBRARY_PATH", "", 1);
     setenv("DYLD_FRAMEWORK_PATH", "", 1);
     
-    if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
+    /*if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
         printf("Running from app bundle - setting up environment for Python operations\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
         strcpy(g_exe_path, app_dir);
-    }
+    }*/
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
