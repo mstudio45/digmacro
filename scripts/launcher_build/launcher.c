@@ -54,6 +54,7 @@
 #define STR_PATH_MAX 4096
 static char g_cwd[STR_PATH_MAX];
 static char g_exe_path[STR_PATH_MAX];
+static char g_install_path[STR_PATH_MAX];
 
 // ------------------- Utility ------------------- //
 
@@ -584,10 +585,10 @@ int download_and_extract(const char *branch) {
     char backup_cmd[STR_PATH_MAX * 3 + 256];
     char restore_cmd[STR_PATH_MAX * 3 + 256];
 
-    snprintf(project_zip_path, sizeof(project_zip_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_ZIP_FILE);
-    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+    snprintf(project_zip_path, sizeof(project_zip_path), "%s%s%s", g_install_path, PATH_SEPARATOR, PROJECT_ZIP_FILE);
+    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_install_path, PATH_SEPARATOR, PROJECT_NAME);
     snprintf(env_path, sizeof(env_path), "%s%senv", project_name_path, PATH_SEPARATOR);
-    snprintf(env_backup_path, sizeof(env_backup_path), "%s%senv_backup", g_cwd, PATH_SEPARATOR);
+    snprintf(env_backup_path, sizeof(env_backup_path), "%s%senv_backup", g_install_path, PATH_SEPARATOR);
 
 #ifdef _WIN32
     snprintf(download_cmd, sizeof(download_cmd), "powershell -Command \"Invoke-WebRequest -Uri '%s' -OutFile '%s'\"", project_zip_url, project_zip_path);
@@ -628,7 +629,7 @@ int download_and_extract(const char *branch) {
     }
 
     printf("Extracting DIG Macro files...\n");
-    snprintf(temp_extract_path, sizeof(temp_extract_path), "%s%stemp_extract", g_cwd, PATH_SEPARATOR);
+    snprintf(temp_extract_path, sizeof(temp_extract_path), "%s%stemp_extract", g_install_path, PATH_SEPARATOR);
 
 #ifdef _WIN32
     snprintf(extract_cmd, sizeof(extract_cmd), "powershell -Command \"Expand-Archive -Path '%s' -DestinationPath '%s' -Force\"", project_zip_path, temp_extract_path);
@@ -686,7 +687,7 @@ int install_digmacro(int force_update, const char *branch) {
     printf("Setting up DIG Macro...\n");
 
     char project_path[STR_PATH_MAX];
-    snprintf(project_path, sizeof(project_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+    snprintf(project_path, sizeof(project_path), "%s%s%s", g_install_path, PATH_SEPARATOR, PROJECT_NAME);
 
     if (dir_exists(project_path)) {
         if (force_update) {
@@ -724,18 +725,18 @@ int launch_digmacro(int argc, char *argv[], const char *python_cmd) {
     char launch_cmd[STR_PATH_MAX * 2];
     char project_name_path[STR_PATH_MAX];
 
-    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_cwd, PATH_SEPARATOR, PROJECT_NAME);
+    snprintf(project_name_path, sizeof(project_name_path), "%s%s%s", g_install_path, PATH_SEPARATOR, PROJECT_NAME);
     
 #ifdef __APPLE__
-    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_install_path, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
     snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
     snprintf(venv_folder, sizeof(venv_folder), "%s%sDarwin", env_dev_folder, PATH_SEPARATOR);
 #elif __linux__
-    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_install_path, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
     snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
     snprintf(venv_folder, sizeof(venv_folder), "%s%sLinux", env_dev_folder, PATH_SEPARATOR);
 #elif _WIN32
-    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(env_folder, sizeof(env_folder), "%s%s%s%senv", g_install_path, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
     snprintf(env_dev_folder, sizeof(env_dev_folder), "%s%sdev", env_folder, PATH_SEPARATOR);
     snprintf(venv_folder, sizeof(venv_folder), "%s%sWindows", env_dev_folder, PATH_SEPARATOR);
 #endif
@@ -838,18 +839,18 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-#ifdef __APPLE__
-    char real_path[STR_PATH_MAX];
-    if (get_realpath(g_exe_path, real_path) == -1) {
+    char exe_real_path[STR_PATH_MAX];
+    if (get_realpath(g_exe_path, exe_real_path) == -1) {
         show_error("Could not resolve real application path.\n");
         exit(1);
         return 0;
     }
 
+#ifdef __APPLE__
     // Contents/MacOS -> Contents -> .app
-    // dirname(dirname(dirname(real_path)));
+    // dirname(dirname(dirname(exe_real_path)));
 
-    char *app_dir = dirname(real_path);
+    char *app_dir = dirname(exe_real_path);
     if (chdir(app_dir) != 0) {
         show_error("Could not change working directory.\n");
         exit(1);
@@ -863,6 +864,9 @@ int main(int argc, char *argv[]) {
         printf("Running from app bundle - setting up environment for Python operations...\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
     }
+
+    char *temp_install_path = dirname(dirname(dirname(dirname(exe_real_path))));
+    strcopy(g_install_path, temp_install_path);
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
@@ -871,9 +875,14 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+#ifndef __APPLE__
+    strcpy(g_install_path, g_cwd);
+#endif
+
     printf("Launcher location: %s\n", g_exe_path);
     printf("Current directory: %s\n", g_cwd);
-
+    printf("Install directory: %s\n", g_install_path);
+    
     printf("============ DIG Macro Launcher ============\n");
     
 #ifdef _WIN32
@@ -959,7 +968,7 @@ int main(int argc, char *argv[]) {
     char cwd_arg[2048];
     char python_cwd[STR_PATH_MAX];
 
-    snprintf(python_cwd, sizeof(python_cwd), "%s%s%s%ssrc", g_cwd, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
+    snprintf(python_cwd, sizeof(python_cwd), "%s%s%s%ssrc", g_install_path, PATH_SEPARATOR, PROJECT_NAME, PATH_SEPARATOR);
     snprintf(cwd_arg, sizeof(cwd_arg), "--cwd=%s", python_cwd);
     final_argv[new_argc + 1] = strdup(cwd_arg);
 
