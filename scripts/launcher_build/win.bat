@@ -25,7 +25,7 @@ echo Building...
 set LAUNCHERC_PATH=scripts\launcher_build\launcher.c
 set LAUNCHERC_COPY_PATH=scripts\launcher_build\launcher_copy.c
 
-powershell -Command "(Get-Content '%LAUNCHERC_PATH%') -replace 'MATRIX.BRANCH', $env:BUILD_BRANCH | Set-Content '%LAUNCHERC_COPY_PATH%'"
+powershell -Command "(Get-Content '%LAUNCHERC_PATH%') -replace 'MATRIX.BRANCH', !BUILD_BRANCH! | Set-Content '%LAUNCHERC_COPY_PATH%'"
 gcc -Wall -Wextra -Wno-format-truncation -std=c99 -o output\digmacro_windows.exe "%LAUNCHERC_COPY_PATH%"
 del "%LAUNCHERC_COPY_PATH%"
 
