@@ -166,7 +166,6 @@ if __name__ == "__main__":
                 msgbox.alert(f"Could not set DPI awareness: {e}", log_level=logging.ERROR)
 
     # macOS Permission Checks (original by SalValichu) #
-    """
     if current_os == "Darwin":
         try:
             logging.info("[macOS Permissions] Checking permissions...")
@@ -178,7 +177,7 @@ if __name__ == "__main__":
 
             def create_permission_message(permission_type, reason):
                 app_name = f"digmacro_macos_{current_arch}"
-                message = f\"""This application requires '{permission_type}' permission to {reason}.
+                message = f"""This application requires '{permission_type}' permission to {reason}.
 
 Please go to: System Settings → Privacy & Security → {permission_type}
 Then, ensure this application ({app_name}) is enabled.
@@ -186,7 +185,7 @@ Then, ensure this application ({app_name}) is enabled.
 ⚠ If you are opening the macro with Terminal (or any other application), ensure that application also has '{permission_type}' permission enabled. ⚠
 
 Press 'OK' after enabling '{permission_type}' permission, the macro will restart itself.
-If the permission is enabled and you are still being prompted with this notification, press 'Skip'.""\"
+If the permission is enabled and you are still being prompted with this notification, press 'Skip'."""
             
                 return message
 
@@ -318,7 +317,6 @@ If the permission is enabled and you are still being prompted with this notifica
 
         except Exception as e:
             logging.error(f"[macOS Permissions] Error during permission check: {e}")
-    """
         
     ##########################################################################################################################
 
