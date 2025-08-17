@@ -860,13 +860,25 @@ int main(int argc, char *argv[]) {
     setenv("DYLD_LIBRARY_PATH", "", 1);
     setenv("DYLD_FRAMEWORK_PATH", "", 1);
     
-    if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
+    if (strstr(exe_real_path, ".app/Contents/MacOS/") != NULL) {
         printf("Running from app bundle - setting up environment for Python operations...\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
     }
 
-    char *temp_install_path = dirname(dirname(dirname(dirname(exe_real_path))));
-    strcopy(g_install_path, temp_install_path);
+    char temp[PATH_MAX_LEN];
+    char *temp_dir;
+
+    strncpy(temp, exe_real_path, PATH_MAX_LEN);
+    temp[PATH_MAX_LEN - 1] = '\0';
+
+    for (int i = 0; i < 4; i++) {
+        temp_dir = dirname(temp);
+        strncpy(temp, temp_dir, PATH_MAX_LEN);
+        temp[PATH_MAX_LEN - 1] = '\0';
+    }
+
+    strncpy(g_install_path, temp, PATH_MAX_LEN);
+    g_install_path[PATH_MAX_LEN - 1] = '\0';
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
