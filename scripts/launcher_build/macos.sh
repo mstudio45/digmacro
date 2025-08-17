@@ -19,7 +19,15 @@ if [ ! -d "output" ]; then
   mkdir output
 fi
 
-CURRENT_ARCH="$(uname -m)"
+if [ "$#" -eq 0 ]; then
+  CURRENT_ARCH="$(uname -m)"
+else
+  if [ "$1" = "x64" ]; then
+    CURRENT_ARCH="x86_64"
+  else
+    CURRENT_ARCH="$1"
+  fi
+fi
 
 APP_NAME="digmacro_macos_$CURRENT_ARCH"
 APP_BUNDLE_NAME="$APP_NAME.app"
