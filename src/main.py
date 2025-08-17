@@ -1124,6 +1124,7 @@ If the permission is enabled and you are still being prompted with this notifica
     if Config.GLOBAL_DETECTION_METHOD == "Memory":
         logging.info("Region skipped; Using Memory handler...")
     else:
+        msgbox.alert("The macro currently can't complete Divine, Prismatic and Secret items due to the recent DIG update. (With the OpenCV method)")
         macro.setup_region_setter()
 
     # run threads #
