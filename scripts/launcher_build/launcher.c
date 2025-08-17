@@ -865,20 +865,20 @@ int main(int argc, char *argv[]) {
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
     }
 
-    char temp[PATH_MAX_LEN];
+    char temp[STR_PATH_MAX];
     char *temp_dir;
 
-    strncpy(temp, exe_real_path, PATH_MAX_LEN);
-    temp[PATH_MAX_LEN - 1] = '\0';
+    strncpy(temp, exe_real_path, STR_PATH_MAX);
+    temp[STR_PATH_MAX - 1] = '\0';
 
     for (int i = 0; i < 4; i++) {
         temp_dir = dirname(temp);
-        strncpy(temp, temp_dir, PATH_MAX_LEN);
-        temp[PATH_MAX_LEN - 1] = '\0';
+        strncpy(temp, temp_dir, STR_PATH_MAX);
+        temp[STR_PATH_MAX - 1] = '\0';
     }
 
-    strncpy(g_install_path, temp, PATH_MAX_LEN);
-    g_install_path[PATH_MAX_LEN - 1] = '\0';
+    strncpy(g_install_path, temp, STR_PATH_MAX);
+    g_install_path[STR_PATH_MAX - 1] = '\0';
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
