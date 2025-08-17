@@ -862,7 +862,6 @@ int main(int argc, char *argv[]) {
     if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
         printf("Running from app bundle - setting up environment for Python operations...\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
-        strcpy(g_exe_path, app_dir);
     }
 #endif
 
