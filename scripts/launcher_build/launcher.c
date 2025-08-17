@@ -859,11 +859,11 @@ int main(int argc, char *argv[]) {
     setenv("DYLD_LIBRARY_PATH", "", 1);
     setenv("DYLD_FRAMEWORK_PATH", "", 1);
     
-    /*if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
-        printf("Running from app bundle - setting up environment for Python operations\n");
+    if (strstr(real_path, ".app/Contents/MacOS/") != NULL) {
+        printf("Running from app bundle - setting up environment for Python operations...\n");
         setenv("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", 1);
         strcpy(g_exe_path, app_dir);
-    }*/
+    }
 #endif
 
     if (getcwd(g_cwd, sizeof(g_cwd)) == NULL) {
