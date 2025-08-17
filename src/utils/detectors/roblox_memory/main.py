@@ -1,5 +1,5 @@
 import time
-import os
+import sys
 import platform
 import logging
 import traceback
@@ -76,10 +76,10 @@ if platform.system() == "Windows":
                 if game.failed == False: break
                 time.sleep(0.1)
             
-            if not Variables.is_running: os.kill(os.getpid(), 9)
+            if not Variables.is_running: sys.exit(0)
             if game.failed:
                 msgbox.alert(f"Failed to load DataModel. Please restart the macro and try again.\n{str(game.error)}", log_level=logging.ERROR)
-                os.kill(os.getpid(), 9)
+                sys.exit(0)
 
             # game #
             self.game = game

@@ -61,7 +61,7 @@ def restart_macro(args=["--skip-selection"]):
     # os.execv(binary, arguments)
 
     subprocess.Popen(arguments, cwd=cwd)
-    os.kill(os.getpid(), 9)
+    sys.exit(0)
 
 # install requirements #
 from utils.packages.distro_variables import log_install, start_log_file, close_log_file, current_arch
@@ -83,7 +83,7 @@ if "--skip-install" not in sys.argv:
         check_pip_packages()
 
         close_log_file()
-        os.kill(os.getpid(), 9)
+        sys.exit(0)
 
     if check_shutil_applications() or check_apt_packages() or check_pip_packages():
         close_log_file()
@@ -140,7 +140,7 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     try: FileHandler.rename(StaticVariables.log_filepath, StaticVariables.crash_log_filepath)
     except: pass
 
-    os.kill(os.getpid(), 9)
+    sys.exit(0)
 
 sys.excepthook = log_uncaught_exceptions
 
@@ -272,11 +272,11 @@ If the permission is enabled and you are still being prompted with this notifica
                 res = msgbox.confirm(message, title="DIGMacro - Permission Issue", buttons=("OK", "Skip", "Exit"))
                 if res == "OK":
                     restart_macro(["--skip-install"])
-                    os.kill(os.getpid(), 9) 
+                    sys.exit(0)
                 elif res == "Skip":
                     logging.info("[macOS Permissions] Accessibility permission skipped")
                 else:
-                    os.kill(os.getpid(), 9) 
+                    sys.exit(0)
             else: logging.info("[macOS Permissions] Accessibility access is enabled.")
 
             # Check Input Monitoring #
@@ -289,11 +289,11 @@ If the permission is enabled and you are still being prompted with this notifica
                 res = msgbox.confirm(message, title="DIGMacro - Permission Issue", buttons=("OK", "Skip", "Exit"))
                 if res == "OK":
                     restart_macro(["--skip-install"])
-                    os.kill(os.getpid(), 9) 
+                    sys.exit(0) 
                 elif res == "Skip":
                     logging.info("[macOS Permissions] Input Monitoring permission skipped")
                 else:
-                    os.kill(os.getpid(), 9)
+                    sys.exit(0)
             else: logging.info("[macOS Permissions] Input Monitoring access is enabled.")
 
             # Check Screen Recording #
@@ -310,7 +310,7 @@ If the permission is enabled and you are still being prompted with this notifica
                 elif res == "Skip":
                     logging.info("[macOS Permissions] Screen Recording permission skipped")
                 else:
-                    os.kill(os.getpid(), 9)
+                    sys.exit(0)
             else: logging.info("[macOS Permissions] Screen Recording access is enabled.")
 
         except ImportError as e:
@@ -362,7 +362,7 @@ If the permission is enabled and you are still being prompted with this notifica
                 if confirm == "Yes":
                     if autoupdate:
                         subprocess.Popen([Variables.launcher_path, "--update-source"], cwd=os.path.dirname(os.path.abspath(Variables.launcher_path)))
-                        os.kill(os.getpid(), 9)
+                        sys.exit(0)
                     else:
                         Variables.open_link(f"https://github.com/mstudio45/digmacro/releases/tag/v{latest_branch_version}")
 
@@ -386,7 +386,7 @@ If the permission is enabled and you are still being prompted with this notifica
         
         # exit or restart #
         if config_ui.start_macro_now == True: restart_macro(["--skip-install", "--skip-selection"])
-        else:                                 os.kill(os.getpid(), 9)
+        else:                                 sys.exit(0)
 
     if "--skip-selection" in sys.argv or "--region-check" in sys.argv:
         logging.info("Skipping config/start selection.")
@@ -397,7 +397,7 @@ If the permission is enabled and you are still being prompted with this notifica
         else:
             res = msgbox.confirm("What would you like to do?", buttons=("Start Macro", "Edit the configuration", "Exit"))
             if res == "Edit the configuration": start_config()
-            elif res == "Exit" or res == "":    os.kill(os.getpid(), 9)
+            elif res == "Exit" or res == "":    sys.exit(0)
             else:                               logging.info("Starting the macro...")
     ##########################################################################################################################
 
